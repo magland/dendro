@@ -140,7 +140,6 @@ def _run_job_child_process(*, job_id: str, job_private_key: str, processors: Lis
 
     # Write the output_file_sizes.json file
     # (perhaps to be used later when saving things locally)
-    print('[pairio] Writing output_file_sizes.json')
     if os.path.exists('_pairio'):
         output_file_sizes_fname = '_pairio/output_file_sizes.json'
         output_file_sizes = {}

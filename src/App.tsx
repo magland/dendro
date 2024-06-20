@@ -11,6 +11,7 @@ import { SetupLogin } from './LoginContext/SetupLogin'
 import { useWindowDimensions } from '@fi-sci/misc'
 import RegisterComputeClientPage from './pages/RegisterComputeClientPage/RegisterComputeClientPage'
 import ServiceAppPage from './pages/ServiceAppPage/ServiceAppPage'
+import JobPage from './pages/JobPage.tsx/JobPage'
 // import useRoute from './useRoute'
 
 function App() {
@@ -49,6 +50,9 @@ function MainWindow() {
   }
   else if (route.page === 'service_app') {
     return <ServiceAppPage />
+  }
+  else if (route.page === 'job') {
+    return <JobPage />
   }
   else {
     return <div>Invalid route</div>

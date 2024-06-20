@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLogin } from "./LoginContext/LoginContext";
-import { AddServiceAppRequest, AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobsRequest, GetServiceAppRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, SetServiceAppInfoRequest, SetServiceInfoRequest, isAddServiceAppResponse, isAddServiceResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobsResponse, isGetServiceAppResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceAppInfoRequest, isSetServiceAppInfoResponse, isSetServiceInfoResponse } from "./types";
+import { AddServiceAppRequest, AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobRequest, GetJobsRequest, GetServiceAppRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, SetServiceAppInfoRequest, SetServiceInfoRequest, isAddServiceAppResponse, isAddServiceResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobResponse, isGetJobsResponse, isGetServiceAppResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceAppInfoRequest, isSetServiceAppInfoResponse, isSetServiceInfoResponse } from "./types";
 
 // const apiUrl = 'https://pairio.vercel.app'
 const apiUrl = 'http://localhost:3000'
@@ -364,6 +364,35 @@ export const useServiceApp = (serviceName: string, appName: string) => {
     }, [serviceApp, serviceName, appName, refreshServiceApp])
 
     return { serviceApp, refreshServiceApp, updateFromSource }
+}
+
+export const useJob = (jobId: string) => {
+    const [job, setJob] = useState<PairioJob | undefined>(undefined)
+    const [refreshCode, setRefreshCode] = useState(0)
+    const refreshJob = useCallback(() => {
+        setRefreshCode(c => c + 1)
+    }, [])
+    useEffect(() => {
+        let canceled = false
+        setJob(undefined)
+        ;(async () => {
+            const req: GetJobRequest = {
+                type: 'getJobRequest',
+                jobId,
+                includePrivateKey: false
+            }
+            const resp = await apiPostRequest('getJob', req)
+            if (!isGetJobResponse(resp)) {
+                console.error('Invalid response', resp)
+                return
+            }
+            if (canceled) return
+            setJob(resp.job)
+        })()
+        return () => { canceled = true }
+    }, [jobId, refreshCode])
+
+    return { job, refreshJob }
 }
 
 export const apiPostRequest = async (path: string, req: any, accessToken?: string) => {
