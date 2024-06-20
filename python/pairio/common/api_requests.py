@@ -198,7 +198,6 @@ def get_upload_url(*,
         'type': 'getSignedUploadUrlRequest',
         'jobId': job_id,
         'uploadType': upload_type,
-        'outputName': output_name,
         'size': size
     }
     if output_name is not None:

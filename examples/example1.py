@@ -4,7 +4,7 @@ from pairio.client import submit_job, PairioJobDefinition, PairioJobRequiredReso
 def main():
     job_def = PairioJobDefinition(
         appName='hello_world',
-        processorName='hello_world',
+        processorName='hello_world_1',
         inputFiles=[],
         outputFiles=[],
         parameters=[]
