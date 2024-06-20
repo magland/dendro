@@ -11,7 +11,7 @@ import { SetupLogin } from './LoginContext/SetupLogin'
 import { useWindowDimensions } from '@fi-sci/misc'
 import RegisterComputeClientPage from './pages/RegisterComputeClientPage/RegisterComputeClientPage'
 import ServiceAppPage from './pages/ServiceAppPage/ServiceAppPage'
-import JobPage from './pages/JobPage.tsx/JobPage'
+import JobPage from './pages/JobPage/JobPage'
 // import useRoute from './useRoute'
 
 function App() {

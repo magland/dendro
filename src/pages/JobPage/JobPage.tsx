@@ -47,10 +47,10 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
                         <td>App</td>
                         <td>{job.jobDefinition.appName}</td>
                     </tr>
-                    <td>
+                    <tr>
                         <td>Processor</td>
                         <td>{job.jobDefinition.processorName}</td>
-                    </td>
+                    </tr>
                     <tr>
                         <td>Status</td>
                         <td>

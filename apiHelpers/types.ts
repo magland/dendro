@@ -149,14 +149,12 @@ export const isPairioJobInputFile = (x: any): x is PairioJobInputFile => {
 export type PairioJobOutputFile = {
   name: string
   fileBaseName: string
-  url: string
 }
 
 export const isPairioJobOutputFile = (x: any): x is PairioJobOutputFile => {
   return validateObject(x, {
     name: isString,
-    fileBaseName: isString,
-    url: isString
+    fileBaseName: isString
   })
 }
 
@@ -229,6 +227,20 @@ export const isPairioJobDefinition = (x: any): x is PairioJobDefinition => {
   })
 }
 
+export type PairioJobOutputFileResult = {
+  name: string
+  url: string
+  size: number
+}
+
+export const isPairioJobOutputFileResult = (x: any): x is PairioJobOutputFileResult => {
+  return validateObject(x, {
+    name: isString,
+    url: isString,
+    size: isNumber
+  })
+}
+
 // PairioJob
 export type PairioJob = {
   jobId: string
@@ -241,8 +253,9 @@ export type PairioJob = {
   jobDefinitionHash: string
   requiredResources: PairioJobRequiredResources
   secrets: PairioJobSecret[] | null
-  inputFileUrls: string[]
-  outputFileUrls: string[]
+  inputFileUrlList: string[]
+  outputFileUrlList: string[]
+  outputFileResults: PairioJobOutputFileResult[]
   consoleOutputUrl: string
   resourceUtilizationLogUrl: string
   timestampCreatedSec: number
@@ -269,8 +282,9 @@ export const isPairioJob = (x: any): x is PairioJob => {
     jobDefinitionHash: isString,
     requiredResources: isPairioJobRequiredResources,
     secrets: isOneOf([isArrayOf(isPairioJobSecret), isNull]),
-    inputFileUrls: isArrayOf(isString),
-    outputFileUrls: isArrayOf(isString),
+    inputFileUrlList: isArrayOf(isString),
+    outputFileUrlList: isArrayOf(isString),
+    outputFileResults: isArrayOf(isPairioJobOutputFileResult),
     consoleOutputUrl: isString,
     resourceUtilizationLogUrl: isString,
     timestampCreatedSec: isNumber,

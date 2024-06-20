@@ -21,4 +21,5 @@ def submit_job(
         secrets=[],
         user_api_key=user_api_key
     )
-    return job_id
+    job_url = f'https://pairio.vercel.app/job/{job_id}'
+    return job_url

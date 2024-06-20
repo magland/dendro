@@ -118,7 +118,6 @@ class PairioJobInputFile(BaseModel):
 class PairioJobOutputFile(BaseModel):
     name: str
     fileBaseName: str
-    url: str
 
 
 class PairioJobParameter(BaseModel):

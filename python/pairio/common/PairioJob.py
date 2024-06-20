@@ -24,7 +24,6 @@ class PairioJobInputFile(BaseModel):
 class PairioJobOutputFile(BaseModel):
     name: str
     fileBaseName: str
-    url: str
 
 
 class PairioJobParameter(BaseModel):
@@ -51,6 +50,10 @@ class PairioJobDefinition(BaseModel):
     outputFiles: List[PairioJobOutputFile]
     parameters: List[PairioJobParameter]
 
+class PairioJobOutputFileResult(BaseModel):
+    name: str
+    url: str
+    size: int
 
 class PairioJob(BaseModel):
     jobId: str
@@ -63,8 +66,9 @@ class PairioJob(BaseModel):
     jobDefinitionHash: str
     requiredResources: PairioJobRequiredResources
     secrets: Union[List[PairioJobSecret], None]
-    inputFileUrls: List[str]
-    outputFileUrls: List[str]
+    inputFileUrlList: List[str]
+    outputFileUrlList: List[str]
+    outputFileResults: List[PairioJobOutputFileResult]
     consoleOutputUrl: str
     resourceUtilizationLogUrl: str
     timestampCreatedSec: float
@@ -136,32 +140,4 @@ class PairioJob(BaseModel):
 #   inputFiles: PairioJobInputFile[]
 #   outputFiles: PairioJobOutputFile[]
 #   parameters: PairioJobParameter[]
-# }
-
-# // PairioJob
-# export type PairioJob = {
-#   jobId: string
-#   jobPrivateKey: string | null
-#   serviceName: string
-#   userId: string
-#   batchId: string
-#   projectName: string
-#   jobDefinition: PairioJobDefinition
-#   jobDefinitionHash: string
-#   requiredResources: PairioJobRequiredResources
-#   secrets: PairioJobSecret[] | null
-#   inputFileUrls: string[]
-#   outputFileUrls: string[]
-#   consoleOutputUrl: string
-#   resourceUtilizationLogUrl: string
-#   timestampCreatedSec: number
-#   timestampStartingSec: number | null
-#   timestampStartedSec: number | null
-#   timestampFinishedSec: number | null
-#   canceled: boolean
-#   status: PairioJobStatus
-#   error: string | null
-#   computeClientId: string | null
-#   computeClientName: string | null
-#   imageUri: string | null
 # }

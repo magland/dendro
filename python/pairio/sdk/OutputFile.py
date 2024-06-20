@@ -28,7 +28,7 @@ class OutputFile(BaseModel):
             size=os.path.getsize(local_file_name)
         )
 
-        print(f'Uploading output file {self.name}') # it could be a security issue to provide the url in this print statement
+        print(f'[] Uploading output file {self.name}') # it could be a security issue to provide the url in this print statement
         with open(local_file_name, 'rb') as f:
             resp_upload = requests.put(upload_url, data=f, timeout=60 * 60 * 24 * 7)
             if resp_upload.status_code != 200:
@@ -36,7 +36,7 @@ class OutputFile(BaseModel):
                 raise SetOutputFileException(f'Error uploading file to bucket ({resp_upload.status_code}) {resp_upload.reason}: {resp_upload.text}')
 
         if delete_local_file:
-            print(f'Deleting local file {local_file_name}')
+            print(f'[] Deleting local file {local_file_name}')
             if os.path.exists(local_file_name):
                 os.remove(local_file_name)
 

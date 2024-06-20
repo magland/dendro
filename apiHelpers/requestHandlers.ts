@@ -394,13 +394,6 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
 
         const jobId = generateJobId();
         const jobPrivateKey = generateJobPrivateKey();
-
-        for (const outputFile of rr.jobDefinition.outputFiles) {
-            if (outputFile.url) {
-                throw Error('Output file url should not be set');
-            }
-            outputFile.url = await createOutputFileUrl({ serviceName: rr.serviceName, appName: rr.jobDefinition.appName, processorName: rr.jobDefinition.processorName, jobId, outputName: outputFile.name, outputFileBaseName: outputFile.fileBaseName });
-        }
         const consoleOutputUrl = await createOutputFileUrl({ serviceName: rr.serviceName, appName: rr.jobDefinition.appName, processorName: rr.jobDefinition.processorName, jobId, outputName: 'console_output', outputFileBaseName: 'output.txt' });
         const resourceUtilizationLogUrl = await createOutputFileUrl({ serviceName: rr.serviceName, appName: rr.jobDefinition.appName, processorName: rr.jobDefinition.processorName, jobId, outputName: 'resource_utilization_log', outputFileBaseName: 'log.jsonl' });
 
@@ -415,8 +408,9 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             jobDefinitionHash: computeSha1(JSONStringifyDeterministic(rr.jobDefinition)),
             requiredResources: rr.requiredResources,
             secrets: rr.secrets,
-            inputFileUrls: rr.jobDefinition.inputFiles.map(f => f.url),
-            outputFileUrls: rr.jobDefinition.outputFiles.map(f => f.url),
+            inputFileUrlList: rr.jobDefinition.inputFiles.map(f => f.url),
+            outputFileUrlList: [],
+            outputFileResults: [],
             consoleOutputUrl,
             resourceUtilizationLogUrl,
             timestampCreatedSec: Date.now() / 1000,
@@ -550,8 +544,8 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
         if (rr.projectName) query['projectName'] = rr.projectName;
         if (rr.serviceName) query['serviceName'] = rr.serviceName;
         if (rr.appName) query['appName'] = rr.appName;
-        if (rr.inputFileUrl) query['inputFileUrls'] = rr.inputFileUrl;
-        if (rr.outputFileUrl) query['outputFileUrls'] = rr.outputFileUrl;
+        if (rr.inputFileUrl) query['inputFileList'] = { $contains: rr.inputFileUrl };
+        if (rr.outputFileUrl) query['outputFileList'] = { $contains: rr.outputFileUrl };
         if (rr.status) query['status'] = rr.status;
         const jobs = await fetchJobs(query);
         // hide the private keys and secrets for the jobs
@@ -914,7 +908,18 @@ export const getSignedUploadUrlHandler = allowCors(async (req: VercelRequest, re
                 res.status(400).json({ error: "Output file not found" });
                 return;
             }
-            url = oo.url;
+            const ooResult = job.outputFileResults.find(o => (o.name === rr.outputName));
+            if (ooResult) {
+                res.status(400).json({ error: "Output file has already been uploaded" });
+                return;
+            }
+            url = await createOutputFileUrl({ serviceName: job.serviceName, appName: job.jobDefinition.appName, processorName: job.jobDefinition.processorName, jobId: job.jobId, outputName: rr.outputName, outputFileBaseName: oo.fileBaseName });
+            job.outputFileResults.push({
+                name: rr.outputName,
+                url,
+                size: rr.size
+            });
+            await updateJob(rr.jobId, { outputFileResults: job.outputFileResults });
         }
         else if (rr.uploadType === 'consoleOutput') {
             url = job.consoleOutputUrl
