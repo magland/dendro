@@ -96,6 +96,31 @@ def get_jobs(
     return jobs
 
 
+def get_runnable_jobs_for_compute_client(
+    *,
+    compute_client_id: str,
+    compute_client_private_key
+):
+    url_path = '/api/getRunnableJobsForComputeClient'
+    req = {
+        'type': 'getRunnableJobsForComputeClientRequest',
+        'computeClientId': compute_client_id
+    }
+    headers = {
+        'Authorization': f'Bearer {compute_client_private_key}'
+    }
+    resp = _post_api_request(
+        url_path=url_path,
+        data=req,
+        headers=headers
+    )
+    runnable_jobs = resp['runnableJobs']
+    runnable_jobs = [PairioJob(**job) for job in runnable_jobs]
+    running_jobs = resp['runningJobs']
+    running_jobs = [PairioJob(**job) for job in running_jobs]
+    return runnable_jobs, running_jobs
+
+
 # // getJob
 # export type GetJobRequest = {
 #   type: 'getJobRequest'

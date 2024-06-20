@@ -4,7 +4,6 @@ from .. import BaseModel
 
 
 class ComputeClientComputeSlot(BaseModel):
-    computeSlotId: str
     numCpus: int
     numGpus: int
     memoryGb: float
@@ -13,7 +12,7 @@ class ComputeClientComputeSlot(BaseModel):
     minNumGpus: int
     minMemoryGb: float
     minTimeSec: float
-    multiplicity: Union[int, None]
+    multiplicity: int
 
 
 class PairioJobInputFile(BaseModel):
@@ -83,7 +82,6 @@ class PairioJob(BaseModel):
 
 # // ComputeClientComputeSlot
 # export type ComputeClientComputeSlot = {
-#   computeSlotId: string
 #   numCpus: number
 #   numGpus: number
 #   memoryGb: number
@@ -92,7 +90,7 @@ class PairioJob(BaseModel):
 #   minNumGpus: number
 #   minMemoryGb: number
 #   minTimeSec: number
-#   multiplicity: number | null
+#   multiplicity: number
 # }
 
 # // PairioJobInputFile

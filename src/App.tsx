@@ -9,6 +9,7 @@ import useRoute from './useRoute'
 import ComputeClientPage from './pages/ComputeClientPage/ComputeClientPage'
 import { SetupLogin } from './LoginContext/SetupLogin'
 import { useWindowDimensions } from '@fi-sci/misc'
+import RegisterComputeClientPage from './pages/RegisterComputeClientPage/RegisterComputeClientPage'
 // import useRoute from './useRoute'
 
 function App() {
@@ -41,6 +42,9 @@ function MainWindow() {
   }
   else if (route.page === 'set_access_token') {
     return <SetAccessTokenComponent />
+  }
+  else if (route.page === 'register_compute_client') {
+    return <RegisterComputeClientPage />
   }
   else {
     return <div>Invalid route</div>

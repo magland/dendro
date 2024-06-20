@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetServiceRequest, GetServicesRequest, PairioService, PairioComputeClient, PairioServiceUser, SetServiceInfoRequest, isAddServiceResponse, isCreateComputeClientResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetServiceResponse, isGetServicesResponse, isSetServiceInfoResponse, SetComputeClientInfoRequest, isSetComputeClientInfoResponse, PairioServiceApp, GetServiceAppsRequest, isGetServiceAppsResponse, AddServiceAppRequest, isAddServiceAppResponse, isPairioAppSpecification } from "./types";
 import { useLogin } from "./LoginContext/LoginContext";
+import { AddServiceAppRequest, AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioService, PairioServiceApp, PairioServiceUser, SetServiceInfoRequest, isAddServiceAppResponse, isAddServiceResponse, isCreateComputeClientResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceInfoResponse } from "./types";
 
-// const apiUrl = 'https://pairio.vercel.app'
-const apiUrl = 'http://localhost:3000'
+const apiUrl = 'https://pairio.vercel.app'
+// const apiUrl = 'http://localhost:3000'
 
 export const useServices = () => {
     const { userId, githubAccessToken } = useLogin();
@@ -114,13 +114,14 @@ export const useService = (serviceName: string) => {
         refreshService()
     }), [serviceName, githubAccessToken, refreshService])
 
-    const createComputeClient = useMemo(() => (async (o: { label: string }) => {
+    const createComputeClient = useMemo(() => (async (o: { computeClientName: string }) => {
         if (!userId) return
         if (!githubAccessToken) return
-        const { label } = o
+        const { computeClientName } = o
         const req: CreateComputeClientRequest = {
             type: 'createComputeClientRequest',
             userId,
+            computeClientName,
             serviceName
         }
         const resp = await apiPostRequest('createComputeClient', req, githubAccessToken)
@@ -130,16 +131,6 @@ export const useService = (serviceName: string) => {
         }
         const computeClientId = resp.computeClientId
         const computeClientPrivateKey = resp.computeClientPrivateKey
-        const req2: SetComputeClientInfoRequest = {
-            type: 'setComputeClientInfoRequest',
-            computeClientId: resp.computeClientId,
-            label
-        }
-        const resp2 = await apiPostRequest('setComputeClientInfo', req2, githubAccessToken)
-        if (!isSetComputeClientInfoResponse(resp2)) {
-            console.error('Invalid response', resp2)
-            return
-        }
         return {computeClientId, computeClientPrivateKey}
     }), [])
 
@@ -274,7 +265,7 @@ export const useComputeClient = (computeClientId: string) => {
     return { computeClient, deleteComputeClient, refreshComputeClient }
 }
 
-const apiPostRequest = async (path: string, req: any, accessToken?: string) => {
+export const apiPostRequest = async (path: string, req: any, accessToken?: string) => {
     const url = `${apiUrl}/api/${path}`
     const headers: { [key: string]: string } = {}
     if (accessToken) {

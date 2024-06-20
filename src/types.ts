@@ -348,7 +348,6 @@ export const isPairioAppProcessorParameter = (x: any): x is PairioAppProcessorPa
 
 // ComputeClientComputeSlot
 export type ComputeClientComputeSlot = {
-  computeSlotId: string
   numCpus: number
   numGpus: number
   memoryGb: number
@@ -357,12 +356,11 @@ export type ComputeClientComputeSlot = {
   minNumGpus: number
   minMemoryGb: number
   minTimeSec: number
-  multiplicity: number | null
+  multiplicity: number
 }
 
 export const isComputeClientComputeSlot = (x: any): x is ComputeClientComputeSlot => {
   return validateObject(x, {
-    computeSlotId: isString,
     numCpus: isNumber,
     numGpus: isNumber,
     memoryGb: isNumber,
@@ -371,7 +369,7 @@ export const isComputeClientComputeSlot = (x: any): x is ComputeClientComputeSlo
     minNumGpus: isNumber,
     minMemoryGb: isNumber,
     minTimeSec: isNumber,
-    multiplicity: isOneOf([isNumber, isNull])
+    multiplicity: isNumber
   })
 }
 
@@ -669,6 +667,33 @@ export const isGetJobsResponse = (x: any): x is GetJobsResponse => {
   return validateObject(x, {
     type: isEqualTo('getJobsResponse'),
     jobs: isArrayOf(isPairioJob)
+  })
+}
+
+// getRunnableJobsForComputeClient
+export type GetRunnableJobsForComputeClientRequest = {
+  type: 'getRunnableJobsForComputeClientRequest'
+  computeClientId: string
+}
+
+export const isGetRunnableJobsForComputeClientRequest = (x: any): x is GetRunnableJobsForComputeClientRequest => {
+  return validateObject(x, {
+    type: isEqualTo('getRunnableJobsForComputeClientRequest'),
+    computeClientId: isString
+  })
+}
+
+export type GetRunnableJobsForComputeClientResponse = {
+  type: 'getRunnableJobsForComputeClientResponse'
+  runnableJobs: PairioJob[]
+  runningJobs: PairioJob[]
+}
+
+export const isGetRunnableJobsForComputeClientResponse = (x: any): x is GetRunnableJobsForComputeClientResponse => {
+  return validateObject(x, {
+    type: isEqualTo('getRunnableJobsForComputeClientResponse'),
+    runnableJobs: isArrayOf(isPairioJob),
+    runningJobs: isArrayOf(isPairioJob)
   })
 }
 
@@ -1051,5 +1076,30 @@ export const isGetServiceAppsResponse = (x: any): x is GetServiceAppsResponse =>
   return validateObject(x, {
     type: isEqualTo('getServiceAppsResponse'),
     serviceApps: isArrayOf(isPairioServiceApp)
+  })
+}
+
+// getPubsubSubscription
+export type GetPubsubSubscriptionRequest = {
+  type: 'getPubsubSubscriptionRequest'
+  computeClientId?: string
+}
+
+export const isGetPubsubSubscriptionRequest = (x: any): x is GetPubsubSubscriptionRequest => {
+  return validateObject(x, {
+    type: isEqualTo('getPubsubSubscriptionRequest'),
+    computeClientId: optional(isString)
+  })
+}
+
+export type GetPubsubSubscriptionResponse = {
+  type: 'getPubsubSubscriptionResponse'
+  subscription: any
+}
+
+export const isGetPubsubSubscriptionResponse = (x: any): x is GetPubsubSubscriptionResponse => {
+  return validateObject(x, {
+    type: isEqualTo('getPubsubSubscriptionResponse'),
+    subscription: () => true
   })
 }

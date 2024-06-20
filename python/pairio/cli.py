@@ -9,15 +9,20 @@ from .sdk._make_spec_file import make_app_spec_file_function
 # Compute client
 # ------------------------------------------------------------
 @click.command(help='Register a compute client in the current directory')
-@click.argument('compute_client_name', type=str, required=False)
+@click.option('--compute-client-name', default=None, help='Name of the compute client')
+@click.option('--service-name', default=None, help='Name of the service')
 def register_compute_client(
-    compute_client_name: Union[str, None]
+    compute_client_name: Union[str, None],
+    service_name: Union[str, None]
 ):
+    if service_name is None:
+        service_name = input('Enter the name of the pairio service: ')
     if compute_client_name is None:
         compute_client_name = input('Enter a unique name for the compute client: ')
     register_compute_client_function(
         dir='.',
-        compute_client_name=compute_client_name
+        compute_client_name=compute_client_name,
+        service_name=service_name
     )
 
 @click.command(help='Start a compute client in the current directory')

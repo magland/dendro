@@ -20,6 +20,10 @@ export type Route = {
     accessToken: string
 } | {
     page: 'logIn'
+} | {
+    page: 'register_compute_client'
+    serviceName: string
+    computeClientName: string
 }
 
 const useRoute = () => {
@@ -76,6 +80,19 @@ const useRoute = () => {
                 page: 'logIn'
             }
         }
+        else if (p.startsWith('/register_compute_client/')) {
+            const parts = p.slice('/register_compute_client/'.length).split('/')
+            if (parts.length !== 2) {
+                throw new Error(`Invalid register compute client URL: ${p}`)
+            }
+            const serviceName = parts[0]
+            const computeClientName = parts[1]
+            return {
+                page: 'register_compute_client',
+                serviceName,
+                computeClientName
+            }
+        }
         else {
             return {
                 page: 'home'
@@ -104,6 +121,9 @@ const useRoute = () => {
         }
         else if (r.page === 'logIn') {
             navigate('/logIn')
+        }
+        else if (r.page === 'register_compute_client') {
+            navigate(`/register_compute_client/${r.serviceName}/${r.computeClientName}`)
         }
         else {
             navigate('/')

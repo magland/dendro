@@ -14,9 +14,9 @@ export const ComputeClientsView: FunctionComponent<ComputeClientsViewProps> = ({
     const [newComputeClientInfo, setNewComputeClientInfo] = useState<{computeClientId: string, computeClientPrivateKey: string} | null>(null)
 
     const handleAddComputeClient = useCallback(async () => {
-        const computeResourceLabel = prompt('Enter compute resource label')
-        if (!computeResourceLabel) return
-        const x = await createComputeClient({label: computeResourceLabel})
+        const computeClientName = prompt('Enter a unique name for the compute client')
+        if (!computeClientName) return
+        const x = await createComputeClient({computeClientName})
         if (!x) return
         const {computeClientId, computeClientPrivateKey} = x
         setNewComputeClientInfo({computeClientId, computeClientPrivateKey})

@@ -37,7 +37,7 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                 <tbody>
                     <tr>
                         <td>Compute client</td>
-                        <td>{computeClient.label}</td>
+                        <td>{computeClient.computeClientName}</td>
                         <td />
                     </tr>
                     <tr>

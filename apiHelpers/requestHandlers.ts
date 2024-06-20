@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import allowCors from "./allowCors"; // remove .js for local dev
-import { getMongoClient } from "./getMongoClient"; // remove .js for local dev
-import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, CreateJobResponse, CreateComputeClientResponse, DeleteServiceAppResponse, DeleteComputeClientResponse, DeleteServiceResponse, GetJobResponse, GetJobsResponse, GetServiceAppResponse, GetServiceAppsResponse, GetComputeClientResponse, GetComputeClientsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioJob, PairioJobDefinition, PairioService, PairioServiceApp, PairioComputeClient, PairioUser, ResetUserApiKeyResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateJobRequest, isCreateComputeClientRequest, isDeleteServiceAppRequest, isDeleteComputeClientRequest, isDeleteServiceRequest, isGetJobRequest, isGetJobsRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioJob, isPairioService, isPairioServiceApp, isPairioComputeClient, isPairioUser, isResetUserApiKeyRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest, isSetComputeClientInfoRequest, SetComputeClientInfoResponse } from "./types"; // remove .js for local dev
+import allowCors from "./allowCors.js"; // remove .js for local dev
+import { getMongoClient } from "./getMongoClient.js"; // remove .js for local dev
+import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, CreateJobResponse, CreateComputeClientResponse, DeleteServiceAppResponse, DeleteComputeClientResponse, DeleteServiceResponse, GetJobResponse, GetJobsResponse, GetServiceAppResponse, GetServiceAppsResponse, GetComputeClientResponse, GetComputeClientsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioJob, PairioJobDefinition, PairioService, PairioServiceApp, PairioComputeClient, PairioUser, ResetUserApiKeyResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateJobRequest, isCreateComputeClientRequest, isDeleteServiceAppRequest, isDeleteComputeClientRequest, isDeleteServiceRequest, isGetJobRequest, isGetJobsRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioJob, isPairioService, isPairioServiceApp, isPairioComputeClient, isPairioUser, isResetUserApiKeyRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest, isSetComputeClientInfoRequest, SetComputeClientInfoResponse, isGetRunnableJobsForComputeClientRequest, GetRunnableJobsForComputeClientResponse, ComputeClientComputeSlot, isGetPubsubSubscriptionRequest, isGetPubsubSubscriptionResponse, GetPubsubSubscriptionResponse } from "./types.js"; // remove .js for local dev
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -497,6 +497,106 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
         res.status(500).json({ error: e.message });
     }
 });
+
+// getRunnableJobsForComputeClient handler
+export const getRunnableJobsForComputeClientHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
+    const rr = req.body;
+    if (!isGetRunnableJobsForComputeClientRequest(rr)) {
+        res.status(400).json({ error: "Invalid request" });
+        return;
+    }
+    try {
+        const computeClient = await fetchComputeClient(rr.computeClientId);
+        if (!computeClient) {
+            res.status(404).json({ error: "Compute client not found" });
+            return;
+        }
+        const computeClientPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
+        if (computeClient.computeClientPrivateKey !== computeClientPrivateKey) {
+            res.status(401).json({ error: "Unauthorized: incorrect or missing compute client private key" });
+            return;
+        }
+        const service = await fetchService(computeClient.serviceName);
+        if (!service) {
+            res.status(404).json({ error: "Service not found" });
+            return;
+        }
+        if (!userIsAllowedToProcessJobsForService(service, computeClient.userId)) {
+            res.status(401).json({ error: "This compute client is not allowed to process jobs for this service" });
+            return;
+        }
+        let pendingJobs = await fetchJobs({ serviceName: service.serviceName, status: 'pending' });
+        // scramble the pending jobs so that we don't always get the same ones
+        // and minimize conflicts between compute clients when there are many
+        // pending jobs
+        pendingJobs = shuffleArray(pendingJobs);
+        const runningJobs = await fetchJobs({ serviceName: service.serviceName, status: 'running' });
+        const runnableJobs: PairioJob[] = [];
+        for (const pj of pendingJobs) {
+            if (computeResourceHasEnoughCapacityForJob(computeClient, pj, [...runningJobs, ...runnableJobs])) {
+                runnableJobs.push(pj);
+            }
+        }
+        // remove secrets, but don't remove job private keys
+        for (const job of runnableJobs) {
+            job.secrets = null;
+        }
+        for (const job of runningJobs) {
+            job.secrets = null;
+        }
+        const resp: GetRunnableJobsForComputeClientResponse = {
+            type: 'getRunnableJobsForComputeClientResponse',
+            runnableJobs,
+            runningJobs
+        }
+        res.status(200).json(resp);
+    }
+    catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+const computeResourceHasEnoughCapacityForJob = (computeClient: PairioComputeClient, job: PairioJob, otherJobs: PairioJob[]) => {
+    const slotties = computeClient.computeSlots.map(s => ({
+        computeSlot: s,
+        count: 0
+    }));
+    for (const j of otherJobs) {
+        for (const s of slotties) {
+            if (s.count >= (s.computeSlot.multiplicity || 1)) {
+                continue;
+            }
+            if (fitsSlot(j, s.computeSlot)) {
+                s.count++;
+                break;
+            }
+        }
+    }
+    for (const s of slotties) {
+        if (s.count >= (s.computeSlot.multiplicity || 1)) {
+            continue;
+        }
+        if (fitsSlot(job, s.computeSlot)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+const fitsSlot = (job: PairioJob, computeSlot: ComputeClientComputeSlot) => {
+    const rr = job.requiredResources;
+    const cs = computeSlot;
+    if (rr.numCpus > cs.numCpus) return false;
+    if (rr.numCpus > cs.numGpus) return false;
+    if (rr.memoryGb > cs.memoryGb) return false;
+    if (rr.timeSec > cs.timeSec) return false;
+    if (rr.numCpus < cs.minNumCpus) return false;
+    if (rr.numGpus < cs.minNumGpus) return false;
+    if (rr.memoryGb < cs.minMemoryGb) return false;
+    if (rr.timeSec < cs.minTimeSec) return false;
+    return true;
+}
 
 // getJob handler
 export const getJobHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
@@ -1084,6 +1184,50 @@ export const getServiceAppsHandler = allowCors(async (req: VercelRequest, res: V
     }
 });
 
+// getPubsubSubscription handler
+export const getPubsubSubscriptionHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
+    const rr = req.body;
+    if (!isGetPubsubSubscriptionRequest(rr)) {
+        res.status(400).json({ error: "Invalid request" });
+        return;
+    }
+    try {
+        const computeClientId = rr.computeClientId;
+        if (!computeClientId) {
+            res.status(400).json({ error: "Must specify computeClientId in request" });
+            return;
+        }
+        const computeClientPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
+        const computeClient = await fetchComputeClient(computeClientId);
+        if (!computeClient) {
+            res.status(404).json({ error: "Compute client not found" });
+            return;
+        }
+        if (computeClient.computeClientPrivateKey !== computeClientPrivateKey) {
+            res.status(401).json({ error: "Unauthorized: incorrect or missing compute client private key" });
+            return;
+        }
+        const VITE_PUBNUB_SUBSCRIBE_KEY = process.env.VITE_PUBNUB_SUBSCRIBE_KEY;
+        if (!VITE_PUBNUB_SUBSCRIBE_KEY) {
+            res.status(500).json({ error: "VITE_PUBNUB_SUBSCRIBE_KEY not set" });
+            return;
+        }
+        const resp: GetPubsubSubscriptionResponse = {
+            type: 'getPubsubSubscriptionResponse',
+            subscription: {
+                pubnubSubscribeKey: VITE_PUBNUB_SUBSCRIBE_KEY,
+                pubnubChannel: computeClientId,
+                pubnubUser: computeClientId
+            }
+        }
+        res.status(200).json(resp);
+    }
+    catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 ////////////////////////////////////////
 
 const authenticateUserUsingApiToken = async (userId: string, authorizationToken: string | undefined): Promise<boolean> => {
@@ -1514,4 +1658,11 @@ export const JSONStringifyDeterministic = ( obj: any, space: string | number | u
     JSON.stringify( obj, function( key, value ){ allKeys.push( key ); return value; } )
     allKeys.sort();
     return JSON.stringify( obj, allKeys, space );
+}
+
+const shuffleArray = (arr: any[]) => {
+    const randomValues = arr.map(Math.random);
+    const indices = randomValues.map((v, i) => [v, i]);
+    indices.sort((a, b) => a[0] - b[0]);
+    return indices.map(v => arr[v[1]]);
 }

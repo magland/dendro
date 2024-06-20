@@ -27,7 +27,7 @@ const ComputeClientsTable: FunctionComponent<ComputeClientsTableProps> = ({ comp
                                     setRoute({page: 'compute_client', computeClientId: cc.computeClientId})
                                 }}
                             >
-                                {cc.label} ({cc.computeClientId})
+                                {cc.computeClientName} ({cc.computeClientId})
                             </Hyperlink>
                         </td>
                         <td>{cc.serviceName}</td>

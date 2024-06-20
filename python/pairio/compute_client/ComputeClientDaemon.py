@@ -5,7 +5,7 @@ import shutil
 import multiprocessing
 from pathlib import Path
 from .JobManager import JobManager
-from ..common.api_requests import get_jobs, get_pubsub_subscription
+from ..common.api_requests import get_pubsub_subscription, get_runnable_jobs_for_compute_client
 
 
 class ComputeClientDaemon:
@@ -99,12 +99,12 @@ class ComputeClientDaemon:
                 pubsub_client.close() # unfortunately this doesn't actually stop the thread - it's a pubnub/python issue
 
     def _handle_jobs(self):
-        jobs = get_jobs(
+        runnable_jobs, _ = get_runnable_jobs_for_compute_client(
             compute_client_id=self._compute_client_id,
             compute_client_private_key=self._compute_client_private_key
         )
-        if len(jobs) > 0:
-            self._job_manager.handle_jobs(jobs)
+        if len(runnable_jobs) > 0:
+            self._job_manager.handle_jobs(runnable_jobs)
 
 
 def _cleanup_old_job_working_directories(dir: str):
