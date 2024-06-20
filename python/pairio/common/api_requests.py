@@ -246,10 +246,12 @@ def create_job(
         'userId': '',  # determined from the api key
         'batchId': batch_id,
         'projectName': project_name,
-        'job_definition': job_definition,
-        'required_resources': required_resources,
-        'secrets': secrets
+        'jobDefinition': job_definition.model_dump(),
+        'requiredResources': required_resources.model_dump(),
+        'secrets': [s.model_dump() for s in secrets]
     }
+    print('--- create_job ---')
+    print(req)
     headers = {
         'Authorization': f'Bearer: {user_api_key}'
     }

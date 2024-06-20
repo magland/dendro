@@ -1,7 +1,7 @@
 const publishPubsubMessage = async (channel: string, message: any) => {
-    const sub_key = process.env.PUBNUB_SUBSCRIBE_KEY;
+    const sub_key = process.env.VITE_PUBNUB_SUBSCRIBE_KEY;
     const pub_key = process.env.PUBNUB_PUBLISH_KEY;
-    if (!sub_key) throw Error('Missing PUBNUB_SUBSCRIBE_KEY');
+    if (!sub_key) throw Error('Missing VITE_PUBNUB_SUBSCRIBE_KEY');
     if (!pub_key) throw Error('Missing PUBNUB_PUBLISH_KEY');
     const uuid = 'pairio';
     // payload is url encoded json

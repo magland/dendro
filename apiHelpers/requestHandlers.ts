@@ -281,10 +281,15 @@ export const resetUserApiKeyHandler = allowCors(async (req: VercelRequest, res: 
         res.status(401).json({ error: "Unauthorized" });
         return;
     }
-    const user = await fetchUser(rr.userId);
+    let user: PairioUser | null = await fetchUser(rr.userId);
     if (user === null) {
-        res.status(400).json({ error: "User does not exist" });
-        return;
+        user = {
+            userId: rr.userId,
+            name: '',
+            email: '',
+            apiKey: null
+        }
+        await insertUser(user);
     }
     try {
         const apiKey = generateUserApiKey();
@@ -347,9 +352,22 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
     }
     try {
         const authorizationToken = req.headers.authorization?.split(" ")[1]; // Extract the token
-        if (!(await authenticateUserUsingApiToken(rr.userId, authorizationToken))) {
-            res.status(401).json({ error: "Unauthorized" });
+        if (!authorizationToken) {
+            res.status(400).json({ error: "User API token must be provided" });
             return;
+        }
+        if (!rr.userId) {
+            rr.userId = await getUserIdFromApiToken(authorizationToken);
+            if (!rr.userId) {
+                res.status(401).json({ error: "Unauthorized - no user for token" });
+                return;
+            }
+        }
+        else {
+            if (!(await authenticateUserUsingApiToken(rr.userId, authorizationToken))) {
+                res.status(401).json({ error: "Unauthorized" });
+                return;
+            }
         }
         const service = await fetchService(rr.serviceName);
         if (!service) {
@@ -1255,6 +1273,12 @@ const authenticateUserUsingApiToken = async (userId: string, authorizationToken:
     return true;
 }
 
+const getUserIdFromApiToken = async (authorizationToken: string): Promise<string> => {
+    const user = await fetchUserForApiToken(authorizationToken)
+    if (!user) return '';
+    return user.userId;
+}
+
 const authenticateUserUsingGitHubToken = async (userId: string, gitHubAccessToken: string | undefined): Promise<boolean> => {
     if (!gitHubAccessToken) return false;
     const githubUserId = await getUserIdForGitHubAccessToken(gitHubAccessToken);
@@ -1309,6 +1333,19 @@ const fetchUser = async (userId: string) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.users);
     const user = await collection.findOne({ userId });
+    if (!user) return null;
+    removeMongoId(user);
+    if (!isPairioUser(user)) {
+        throw Error('Invalid user in database');
+    }
+    return user;
+}
+
+const fetchUserForApiToken = async (apiKey: string) => {
+    if (!apiKey) return null;
+    const client = await getMongoClient();
+    const collection = client.db(dbName).collection(collectionNames.users);
+    const user = await collection.findOne({ apiKey });
     if (!user) return null;
     removeMongoId(user);
     if (!isPairioUser(user)) {
