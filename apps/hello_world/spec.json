@@ -1,0 +1,17 @@
+{
+    "name": "hello_world",
+    "description": "A simple hello world app",
+    "processors": [
+        {
+            "name": "hello_world",
+            "description": "A simple hello world processor",
+            "label": "Hello World",
+            "image": "magland/pairio-hello-world:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [],
+            "outputs": [],
+            "parameters": [],
+            "attributes": []
+        }
+    ]
+}
