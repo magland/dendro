@@ -52,7 +52,7 @@ class ComputeClientDaemon:
 
         # Start cleaning up old job directories
         # It's important to do this in a separate process
-        # because it can take a long time to delete all the files in the tmp directories (remfile is the culprit)
+        # because it can take a long time to delete all the files in the tmp directories
         # and we don't want to block the main process from handling jobs
         if cleanup_old_jobs:
             cleanup_old_jobs_process = multiprocessing.Process(target=_cleanup_old_job_working_directories, args=(os.getcwd() + '/jobs',))

@@ -2,7 +2,6 @@ from typing import Union
 import requests
 import tempfile
 from pydantic import BaseModel
-import remfile
 
 
 class InputFileDownloadError(Exception):
@@ -53,20 +52,6 @@ class InputFile(BaseModel):
 
     def get_local_file_name(self) -> Union[str, None]:
         return self.local_file_name
-
-    def get_file(self, *, download: bool = False):
-        if download:
-            self.download()
-
-        if self.local_file_name is not None:
-            # In the case of a local file, we just return a file object
-            f = open(self.local_file_name, 'rb')
-            # An issue here is that this file is never closed. Not sure how to fix that.
-            return f
-
-        # self has a get_url() method
-        # It's important to do it this way so that the url can renew as needed
-        return remfile.File(self)
 
     # validator is needed to be an allowed pydantic type
     @classmethod
