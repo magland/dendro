@@ -54,7 +54,7 @@ class PairioJobDefinition(BaseModel):
 
 class PairioJob(BaseModel):
     jobId: str
-    jobPrivateKey: str
+    jobPrivateKey: Union[str, None]
     serviceName: str
     userId: str
     batchId: str
