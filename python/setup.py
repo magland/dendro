@@ -20,9 +20,8 @@ setup(
         'numpy',
         'PyYAML',
         'pydantic', # intentionally do not specify version 1 or 2 since we support both
-        'cryptography',
-        'h5py>=3.10.0',
-        'psutil'
+        'psutil',
+        'requests'
     ],
     extras_require={
         'compute_client': [

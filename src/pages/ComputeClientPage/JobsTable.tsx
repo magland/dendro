@@ -20,6 +20,7 @@ const JobsTable: FunctionComponent<JobsTableProps> = ({ jobs, selectedJobIds, on
                     <th>Service</th>
                     <th>App/Processor</th>
                     <th>Status</th>
+                    <th>Error</th>
                     <th>User</th>
                     <th>Compute client</th>
                 </tr>
@@ -57,6 +58,7 @@ const JobsTable: FunctionComponent<JobsTableProps> = ({ jobs, selectedJobIds, on
                         <td>{job.serviceName}</td>
                         <td>{job.jobDefinition.appName}/{job.jobDefinition.processorName}</td>
                         <td>{job.status}</td>
+                        <td>{job.error}</td>
                         <td>{job.userId}</td>
                         <td>{job.computeClientName}</td>
                     </tr>

@@ -15,7 +15,7 @@ def register_compute_client(*,
     except ImportError:
         raise ImportError('The pubnub package is not installed. You should use "pip install pubnub" to install it.')
 
-    config_fname = os.path.join(dir, '.pairio-compute-client.yaml')
+    config_fname = os.path.join(dir, 'pairio-compute-client.yaml')
     if os.path.exists(config_fname):
         raise Exception(f'This directory is already registered as a compute client. To re-register, delete the file {config_fname}.')
 

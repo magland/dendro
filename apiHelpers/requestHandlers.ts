@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import crypto from 'crypto';
 import allowCors from "./allowCors"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient"; // remove .js for local dev
-import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, CreateJobResponse, CreateComputeClientResponse, DeleteServiceAppResponse, DeleteComputeClientResponse, DeleteServiceResponse, GetJobResponse, GetJobsResponse, GetServiceAppResponse, GetServiceAppsResponse, GetComputeClientResponse, GetComputeClientsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioJob, PairioJobDefinition, PairioService, PairioServiceApp, PairioComputeClient, PairioUser, ResetUserApiKeyResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateJobRequest, isCreateComputeClientRequest, isDeleteServiceAppRequest, isDeleteComputeClientRequest, isDeleteServiceRequest, isGetJobRequest, isGetJobsRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioJob, isPairioService, isPairioServiceApp, isPairioComputeClient, isPairioUser, isResetUserApiKeyRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest, isSetComputeClientInfoRequest, SetComputeClientInfoResponse, isGetRunnableJobsForComputeClientRequest, GetRunnableJobsForComputeClientResponse, ComputeClientComputeSlot, isGetPubsubSubscriptionRequest, isGetPubsubSubscriptionResponse, GetPubsubSubscriptionResponse, SetJobStatusRequest, SetJobStatusResponse, isDeleteJobsRequest, DeleteJobsResponse } from "./types"; // remove .js for local dev
 import publishPubsubMessage from "./publicPubsubMessage"; // remove .js for local dev
-import crypto from 'crypto';
+import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, GetJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioService, PairioServiceApp, PairioUser, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isGetJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types"; // remove .js for local dev
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -574,6 +574,7 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
 // getRunnableJobsForComputeClient handler
 export const getRunnableJobsForComputeClientHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
     const rr = req.body;
+    console.log('--- 1')
     if (!isGetRunnableJobsForComputeClientRequest(rr)) {
         res.status(400).json({ error: "Invalid request" });
         return;
@@ -599,6 +600,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
             return;
         }
         let pendingJobs = await fetchJobs({ serviceName: service.serviceName, status: 'pending' });
+        console.log('--- pending jobs', pendingJobs)
         // scramble the pending jobs so that we don't always get the same ones
         // and minimize conflicts between compute clients when there are many
         // pending jobs
@@ -654,6 +656,9 @@ const computeResourceHasEnoughCapacityForJob = (computeClient: PairioComputeClie
             return true;
         }
     }
+    console.log('--- slotties', slotties)
+    console.log('--- rr', job.requiredResources)
+    console.log('--- fitsSlot', fitsSlot(job, slotties[0].computeSlot))
     return false;
 }
 
@@ -661,7 +666,7 @@ const fitsSlot = (job: PairioJob, computeSlot: ComputeClientComputeSlot) => {
     const rr = job.requiredResources;
     const cs = computeSlot;
     if (rr.numCpus > cs.numCpus) return false;
-    if (rr.numCpus > cs.numGpus) return false;
+    if (rr.numGpus > cs.numGpus) return false;
     if (rr.memoryGb > cs.memoryGb) return false;
     if (rr.timeSec > cs.timeSec) return false;
     if (rr.numCpus < cs.minNumCpus) return false;
@@ -807,7 +812,7 @@ export const setJobStatusHandler = allowCors(async (req: VercelRequest, res: Ver
         }
         if (rr.status === 'starting') {
             if (job.status !== 'pending') {
-                res.status(400).json({ error: "Job is not in pending status" });
+                res.status(400).json({ error: `Trying to start job. Job is not in pending status. Status is ${job.status}` });
                 return;
             }
             const service = await fetchService(job.serviceName);
@@ -823,23 +828,27 @@ export const setJobStatusHandler = allowCors(async (req: VercelRequest, res: Ver
         }
         else if (rr.status === 'running') {
             if (job.status !== 'starting') {
-                res.status(400).json({ error: "Job is not in pending status" });
+                res.status(400).json({ error: "Job is not in starting status" });
                 return;
             }
             await atomicUpdateJob(rr.jobId, 'starting', { status: 'running', timestampStartedSec: Date.now() / 1000 });
         }
         else if (rr.status === 'completed' || rr.status === 'failed') {
-            if (job.status !== 'running') {
-                res.status(400).json({ error: "Job is not in running status" });
-                return;
-            }
             if (rr.status === 'completed') {
+                if (job.status !== 'running') {
+                    res.status(400).json({ error: "Job is not in running status" });
+                    return;
+                }
                 if (rr.error) {
                     res.status(400).json({ error: "Error should not be set for completed job" });
                     return;
                 }
             }
             else if (rr.status === 'failed') {
+                if (![ 'running', 'starting', 'pending' ].includes(job.status)) {
+                    res.status(400).json({ error: `Invalid status for failed job: ${job.status}` });
+                    return;
+                }
                 if (!rr.error) {
                     res.status(400).json({ error: "Error must be set for failed job" });
                     return;
@@ -997,7 +1006,17 @@ export const createComputeClientHandler = allowCors(async (req: VercelRequest, r
         computeClientPrivateKey: generateComputeClientPrivateKey(),
         computeClientName: rr.computeClientName,
         description: '',
-        computeSlots: []
+        computeSlots: [{
+            numCpus: 4,
+            numGpus: 0,
+            memoryGb: 8,
+            timeSec: 3600,
+            minNumCpus: 0,
+            minNumGpus: 0,
+            minMemoryGb: 0,
+            minTimeSec: 0,
+            multiplicity: 1
+        }]
     };
     try {
         await insertComputeClient(computeClient);

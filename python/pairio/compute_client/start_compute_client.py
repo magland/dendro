@@ -6,7 +6,7 @@ from .ComputeClientDaemon import ComputeClientDaemon
 def start_compute_client(
     dir: str
 ):
-    config_fname = os.path.join(dir, '.pairio-compute-client.yaml')
+    config_fname = os.path.join(dir, 'pairio-compute-client.yaml')
     if not os.path.exists(config_fname):
         raise Exception('This directory is not registered as a compute client. To register, run "pairio register-compute-client" in this directory.')
 

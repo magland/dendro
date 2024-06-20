@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 from typing import Union
 from ..common.PairioJob import PairioJob
 from ..common.api_requests import set_job_status, get_service_app
@@ -97,6 +98,25 @@ def _run_container_job(*,
     num_cpus: Union[int, None],
     use_gpu: bool
 ):
+    tmpdir = job_dir + '/tmp' # important to provide a /tmp directory for singularity or apptainer so that it doesn't run out of disk space
+    os.makedirs(tmpdir, exist_ok=True)
+    exe = f'python {processor_executable}' if processor_executable.endswith('.py') else processor_executable
+
+    # We need to create this shell script so that we can catch errors in the parent process
+    # and report them back to the server. See comments in the code below.
+    run_sh = f'''#!/bin/bash
+{exe} > /tmp/parent_process_output.txt 2>&1
+# check the exit code
+exit_code=$?
+if [ $exit_code -eq 0 ]; then
+    echo "Job completed successfully" >> /tmp/parent_process_output.txt
+else
+    echo "Job failed with exit code $exit_code" >> /tmp/parent_process_output.txt
+    echo "Parent process failed" >> /tmp/parent_process_failed.txt
+fi
+'''
+    with open(f'{tmpdir}/run.sh', 'w') as f:
+        f.write(run_sh)
     container_method = os.environ.get('CONTAINER_METHOD', 'docker')
     if container_method == 'docker':
         tmpdir = job_dir + '/tmp'
@@ -118,7 +138,7 @@ def _run_container_job(*,
         if use_gpu:
             cmd2.extend(['--gpus', 'all'])
         cmd2.extend([processor_image])
-        cmd2.extend([processor_executable])
+        cmd2.extend(['/bin/bash', '/tmp/run.sh'])
         print(f'Pulling image {processor_image}')
         subprocess.run(['docker', 'pull', processor_image])
         print(f'Running: {" ".join(cmd2)}')
@@ -131,7 +151,6 @@ def _run_container_job(*,
             stderr=subprocess.DEVNULL,
         )
     elif container_method == 'singularity' or container_method == 'apptainer':
-        tmpdir = job_dir + '/tmp' # important to provide a /tmp directory for singularity or apptainer so that it doesn't run out of disk space
         os.makedirs(tmpdir, exist_ok=True)
         os.makedirs(tmpdir + '/working', exist_ok=True)
 
@@ -163,7 +182,7 @@ def _run_container_job(*,
         #     cmd2.extend(['--cpus', str(num_cpus)])
 
         cmd2.extend([f'docker://{processor_image}']) # todo: what if it's not a dockerhub image?
-        cmd2.extend([processor_executable])
+        cmd2.extend(['/bin/bash', '/tmp/run.sh'])
         print(f'Running: {" ".join(cmd2)}')
         subprocess.Popen(
             cmd2,
@@ -175,3 +194,10 @@ def _run_container_job(*,
         )
     else:
         raise JobException(f'Unexpected container method: {container_method}')
+    # Wait a bit and see if the process has failed right away. This can often happen
+    # an import failes in the main.py, and otherwise we wouldn't catch it
+    time.sleep(2)
+    if os.path.exists(f'{tmpdir}/parent_process_failed.txt'):
+        with open(f'{tmpdir}/parent_process_output.txt', 'r') as f:
+            output = f.read()
+        raise JobException(f'Parent process error: {output}')

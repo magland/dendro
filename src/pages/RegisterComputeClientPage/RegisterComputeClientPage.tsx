@@ -39,7 +39,7 @@ const RegisterComputeClientPage: FunctionComponent<RegisterComputeClientPageProp
         }
         const codeBase64 = btoa(JSON.stringify(codeJson))
         setCode(codeBase64)
-    }, [])
+    }, [userId, githubAccessToken])
     if (route.page !== 'register_compute_client') {
         throw new Error('Invalid route')
     }

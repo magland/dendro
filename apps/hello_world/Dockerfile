@@ -7,7 +7,7 @@ RUN git clone https://github.com/magland/pairio \
     && cd pairio \
     && cd python \
     && pip install -e . \
-    echo "v1"
+    echo "v2"
 
 # Copy files into the container
 COPY *.py /app/

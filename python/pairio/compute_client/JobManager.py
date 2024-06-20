@@ -26,21 +26,11 @@ class JobManager:
         if job_id in self._attempted_to_start_job_ids or job_id in self._attempted_to_fail_job_ids:
             return '' # see above comment about why this is necessary
         self._attempted_to_start_job_ids.add(job_id)
-        job_private_key = job.jobPrivateKey
         app_name = job.jobDefinition.appName
         processor_name = job.jobDefinition.processorName
         try:
             print(f'Starting job {job_id} {app_name}:{processor_name}')
             from ._start_job import _start_job
-            if job.requiredResources is None:
-                raise Exception('Cannot start job... requiredResources is None')
-            set_job_status(
-                job_id=job_id,
-                job_private_key=job_private_key,
-                compute_client_id=self._compute_client_id,
-                status='starting',
-                error=None
-            )
             return _start_job(
                 job=job,
                 compute_client_id=self._compute_client_id

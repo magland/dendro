@@ -76,7 +76,6 @@ class PairioJob(BaseModel):
     error: Union[str, None]
     computeClientId: Union[str, None]
     computeClientName: Union[str, None]
-    computeSlot: Union[ComputeClientComputeSlot, None]
     imageUri: Union[str, None]
 
 
@@ -164,6 +163,5 @@ class PairioJob(BaseModel):
 #   error: string | null
 #   computeClientId: string | null
 #   computeClientName: string | null
-#   computeSlot: ComputeClientComputeSlot | null
 #   imageUri: string | null
 # }
