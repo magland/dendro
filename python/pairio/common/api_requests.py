@@ -20,7 +20,7 @@ def get_service_app(*,
 
     # export type GetServiceAppResponse = {
     #   type: 'getServiceAppResponse'
-    #   app: PairioServiceApp
+    #   serviceApp: PairioServiceApp
     # }
 
     req = {
@@ -35,7 +35,7 @@ def get_service_app(*,
     )
     if resp['type'] != 'getServiceAppResponse':
         raise Exception('Unexpected response for getServiceAppRequest')
-    app = resp['app']
+    app = resp['serviceApp']
     app = PairioServiceApp(**app)
     return app
 

@@ -42,6 +42,7 @@ class HelloWorld2Processor(ProcessorBase):
         context.output.upload('output.txt')
 
 app.add_processor(HelloWorld1Processor)
+app.add_processor(HelloWorld2Processor)
 
 if __name__ == '__main__':
     app.run()

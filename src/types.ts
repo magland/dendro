@@ -995,10 +995,9 @@ export type SetServiceAppInfoRequest = {
   type: 'setServiceAppInfoRequest'
   serviceName: string
   appName: string
-  description?: string
   appSpecificationUri?: string
   appSpecificationCommit?: string
-  processors?: PairioAppProcessor[]
+  appSpecification?: PairioAppSpecification
 }
 
 export const isSetServiceAppInfoRequest = (x: any): x is SetServiceAppInfoRequest => {
@@ -1006,10 +1005,9 @@ export const isSetServiceAppInfoRequest = (x: any): x is SetServiceAppInfoReques
     type: isEqualTo('setServiceAppInfoRequest'),
     serviceName: isString,
     appName: isString,
-    description: optional(isString),
     appSpecificationUri: optional(isString),
     appSpecificationCommit: optional(isString),
-    processors: optional(isArrayOf(isPairioAppProcessor))
+    appSpecification: optional(isPairioAppSpecification)
   })
 }
 
@@ -1017,7 +1015,7 @@ export type SetServiceAppInfoResponse = {
   type: 'setServiceAppInfoResponse'
 }
 
-export const isSetAppInfoResponse = (x: any): x is SetServiceAppInfoResponse => {
+export const isSetServiceAppInfoResponse = (x: any): x is SetServiceAppInfoResponse => {
   return validateObject(x, {
     type: isEqualTo('setServiceAppInfoResponse')
   })
@@ -1040,13 +1038,13 @@ export const isGetServiceAppRequest = (x: any): x is GetServiceAppRequest => {
 
 export type GetServiceAppResponse = {
   type: 'getServiceAppResponse'
-  app: PairioServiceApp
+  serviceApp: PairioServiceApp
 }
 
 export const isGetServiceAppResponse = (x: any): x is GetServiceAppResponse => {
   return validateObject(x, {
     type: isEqualTo('getServiceAppResponse'),
-    app: isPairioServiceApp
+    serviceApp: isPairioServiceApp
   })
 }
 

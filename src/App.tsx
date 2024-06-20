@@ -10,6 +10,7 @@ import ComputeClientPage from './pages/ComputeClientPage/ComputeClientPage'
 import { SetupLogin } from './LoginContext/SetupLogin'
 import { useWindowDimensions } from '@fi-sci/misc'
 import RegisterComputeClientPage from './pages/RegisterComputeClientPage/RegisterComputeClientPage'
+import ServiceAppPage from './pages/ServiceAppPage/ServiceAppPage'
 // import useRoute from './useRoute'
 
 function App() {
@@ -45,6 +46,9 @@ function MainWindow() {
   }
   else if (route.page === 'register_compute_client') {
     return <RegisterComputeClientPage />
+  }
+  else if (route.page === 'service_app') {
+    return <ServiceAppPage />
   }
   else {
     return <div>Invalid route</div>

@@ -1151,10 +1151,9 @@ export const setServiceAppInfoHandler = allowCors(async (req: VercelRequest, res
             return;
         }
         const update: { [key: string]: any } = {};
-        if (rr.description !== undefined) update['description'] = rr.description;
         if (rr.appSpecificationUri !== undefined) update['appSpecificationUri'] = rr.appSpecificationUri;
         if (rr.appSpecificationCommit !== undefined) update['appSpecificationCommit'] = rr.appSpecificationCommit;
-        if (rr.processors !== undefined) update['processors'] = rr.processors;
+        if (rr.appSpecification !== undefined) update['appSpecification'] = rr.appSpecification;
         await updateServiceApp(rr.serviceName, rr.appName, update);
         const resp: SetServiceAppInfoResponse = {
             type: 'setServiceAppInfoResponse'
@@ -1186,7 +1185,7 @@ export const getServiceAppHandler = allowCors(async (req: VercelRequest, res: Ve
         }
         const resp: GetServiceAppResponse = {
             type: 'getServiceAppResponse',
-            app
+            serviceApp: app
         };
         res.status(200).json(resp);
     }
@@ -1439,6 +1438,8 @@ const fetchServiceApp = async (serviceName: string, appName: string) => {
     if (!app) return null;
     removeMongoId(app);
     if (!isPairioServiceApp(app)) {
+        console.warn('invalid app:', app)
+        await collection.deleteOne({ serviceName: app.serviceName, appName: app.appName });
         throw Error('Invalid service app in database');
     }
     return app;

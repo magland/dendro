@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLogin } from "./LoginContext/LoginContext";
-import { AddServiceAppRequest, AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobsRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, SetServiceInfoRequest, isAddServiceAppResponse, isAddServiceResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobsResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceInfoResponse } from "./types";
+import { AddServiceAppRequest, AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobsRequest, GetServiceAppRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, SetServiceAppInfoRequest, SetServiceInfoRequest, isAddServiceAppResponse, isAddServiceResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobsResponse, isGetServiceAppResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceAppInfoRequest, isSetServiceAppInfoResponse, isSetServiceInfoResponse } from "./types";
 
 // const apiUrl = 'https://pairio.vercel.app'
 const apiUrl = 'http://localhost:3000'
@@ -311,6 +311,59 @@ export const useJobs = (o: { computeClientId?: string, serviceName: string }) =>
     }), [userId, githubAccessToken, serviceName, refreshJobs])
 
     return { jobs, refreshJobs, deleteJobs }
+}
+
+export const useServiceApp = (serviceName: string, appName: string) => {
+    const [serviceApp, setServiceApp] = useState<PairioServiceApp | undefined>(undefined)
+    const [refreshCode, setRefreshCode] = useState(0)
+    const { githubAccessToken } = useLogin()
+    const refreshServiceApp = useCallback(() => {
+        setRefreshCode(c => c + 1)
+    }, [])
+    useEffect(() => {
+        let canceled = false
+        setServiceApp(undefined)
+        ;(async () => {
+            const req: GetServiceAppRequest = {
+                type: 'getServiceAppRequest',
+                serviceName,
+                appName
+            }
+            const resp = await apiPostRequest('getServiceApp', req)
+            if (!isGetServiceAppResponse(resp)) {
+                console.error('Invalid response', resp)
+                return
+            }
+            if (canceled) return
+            setServiceApp(resp.serviceApp)
+        })()
+        return () => { canceled = true }
+    }, [serviceName, appName, refreshCode])
+
+    const updateFromSource = useCallback(async () => {
+        if (!serviceApp) return
+        if (!serviceApp.appSpecificationUri) return
+        if (!githubAccessToken) return
+        const spec = await loadJsonFromUri(serviceApp.appSpecificationUri)
+        if (!isPairioAppSpecification(spec)) {
+            throw Error('Invalid app specification')
+        }
+        const req: SetServiceAppInfoRequest = {
+            type: 'setServiceAppInfoRequest',
+            serviceName,
+            appName,
+            appSpecification: spec
+        }
+        const resp = await apiPostRequest('setServiceAppInfo', req, githubAccessToken)
+        if (!isSetServiceAppInfoResponse(resp)) {
+            console.error('Invalid response', resp)
+            return
+        }
+        refreshServiceApp()
+        alert('Updated from source')
+    }, [serviceApp, serviceName, appName, refreshServiceApp])
+
+    return { serviceApp, refreshServiceApp, updateFromSource }
 }
 
 export const apiPostRequest = async (path: string, req: any, accessToken?: string) => {
