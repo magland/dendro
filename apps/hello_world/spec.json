@@ -12,6 +12,22 @@
             "outputs": [],
             "parameters": [],
             "attributes": []
+        },
+        {
+            "name": "hello_world_2",
+            "description": "Outputs a text file with \"Hello, world!\" in it",
+            "label": "hello_world_2",
+            "image": "magland/pairio-hello-world:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": ""
+                }
+            ],
+            "parameters": [],
+            "attributes": []
         }
     ]
 }

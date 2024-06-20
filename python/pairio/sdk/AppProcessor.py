@@ -32,7 +32,7 @@ class AppProcessorInput:
     def from_spec(spec):
         return AppProcessorInput(
             name=spec['name'],
-            description=spec['description'],
+            description=spec['description'] if spec['description'] is not None else '',
             list=spec.get('list', False)
         )
 
@@ -54,7 +54,7 @@ class AppProcessorOutput:
     def from_spec(spec):
         return AppProcessorOutput(
             name=spec['name'],
-            description=spec['description']
+            description=spec['description'] if spec['description'] is not None else ''
         )
 
 
@@ -260,13 +260,13 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
         name: str = context_field['name']
         description: str = context_field['description']
         annotation: Any = context_field['annotation']
-        defaultValue: Any = context_field['default']
+        defaultValue: Any = context_field.get('default', None)
         options: Union[List[str], None] = context_field['options']
         if annotation == InputFile or annotation == List[InputFile]:
             is_list = annotation == List[InputFile]
             inputs.append(AppProcessorInput(
                 name=name,
-                description=description,
+                description=description if description is not None else '',
                 list=is_list
             ))
             # check to make sure other fields are not set
@@ -277,7 +277,7 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
         elif annotation == OutputFile:
             outputs.append(AppProcessorOutput(
                 name=name,
-                description=description
+                description=description if description is not None else ''
             ))
             # check to make sure other fields are not set
             if options is not None:
