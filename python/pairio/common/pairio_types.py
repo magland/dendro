@@ -108,3 +108,82 @@ class PairioServiceApp(BaseModel):
 #   name: string
 #   value: string | number | boolean | string[] | number[] | boolean[]
 # }
+
+class PairioJobInputFile(BaseModel):
+    name: str
+    fileBaseName: str
+    url: str
+
+
+class PairioJobOutputFile(BaseModel):
+    name: str
+    fileBaseName: str
+    url: str
+
+
+class PairioJobParameter(BaseModel):
+    name: str
+    value: Union[str, int, bool, List, None]
+
+
+class PairioJobDefinition(BaseModel):
+    appName: str
+    processorName: str
+    inputFiles: List[PairioJobInputFile]
+    outputFiles: List[PairioJobOutputFile]
+    parameters: List[PairioJobParameter]
+
+# // PairioJobInputFile
+# export type PairioJobInputFile = {
+#   name: string
+#   fileBaseName: string
+#   url: string
+# }
+
+# // PairioJobOutputFile
+# export type PairioJobOutputFile = {
+#   name: string
+#   fileBaseName: string
+#   url: string
+# }
+
+# // PairioJobParameter
+# export type PairioJobParameter = {
+#   name: string
+#   value: string | number | boolean | string[] | number[] | boolean[] | null // null means undefined
+# }
+
+
+# // PairioJobDefinition
+# export type PairioJobDefinition = {
+#   appName: string
+#   processorName: string
+#   inputFiles: PairioJobInputFile[]
+#   outputFiles: PairioJobOutputFile[]
+#   parameters: PairioJobParameter[]
+# }
+
+class PairioJobRequiredResources(BaseModel):
+    numCpus: int
+    numGpus: int
+    memoryGb: float
+    timeSec: float
+
+# // PairioJobRequiredResources
+# export type PairioJobRequiredResources = {
+#   numCpus: number
+#   numGpus: number
+#   memoryGb: number
+#   timeSec: number
+# }
+
+class PairioJobSecret(BaseModel):
+    name: str
+    value: str
+
+
+# // PairioJobSecret
+# export type PairioJobSecret = {
+#   name: string
+#   value: string
+# }

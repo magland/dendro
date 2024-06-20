@@ -2,7 +2,8 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import allowCors from "./allowCors.js"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient.js"; // remove .js for local dev
-import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, CreateJobResponse, CreateComputeClientResponse, DeleteServiceAppResponse, DeleteComputeClientResponse, DeleteServiceResponse, GetJobResponse, GetJobsResponse, GetServiceAppResponse, GetServiceAppsResponse, GetComputeClientResponse, GetComputeClientsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioJob, PairioJobDefinition, PairioService, PairioServiceApp, PairioComputeClient, PairioUser, ResetUserApiKeyResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateJobRequest, isCreateComputeClientRequest, isDeleteServiceAppRequest, isDeleteComputeClientRequest, isDeleteServiceRequest, isGetJobRequest, isGetJobsRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioJob, isPairioService, isPairioServiceApp, isPairioComputeClient, isPairioUser, isResetUserApiKeyRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest, isSetComputeClientInfoRequest, SetComputeClientInfoResponse, isGetRunnableJobsForComputeClientRequest, GetRunnableJobsForComputeClientResponse, ComputeClientComputeSlot, isGetPubsubSubscriptionRequest, isGetPubsubSubscriptionResponse, GetPubsubSubscriptionResponse } from "./types.js"; // remove .js for local dev
+import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, CreateJobResponse, CreateComputeClientResponse, DeleteServiceAppResponse, DeleteComputeClientResponse, DeleteServiceResponse, GetJobResponse, GetJobsResponse, GetServiceAppResponse, GetServiceAppsResponse, GetComputeClientResponse, GetComputeClientsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioJob, PairioJobDefinition, PairioService, PairioServiceApp, PairioComputeClient, PairioUser, ResetUserApiKeyResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateJobRequest, isCreateComputeClientRequest, isDeleteServiceAppRequest, isDeleteComputeClientRequest, isDeleteServiceRequest, isGetJobRequest, isGetJobsRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioJob, isPairioService, isPairioServiceApp, isPairioComputeClient, isPairioUser, isResetUserApiKeyRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest, isSetComputeClientInfoRequest, SetComputeClientInfoResponse, isGetRunnableJobsForComputeClientRequest, GetRunnableJobsForComputeClientResponse, ComputeClientComputeSlot, isGetPubsubSubscriptionRequest, isGetPubsubSubscriptionResponse, GetPubsubSubscriptionResponse, SetJobStatusRequest, SetJobStatusResponse } from "./types.js"; // remove .js for local dev
+import publishPubsubMessage from "./publicPubsubMessage.js";
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -412,6 +413,15 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             imageUri: null
         }
         await insertJob(job);
+
+        await publishPubsubMessage(
+            job.serviceName,
+            {
+                type: 'newPendingJob',
+                serviceName: job.serviceName,
+                jobId: job.jobId
+            }
+        )
         const resp: CreateJobResponse = {
             type: 'createJobResponse',
             jobId
@@ -778,9 +788,17 @@ export const setJobStatusHandler = allowCors(async (req: VercelRequest, res: Ver
             res.status(400).json({ error: "Invalid status" });
             return;
         }
-        const resp: CreateJobResponse = {
-            type: 'createJobResponse',
-            jobId: rr.jobId
+        await publishPubsubMessage(
+            job.serviceName,
+            {
+                type: 'jobStatusChanged',
+                serviceName: job.serviceName,
+                jobId: job.jobId,
+                status: rr.status
+            }
+        )
+        const resp: SetJobStatusResponse = {
+            type: 'setJobStatusResponse'
         };
         res.status(200).json(resp);
     }
@@ -1216,7 +1234,7 @@ export const getPubsubSubscriptionHandler = allowCors(async (req: VercelRequest,
             type: 'getPubsubSubscriptionResponse',
             subscription: {
                 pubnubSubscribeKey: VITE_PUBNUB_SUBSCRIBE_KEY,
-                pubnubChannel: computeClientId,
+                pubnubChannel: computeClient.serviceName,
                 pubnubUser: computeClientId
             }
         }

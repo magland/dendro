@@ -69,7 +69,7 @@ export const isPairioComputeClient = (x: any): x is PairioComputeClient => {
     computeClientId: isString,
     computeClientPrivateKey: isOneOf([isString, isNull]),
     computeClientName: isString,
-    label: isString,
+    userId: isString,
     description: isString,
     computeSlots: isArrayOf(isComputeClientComputeSlot)
   })

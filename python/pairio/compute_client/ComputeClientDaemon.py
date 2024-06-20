@@ -13,11 +13,15 @@ class ComputeClientDaemon:
         self, *,
         dir: str,
         compute_client_id: str,
-        compute_client_private_key: str
+        compute_client_private_key: str,
+        compute_client_name: str,
+        service_name: str
     ) -> None:
         self._dir = dir
         self._compute_client_id = compute_client_id
         self._compute_client_private_key = compute_client_private_key
+        self._compute_client_name = compute_client_name
+        self._service_name = service_name
 
         self._job_manager = JobManager(
             compute_client_id=compute_client_id,
@@ -41,10 +45,10 @@ class ComputeClientDaemon:
             compute_client_id=self._compute_client_id
         )
 
-        # Create file cache directory if needed
-        file_cache_dir = os.path.join(os.getcwd(), 'file_cache')
-        if not os.path.exists(file_cache_dir):
-            os.makedirs(file_cache_dir)
+        # # Create file cache directory if needed
+        # file_cache_dir = os.path.join(os.getcwd(), 'file_cache')
+        # if not os.path.exists(file_cache_dir):
+        #     os.makedirs(file_cache_dir)
 
         # Start cleaning up old job directories
         # It's important to do this in a separate process
@@ -52,7 +56,7 @@ class ComputeClientDaemon:
         # and we don't want to block the main process from handling jobs
         if cleanup_old_jobs:
             cleanup_old_jobs_process = multiprocessing.Process(target=_cleanup_old_job_working_directories, args=(os.getcwd() + '/jobs',))
-            cleanup_old_jobs_process.start()
+            # cleanup_old_jobs_process.start()
         else:
             cleanup_old_jobs_process = None
 
@@ -73,15 +77,13 @@ class ComputeClientDaemon:
                         jobs_have_changed = True
 
                 if time_to_handle_jobs or jobs_have_changed:
-                    # if time_to_handle_jobs:
-                    #     print('Checking for new jobs') # this pollutes the logs too much
                     timer_handle_jobs = time.time()
                     self._handle_jobs()
 
                 self._job_manager.do_work()
 
                 if not reported_that_compute_client_is_running:
-                    print(f'Compute client is running: {self._compute_client_id}')
+                    print(f'Compute client is running: {self._service_name} {self._compute_client_name} {self._compute_client_id}')
                     reported_that_compute_client_is_running = True
 
                 overall_elapsed = time.time() - overall_timer
@@ -89,7 +91,7 @@ class ComputeClientDaemon:
                     print(f'Compute client timed out after {timeout} seconds')
                     return
                 if overall_elapsed < 5:
-                    time.sleep(0.01) # for the first few seconds we can sleep for a short time (useful for testing)
+                    time.sleep(0.5) # for the first few seconds we can sleep for a short time
                 else:
                     time.sleep(2)
         finally:
@@ -99,6 +101,7 @@ class ComputeClientDaemon:
                 pubsub_client.close() # unfortunately this doesn't actually stop the thread - it's a pubnub/python issue
 
     def _handle_jobs(self):
+        print('Checking for new jobs')
         runnable_jobs, _ = get_runnable_jobs_for_compute_client(
             compute_client_id=self._compute_client_id,
             compute_client_private_key=self._compute_client_private_key
@@ -111,12 +114,11 @@ def _cleanup_old_job_working_directories(dir: str):
     """Delete working dirs that are more than 24 hours old"""
     jobs_dir = Path(dir)
     while True:
-        if not jobs_dir.exists():
-            continue
-        for job_dir in jobs_dir.iterdir():
-            if job_dir.is_dir():
-                elapsed = time.time() - job_dir.stat().st_mtime
-                if elapsed > 24 * 60 * 60:
-                    print(f'Removing old working dir {job_dir}')
-                    shutil.rmtree(job_dir)
+        if jobs_dir.exists():
+            for job_dir in jobs_dir.iterdir():
+                if job_dir.is_dir():
+                    elapsed = time.time() - job_dir.stat().st_mtime
+                    if elapsed > 24 * 60 * 60:
+                        print(f'Removing old working dir {job_dir}')
+                        shutil.rmtree(job_dir)
         time.sleep(60)

@@ -1,9 +1,9 @@
-import { FunctionComponent, useCallback, useEffect, useState } from "react"
-import useRoute from "../../useRoute"
-import { CreateComputeClientRequest, isCreateComputeClientResponse } from "../../types"
-import { useLogin } from "../../LoginContext/LoginContext"
+import { FunctionComponent, useCallback, useState } from "react"
 import LoginButton from "../../LoginButton"
+import { useLogin } from "../../LoginContext/LoginContext"
 import { apiPostRequest } from "../../hooks"
+import { CreateComputeClientRequest, isCreateComputeClientResponse } from "../../types"
+import useRoute from "../../useRoute"
 
 type RegisterComputeClientPageProps = {
     // none
