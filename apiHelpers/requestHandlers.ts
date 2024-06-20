@@ -4,6 +4,7 @@ import allowCors from "./allowCors.js"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient.js"; // remove .js for local dev
 import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, CreateJobResponse, CreateComputeClientResponse, DeleteServiceAppResponse, DeleteComputeClientResponse, DeleteServiceResponse, GetJobResponse, GetJobsResponse, GetServiceAppResponse, GetServiceAppsResponse, GetComputeClientResponse, GetComputeClientsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioJob, PairioJobDefinition, PairioService, PairioServiceApp, PairioComputeClient, PairioUser, ResetUserApiKeyResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateJobRequest, isCreateComputeClientRequest, isDeleteServiceAppRequest, isDeleteComputeClientRequest, isDeleteServiceRequest, isGetJobRequest, isGetJobsRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioJob, isPairioService, isPairioServiceApp, isPairioComputeClient, isPairioUser, isResetUserApiKeyRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest, isSetComputeClientInfoRequest, SetComputeClientInfoResponse, isGetRunnableJobsForComputeClientRequest, GetRunnableJobsForComputeClientResponse, ComputeClientComputeSlot, isGetPubsubSubscriptionRequest, isGetPubsubSubscriptionResponse, GetPubsubSubscriptionResponse, SetJobStatusRequest, SetJobStatusResponse } from "./types.js"; // remove .js for local dev
 import publishPubsubMessage from "./publicPubsubMessage.js";
+import crypto from 'crypto';
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -411,7 +412,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             batchId: rr.batchId,
             projectName: rr.projectName,
             jobDefinition: rr.jobDefinition,
-            jobDefinitionHash: JSONStringifyDeterministic(rr.jobDefinition),
+            jobDefinitionHash: computeSha1(JSONStringifyDeterministic(rr.jobDefinition)),
             requiredResources: rr.requiredResources,
             secrets: rr.secrets,
             inputFileUrls: rr.jobDefinition.inputFiles.map(f => f.url),
@@ -427,7 +428,6 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             error: null,
             computeClientId: null,
             computeClientName: null,
-            computeSlot: null,
             imageUri: null
         }
         await insertJob(job);
@@ -1431,6 +1431,8 @@ const fetchJob = async (jobId: string) => {
     if (!job) return null;
     removeMongoId(job);
     if (!isPairioJob(job)) {
+        console.warn('invalid job:', job)
+        await collection.deleteOne({ jobId: job.jobId });
         throw Error('Invalid job in database');
     }
     return job;
@@ -1445,6 +1447,8 @@ const fetchJobs = async (query: { [key: string]: any }) => {
     for (const job of jobs) {
         removeMongoId(job);
         if (!isPairioJob(job)) {
+            console.warn('invalid job:', job)
+            await collection.deleteOne({ jobId: job.jobId });
             throw Error('Invalid job in database');
         }
     }
@@ -1720,4 +1724,10 @@ const shuffleArray = (arr: any[]) => {
     const indices = randomValues.map((v, i) => [v, i]);
     indices.sort((a, b) => a[0] - b[0]);
     return indices.map(v => arr[v[1]]);
+}
+
+const computeSha1 = (s: string) => {
+    const hash = crypto.createHash('sha1');
+    hash.update(s);
+    return hash.digest('hex');
 }

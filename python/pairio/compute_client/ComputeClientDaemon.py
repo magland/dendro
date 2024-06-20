@@ -56,7 +56,7 @@ class ComputeClientDaemon:
         # and we don't want to block the main process from handling jobs
         if cleanup_old_jobs:
             cleanup_old_jobs_process = multiprocessing.Process(target=_cleanup_old_job_working_directories, args=(os.getcwd() + '/jobs',))
-            # cleanup_old_jobs_process.start()
+            cleanup_old_jobs_process.start()
         else:
             cleanup_old_jobs_process = None
 

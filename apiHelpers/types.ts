@@ -207,9 +207,7 @@ export const isPairioJobSecret = (x: any): x is PairioJobSecret => {
 export type PairioJobStatus = 'pending' | 'starting' | 'running' | 'completed' | 'failed'
 
 export const isPairioJobStatus = (x: any): x is PairioJobStatus => {
-  return validateObject(x, {
-    status: isOneOf(['pending', 'starting', 'running', 'completed', 'failed'].map(isEqualTo))
-  })
+  return isOneOf(['pending', 'starting', 'running', 'completed', 'failed'].map(isEqualTo))(x)
 }
 
 // PairioJobDefinition
@@ -256,7 +254,6 @@ export type PairioJob = {
   error: string | null
   computeClientId: string | null
   computeClientName: string | null
-  computeSlot: ComputeClientComputeSlot | null
   imageUri: string | null
 }
 
@@ -285,7 +282,6 @@ export const isPairioJob = (x: any): x is PairioJob => {
     error: isOneOf([isString, isNull]),
     computeClientId: isOneOf([isString, isNull]),
     computeClientName: isOneOf([isString, isNull]),
-    computeSlot: isOneOf([isComputeClientComputeSlot, isNull]),
     imageUri: isOneOf([isString, isNull])
   })
 }

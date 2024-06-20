@@ -250,8 +250,6 @@ def create_job(
         'requiredResources': required_resources.model_dump(),
         'secrets': [s.model_dump() for s in secrets]
     }
-    print('--- create_job ---')
-    print(req)
     headers = {
         'Authorization': f'Bearer: {user_api_key}'
     }
