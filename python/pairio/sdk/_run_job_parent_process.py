@@ -147,6 +147,9 @@ def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_exec
                                     continue
                                 _delete_files_in_dir(fpath)
                             else:
+                                if fname.startswith('_pairio'):
+                                    # don't delete pairio system files
+                                    continue
                                 _debug_log(f'Deleting {fpath}')
                                 os.remove(fpath)
                     _delete_files_in_dir(pairio_job_cleanup_dir)

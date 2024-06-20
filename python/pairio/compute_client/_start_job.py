@@ -105,14 +105,15 @@ def _run_container_job(*,
     # We need to create this shell script so that we can catch errors in the parent process
     # and report them back to the server. See comments in the code below.
     run_sh = f'''#!/bin/bash
-{exe} > /tmp/parent_process_output.txt 2>&1
+{exe} > /tmp/_pairio_parent_process_output.txt 2>&1
 # check the exit code
 exit_code=$?
 if [ $exit_code -eq 0 ]; then
-    echo "Job completed successfully" >> /tmp/parent_process_output.txt
+    echo "Parent process completed successfully" >> /tmp/_pairio_parent_process_output.txt
+    echo "Parent process completed successfully" >> /tmp/_pairio_parent_process_succeeded.txt
 else
-    echo "Job failed with exit code $exit_code" >> /tmp/parent_process_output.txt
-    echo "Parent process failed" >> /tmp/parent_process_failed.txt
+    echo "Parent process failed with exit code $exit_code" >> /tmp/_pairio_parent_process_output.txt
+    echo "Parent process failed" >> /tmp/_pairio_parent_process_failed.txt
 fi
 '''
     with open(f'{tmpdir}/run.sh', 'w') as f:
@@ -196,8 +197,12 @@ fi
         raise JobException(f'Unexpected container method: {container_method}')
     # Wait a bit and see if the process has failed right away. This can often happen
     # an import failes in the main.py, and otherwise we wouldn't catch it
-    time.sleep(2)
-    if os.path.exists(f'{tmpdir}/parent_process_failed.txt'):
-        with open(f'{tmpdir}/parent_process_output.txt', 'r') as f:
-            output = f.read()
-        raise JobException(f'Parent process error: {output}')
+    timer = time.time()
+    while (time.time() - timer) < 2:
+        if os.path.exists(f'{tmpdir}/_pairio_parent_process_failed.txt'):
+            with open(f'{tmpdir}/_pairio_parent_process_output.txt', 'r') as f:
+                output = f.read()
+            raise JobException(f'Parent process error: {output}')
+        elif os.path.exists(f'{tmpdir}/_pairio_parent_process_succeeded.txt'):
+            break
+        time.sleep(0.1)

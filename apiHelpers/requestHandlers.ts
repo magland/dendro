@@ -574,7 +574,6 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
 // getRunnableJobsForComputeClient handler
 export const getRunnableJobsForComputeClientHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
     const rr = req.body;
-    console.log('--- 1')
     if (!isGetRunnableJobsForComputeClientRequest(rr)) {
         res.status(400).json({ error: "Invalid request" });
         return;
@@ -600,7 +599,6 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
             return;
         }
         let pendingJobs = await fetchJobs({ serviceName: service.serviceName, status: 'pending' });
-        console.log('--- pending jobs', pendingJobs)
         // scramble the pending jobs so that we don't always get the same ones
         // and minimize conflicts between compute clients when there are many
         // pending jobs
@@ -656,9 +654,6 @@ const computeResourceHasEnoughCapacityForJob = (computeClient: PairioComputeClie
             return true;
         }
     }
-    console.log('--- slotties', slotties)
-    console.log('--- rr', job.requiredResources)
-    console.log('--- fitsSlot', fitsSlot(job, slotties[0].computeSlot))
     return false;
 }
 
