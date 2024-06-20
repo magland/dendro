@@ -3,9 +3,9 @@
     "description": "A simple hello world app",
     "processors": [
         {
-            "name": "hello_world",
-            "description": "A simple hello world processor",
-            "label": "Hello World",
+            "name": "hello_world_1",
+            "description": "Prints \"Hello, world!\"",
+            "label": "hello_world_1",
             "image": "magland/pairio-hello-world:0.1.0",
             "executable": "/app/main.py",
             "inputs": [],
