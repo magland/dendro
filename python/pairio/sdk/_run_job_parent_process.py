@@ -190,7 +190,7 @@ def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_exec
 
 def _launch_job_child_process(*, job_id: str, job_private_key: str, processor_executable: str, console_out_file: Any):
     # Set the appropriate environment variables and launch the job in a background process
-    cmd = f'python {processor_executable}' if processor_executable.endswith('.py') else processor_executable
+    cmd = ['python', processor_executable] if processor_executable.endswith('.py') else [processor_executable]
     env = os.environ.copy()
     env = {
         **env,
