@@ -56,7 +56,7 @@ class App:
         if COMPUTE_CLIENT_ID is None:
             raise KeyError('COMPUTE_CLIENT_ID is not set')
         JOB_INTERNAL = os.environ.get('JOB_INTERNAL', None)
-        APP_EXECUTABLE = os.environ.get('APP_EXECUTABLE', None)
+        PROCESSOR_EXECUTABLE = os.environ.get('PROCESSOR_EXECUTABLE', None)
         JOB_TIMEOUT_SEC = os.environ.get('JOB_TIMEOUT_SEC', None)
         if JOB_TIMEOUT_SEC is not None:
             JOB_TIMEOUT_SEC = int(JOB_TIMEOUT_SEC)
@@ -69,14 +69,14 @@ class App:
             return _run_job_child_process(job_id=JOB_ID, job_private_key=JOB_PRIVATE_KEY, processors=self._processors)
 
         # In this mode we run the job, including the top-level interactions with the pairio API, such as setting the status and the console output, and checking whether the job has been canceled/deleted
-        if APP_EXECUTABLE is None:
-            raise KeyError('APP_EXECUTABLE is not set')
+        if PROCESSOR_EXECUTABLE is None:
+            raise KeyError('PROCESSOR_EXECUTABLE is not set')
 
         from ._run_job_parent_process import _run_job_parent_process
         return _run_job_parent_process(
             job_id=JOB_ID,
             job_private_key=JOB_PRIVATE_KEY,
-            app_executable=APP_EXECUTABLE,
+            processor_executable=PROCESSOR_EXECUTABLE,
             job_timeout_sec=JOB_TIMEOUT_SEC,
             compute_client_id=COMPUTE_CLIENT_ID
         )

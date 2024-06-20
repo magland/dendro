@@ -19,7 +19,7 @@ if os.environ.get('PAIRIO_JOB_WORKING_DIR', None) is None:
 else:
     pairio_internal_folder = os.environ['PAIRIO_JOB_WORKING_DIR'] + '/_pairio'
 
-def _run_job_parent_process(*, job_id: str, job_private_key: str, app_executable: str, job_timeout_sec: Union[int, None], compute_client_id: str):
+def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_executable: str, job_timeout_sec: Union[int, None], compute_client_id: str):
     _run_job_timer = time.time()
 
     if os.path.exists(pairio_internal_folder):
@@ -79,7 +79,7 @@ def _run_job_parent_process(*, job_id: str, job_private_key: str, app_executable
             proc = _launch_job_child_process(
                 job_id=job_id,
                 job_private_key=job_private_key,
-                app_executable=app_executable,
+                processor_executable=processor_executable,
                 console_out_file=console_out_file
             )
 
@@ -188,9 +188,9 @@ def _run_job_parent_process(*, job_id: str, job_private_key: str, app_executable
 
     _debug_log('Exiting')
 
-def _launch_job_child_process(*, job_id: str, job_private_key: str, app_executable: str, console_out_file: Any):
+def _launch_job_child_process(*, job_id: str, job_private_key: str, processor_executable: str, console_out_file: Any):
     # Set the appropriate environment variables and launch the job in a background process
-    cmd = app_executable
+    cmd = f'python {processor_executable}' if processor_executable.endswith('.py') else processor_executable
     env = os.environ.copy()
     env = {
         **env,
@@ -200,7 +200,7 @@ def _launch_job_child_process(*, job_id: str, job_private_key: str, app_executab
         'JOB_INTERNAL': '1',
         'PYTHONUNBUFFERED': '1'
     }
-    _debug_log(f'Running {app_executable} (Job ID: {job_id})) (Job private key: {job_private_key})')
+    _debug_log(f'Running {processor_executable} (Job ID: {job_id})) (Job private key: {job_private_key})')
     working_dir = os.environ.get('PAIRIO_JOB_WORKING_DIR', None)
     if working_dir is not None:
         if not os.path.exists(working_dir):
