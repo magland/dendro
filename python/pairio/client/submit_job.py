@@ -12,7 +12,7 @@ def submit_job(
     user_api_key = os.environ.get('PAIRIO_API_KEY', None)
     if user_api_key is None:
         raise Exception('PAIRIO_API_KEY environment variable must be set')
-    create_job(
+    job_id = create_job(
         service_name=service_name,
         batch_id='',
         project_name='',
@@ -21,3 +21,4 @@ def submit_job(
         secrets=[],
         user_api_key=user_api_key
     )
+    return job_id

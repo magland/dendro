@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import allowCors from "./allowCors.js"; // remove .js for local dev
-import { getMongoClient } from "./getMongoClient.js"; // remove .js for local dev
-import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, CreateJobResponse, CreateComputeClientResponse, DeleteServiceAppResponse, DeleteComputeClientResponse, DeleteServiceResponse, GetJobResponse, GetJobsResponse, GetServiceAppResponse, GetServiceAppsResponse, GetComputeClientResponse, GetComputeClientsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioJob, PairioJobDefinition, PairioService, PairioServiceApp, PairioComputeClient, PairioUser, ResetUserApiKeyResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateJobRequest, isCreateComputeClientRequest, isDeleteServiceAppRequest, isDeleteComputeClientRequest, isDeleteServiceRequest, isGetJobRequest, isGetJobsRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioJob, isPairioService, isPairioServiceApp, isPairioComputeClient, isPairioUser, isResetUserApiKeyRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest, isSetComputeClientInfoRequest, SetComputeClientInfoResponse, isGetRunnableJobsForComputeClientRequest, GetRunnableJobsForComputeClientResponse, ComputeClientComputeSlot, isGetPubsubSubscriptionRequest, isGetPubsubSubscriptionResponse, GetPubsubSubscriptionResponse, SetJobStatusRequest, SetJobStatusResponse } from "./types.js"; // remove .js for local dev
-import publishPubsubMessage from "./publicPubsubMessage.js";
+import allowCors from "./allowCors"; // remove .js for local dev
+import { getMongoClient } from "./getMongoClient"; // remove .js for local dev
+import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, CreateJobResponse, CreateComputeClientResponse, DeleteServiceAppResponse, DeleteComputeClientResponse, DeleteServiceResponse, GetJobResponse, GetJobsResponse, GetServiceAppResponse, GetServiceAppsResponse, GetComputeClientResponse, GetComputeClientsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioJob, PairioJobDefinition, PairioService, PairioServiceApp, PairioComputeClient, PairioUser, ResetUserApiKeyResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateJobRequest, isCreateComputeClientRequest, isDeleteServiceAppRequest, isDeleteComputeClientRequest, isDeleteServiceRequest, isGetJobRequest, isGetJobsRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioJob, isPairioService, isPairioServiceApp, isPairioComputeClient, isPairioUser, isResetUserApiKeyRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest, isSetComputeClientInfoRequest, SetComputeClientInfoResponse, isGetRunnableJobsForComputeClientRequest, GetRunnableJobsForComputeClientResponse, ComputeClientComputeSlot, isGetPubsubSubscriptionRequest, isGetPubsubSubscriptionResponse, GetPubsubSubscriptionResponse, SetJobStatusRequest, SetJobStatusResponse, isDeleteJobsRequest, DeleteJobsResponse } from "./types"; // remove .js for local dev
+import publishPubsubMessage from "./publicPubsubMessage"; // remove .js for local dev
 import crypto from 'crypto';
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
@@ -452,6 +452,48 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
     }
 });
 
+// deleteJobs handler
+export const deleteJobsHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
+    const rr = req.body;
+    if (!isDeleteJobsRequest(rr)) {
+        res.status(400).json({ error: "Invalid request" });
+        return;
+    }
+    try {
+        const githubAccessToken = req.headers.authorization?.split(" ")[1]; // Extract the token
+        const { serviceName, userId, jobIds } = rr;
+        if (!userId) {
+            res.status(400).json({ error: "userId must be provided" });
+            return;
+        }
+        if (!(await authenticateUserUsingGitHubToken(userId, githubAccessToken))) {
+            res.status(401).json({ error: "Unauthorized" });
+            return;
+        }
+        const service = await fetchService(serviceName);
+        if (!service) {
+            res.status(404).json({ error: "Service not found" });
+            return;
+        }
+        if (!userIsAllowedToDeleteJobsForService(service, userId)) {
+            res.status(401).json({ error: "This user is not allowed to delete jobs for this service" });
+            return;
+        }
+        await deleteJobs({
+            serviceName,
+            jobIds
+        })
+        const resp: DeleteJobsResponse = {
+            type: 'deleteJobsResponse'
+        };
+        res.status(200).json(resp);
+    }
+    catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // getJobs handler
 export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
     if (req.method !== "POST") {
@@ -475,6 +517,9 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
             okayToProceed = true;
         }
         else if (rr.processorName) {
+            okayToProceed = true;
+        }
+        else if (rr.serviceName) {
             okayToProceed = true;
         }
         else if ((rr.serviceName) && (rr.appName)) {
@@ -1487,6 +1532,12 @@ const insertJob = async (job: PairioJob) => {
     await collection.insertOne(job);
 }
 
+const deleteJobs = async (o: { serviceName: string, jobIds: string[] }) => {
+    const client = await getMongoClient();
+    const collection = client.db(dbName).collection(collectionNames.jobs);
+    await collection.deleteMany({ serviceName: o.serviceName, jobId: { $in: o.jobIds } });
+}
+
 const insertComputeClient = async (computeClient: PairioComputeClient) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.computeClients);
@@ -1628,6 +1679,13 @@ const userIsAllowedToProcessJobsForService = (service: PairioService, userId: st
 }
 
 const userIsAllowedToCreateJobsForService = (service: PairioService, userId: string) => {
+    if (service.userId === userId) return true;
+    const u = service.users.find(u => u.userId === userId);
+    if (!u) return false;
+    return u.createJobs;
+}
+
+const userIsAllowedToDeleteJobsForService = (service: PairioService, userId: string) => {
     if (service.userId === userId) return true;
     const u = service.users.find(u => u.userId === userId);
     if (!u) return false;

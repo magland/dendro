@@ -5,6 +5,7 @@ import { useService } from "../../hooks"
 import useRoute from "../../useRoute"
 import ComputeClientsView from "./ComputeClientsView"
 import ServiceAppsView from "./ServiceAppsView"
+import JobsView from "../ComputeClientPage/JobsView"
 
 type ServicePageProps = {
     width: number
@@ -117,6 +118,9 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({width, height}) => {
                     Delete service
                 </button>
             </div>
+            <hr />
+            <h3>Jobs</h3>
+            <JobsView serviceName={serviceName} />
         </div>
         </div>
     )

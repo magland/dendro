@@ -621,6 +621,33 @@ export const isCreateJobResponse = (x: any): x is CreateJobResponse => {
   })
 }
 
+// deleteJobs
+export type DeleteJobsRequest = {
+  type: 'deleteJobsRequest'
+  serviceName: string
+  userId: string
+  jobIds: string[]
+}
+
+export const isDeleteJobsRequest = (x: any): x is DeleteJobsRequest => {
+  return validateObject(x, {
+    type: isEqualTo('deleteJobsRequest'),
+    serviceName: isString,
+    userId: isString,
+    jobIds: isArrayOf(isString)
+  })
+}
+
+export type DeleteJobsResponse = {
+  type: 'deleteJobsResponse'
+}
+
+export const isDeleteJobsResponse = (x: any): x is DeleteJobsResponse => {
+  return validateObject(x, {
+    type: isEqualTo('deleteJobsResponse')
+  })
+}
+
 // getJobs
 export type GetJobsRequest = {
   type: 'getJobsRequest'

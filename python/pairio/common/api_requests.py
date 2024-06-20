@@ -6,7 +6,7 @@ from .pairio_types import PairioServiceApp
 from .PairioJob import PairioJob
 from ..common.pairio_types import PairioJobDefinition, PairioJobRequiredResources, PairioJobSecret
 
-pairio_url = os.getenv('PAIRIO_URL', 'https://pairio.vercel.app')
+pairio_api_url = os.getenv('PAIRIO_API_URL', 'https://pairio.vercel.app')
 
 def get_service_app(*,
     service_name: str,
@@ -269,7 +269,7 @@ def _post_api_request(*,
     headers: Union[dict, None] = None
 ):
     assert url_path.startswith('/api')
-    url = f'{pairio_url}{url_path}'
+    url = f'{pairio_api_url}{url_path}'
     try:
         resp = requests.post(url, headers=headers, json=data, timeout=60)
     except Exception as e:

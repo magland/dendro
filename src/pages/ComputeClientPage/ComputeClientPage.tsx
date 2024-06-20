@@ -3,6 +3,7 @@ import { Hyperlink } from "@fi-sci/misc"
 import { FunctionComponent } from "react"
 import { useComputeClient } from "../../hooks"
 import useRoute from "../../useRoute"
+import JobsView from "./JobsView"
 
 type ComputeClientPageProps = {
     // none
@@ -27,7 +28,7 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
         <div style={{padding: 20, maxWidth: 500}}>
             <div>
                 <Hyperlink onClick={() => {
-                    setRoute({page: 'compute_client', computeClientId: computeClient.computeClientId})
+                    setRoute({page: 'service', serviceName: computeClient.serviceName})
                 }}>
                     Back to service
                 </Hyperlink>
@@ -75,6 +76,11 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                     Delete compute client
                 </button>
             </div>
+            <h3>Jobs</h3>
+            <JobsView
+                computeClientId={computeClientId}
+                serviceName={computeClient.serviceName}
+            />
         </div>
     )
 }

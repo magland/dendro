@@ -24,6 +24,9 @@ export type Route = {
     page: 'register_compute_client'
     serviceName: string
     computeClientName: string
+} | {
+    page: 'job'
+    jobId: string
 }
 
 const useRoute = () => {
@@ -93,6 +96,13 @@ const useRoute = () => {
                 computeClientName
             }
         }
+        else if (p.startsWith('/job/')) {
+            const jobId = p.slice('/job/'.length)
+            return {
+                page: 'job',
+                jobId
+            }
+        }
         else {
             return {
                 page: 'home'
@@ -124,6 +134,9 @@ const useRoute = () => {
         }
         else if (r.page === 'register_compute_client') {
             navigate(`/register_compute_client/${r.serviceName}/${r.computeClientName}`)
+        }
+        else if (r.page === 'job') {
+            navigate(`/job/${r.jobId}`)
         }
         else {
             navigate('/')

@@ -108,6 +108,8 @@ class ComputeClientDaemon:
         )
         if len(runnable_jobs) > 0:
             self._job_manager.handle_jobs(runnable_jobs)
+        else:
+            print('No new jobs found')
 
 
 def _cleanup_old_job_working_directories(dir: str):

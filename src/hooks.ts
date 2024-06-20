@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLogin } from "./LoginContext/LoginContext";
-import { AddServiceAppRequest, AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioService, PairioServiceApp, PairioServiceUser, SetServiceInfoRequest, isAddServiceAppResponse, isAddServiceResponse, isCreateComputeClientResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceInfoResponse } from "./types";
+import { AddServiceAppRequest, AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobsRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, SetServiceInfoRequest, isAddServiceAppResponse, isAddServiceResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobsResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceInfoResponse } from "./types";
 
-const apiUrl = 'https://pairio.vercel.app'
-// const apiUrl = 'http://localhost:3000'
+// const apiUrl = 'https://pairio.vercel.app'
+const apiUrl = 'http://localhost:3000'
 
 export const useServices = () => {
     const { userId, githubAccessToken } = useLogin();
@@ -263,6 +263,54 @@ export const useComputeClient = (computeClientId: string) => {
     }, [computeClientId, githubAccessToken])
 
     return { computeClient, deleteComputeClient, refreshComputeClient }
+}
+
+export const useJobs = (o: { computeClientId?: string, serviceName: string }) => {
+    const { computeClientId, serviceName } = o
+    const [jobs, setJobs] = useState<PairioJob[] | undefined>(undefined)
+    const [refreshCode, setRefreshCode] = useState(0)
+    const { userId, githubAccessToken } = useLogin()
+    const refreshJobs = useCallback(() => {
+        setRefreshCode(c => c + 1)
+    }, [])
+    useEffect(() => {
+        let canceled = false
+        setJobs(undefined)
+        ;(async () => {
+            const req: GetJobsRequest = {
+                type: 'getJobsRequest',
+                computeClientId,
+                serviceName
+            }
+            const resp = await apiPostRequest('getJobs', req)
+            if (canceled) return
+            if (!isGetJobsResponse(resp)) {
+                console.error('Invalid response', resp)
+                return
+            }
+            setJobs(resp.jobs)
+        })()
+        return () => { canceled = true }
+    }, [computeClientId, serviceName, refreshCode])
+
+    const deleteJobs = useMemo(() => (async (jobIds: string[]) => {
+        if (!userId) return
+        if (!githubAccessToken) return
+        const req: DeleteJobsRequest = {
+            type: 'deleteJobsRequest',
+            userId,
+            serviceName,
+            jobIds
+        }
+        const resp = await apiPostRequest('deleteJobs', req, githubAccessToken)
+        if (!isDeleteJobsResponse(resp)) {
+            console.error('Invalid response', resp)
+            return
+        }
+        refreshJobs()
+    }), [userId, githubAccessToken, serviceName, refreshJobs])
+
+    return { jobs, refreshJobs, deleteJobs }
 }
 
 export const apiPostRequest = async (path: string, req: any, accessToken?: string) => {

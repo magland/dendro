@@ -45,7 +45,7 @@ def _start_job(*,
         'JOB_PRIVATE_KEY': job_private_key,
         'COMPUTE_CLIENT_ID': compute_client_id,
         'PROCESSOR_EXECUTABLE': processor_executable,
-        'PAIRIO_URL': 'https://pairio.vercel.app'
+        'PAIRIO_API_URL': 'https://pairio.vercel.app'
     }
 
     if job_required_resources.timeSec is not None:
