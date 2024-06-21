@@ -57,7 +57,7 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({width, height}) => {
     }
     return (
         <div style={{position: 'absolute', width, height, overflowY: 'auto'}}>
-        <div style={{padding: 20, maxWidth: 500}}>
+        <div style={{padding: 20}}>
             <div>
                 <Hyperlink onClick={() => {
                     setRoute({page: 'services'})
@@ -66,7 +66,7 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({width, height}) => {
                 </Hyperlink>
             </div>
             <hr />
-            <table className="table">
+            <table className="table" style={{maxWidth: 500}}>
                 <tbody>
                     <tr>
                         <td>Service</td>
@@ -108,19 +108,19 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({width, height}) => {
             <h3>Compute clients</h3>
             <ComputeClientsView serviceName={serviceName} />
             <hr />
+            <h3>Jobs</h3>
+            <JobsView serviceName={serviceName} />
+            <hr />
             <div>
                 {/* Delete service */}
                 <button onClick={async () => {
-                    if (!window.confirm('Delete service?')) return
+                    if (!window.confirm(`Delete service ${serviceName}?`)) return
                     await deleteService()
                     setRoute({page: 'services'})
                 }}>
                     Delete service
                 </button>
             </div>
-            <hr />
-            <h3>Jobs</h3>
-            <JobsView serviceName={serviceName} />
         </div>
         </div>
     )

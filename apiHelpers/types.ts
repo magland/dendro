@@ -112,7 +112,7 @@ export const isPairioAppProcessor = (x: any): x is PairioAppProcessor => {
     outputs: isArrayOf(isPairioAppProcessorOutputFile),
     parameters: isArrayOf(isPairioAppProcessorParameter),
     attributes: isArrayOf(isPairioAppProcessorAttribute)
-  })
+  }, {callback: console.log})
 }
 
 // PairioAppSpecification
@@ -127,7 +127,7 @@ export const isPairioAppSpecification = (x: any): x is PairioAppSpecification =>
     name: isString,
     description: isString,
     processors: isArrayOf(isPairioAppProcessor)
-  })
+  }, {callback: console.log})
 }
 
 // PairioJobInputFile
@@ -340,9 +340,7 @@ export const isPairioAppProcessorOutputFile = (x: any): x is PairioAppProcessorO
 export type PairioAppProcessorParameterTypes = 'str' | 'int' | 'float' | 'bool' | 'List[str]' | 'List[int]' | 'List[float]' | 'Optional[str]' | 'Optional[int]' | 'Optional[float]' | 'Optional[bool]'
 
 export const isPairioAppProcessorParameterTypes = (x: any): x is PairioAppProcessorParameterTypes => {
-  return validateObject(x, {
-    type: isOneOf(['str', 'int', 'float', 'bool', 'List[str]', 'List[int]', 'List[float]', 'Optional[str]', 'Optional[int]', 'Optional[float]', 'Optional[bool]'].map(isEqualTo))
-  })
+  return isOneOf(['str', 'int', 'float', 'bool', 'List[str]', 'List[int]', 'List[float]', 'Optional[str]', 'Optional[int]', 'Optional[float]', 'Optional[bool]'].map(isEqualTo))(x)
 }
 
 // PairioAppProcessorParameter
@@ -361,7 +359,7 @@ export const isPairioAppProcessorParameter = (x: any): x is PairioAppProcessorPa
     description: isString,
     defaultValue: optional(isOneOf([isString, isNumber, isBoolean, isArrayOf(isString), isArrayOf(isNumber)])),
     options: optional(isArrayOf(() => true))
-  })
+  }, {callback: console.log})
 }
 
 // ComputeClientComputeSlot

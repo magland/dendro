@@ -2,6 +2,7 @@ import { Hyperlink } from "@fi-sci/misc";
 import { FunctionComponent } from "react";
 import { PairioJob } from "../../types";
 import useRoute from "../../useRoute";
+import { timeAgoString } from "../../timeStrings";
 
 type JobsTableProps = {
     jobs: PairioJob[]
@@ -12,11 +13,12 @@ type JobsTableProps = {
 const JobsTable: FunctionComponent<JobsTableProps> = ({ jobs, selectedJobIds, onSelectedJobIdsChanged }) => {
     const { setRoute } = useRoute()
     return (
-        <table className="table">
+        <table className="scientific-table" style={{fontSize: 12}}>
             <thead>
                 <tr>
                     {selectedJobIds && (<th />)}
                     <th>Job</th>
+                    <th>Created</th>
                     <th>Service</th>
                     <th>App/Processor</th>
                     <th>Status</th>
@@ -52,9 +54,10 @@ const JobsTable: FunctionComponent<JobsTableProps> = ({ jobs, selectedJobIds, on
                                     setRoute({page: 'job', jobId: job.jobId})
                                 }}
                             >
-                                {job.jobId}
+                                {abbreviateJobId(job.jobId)}
                             </Hyperlink>
                         </td>
+                        <td>{timeAgoString(job.timestampCreatedSec)}</td>
                         <td>{job.serviceName}</td>
                         <td>{job.jobDefinition.appName}/{job.jobDefinition.processorName}</td>
                         <td>{
@@ -70,6 +73,11 @@ const JobsTable: FunctionComponent<JobsTableProps> = ({ jobs, selectedJobIds, on
             </tbody>
         </table>
     )
+}
+
+const abbreviateJobId = (jobId: string, maxLength: number = 5) => {
+    if (jobId.length <= maxLength) return jobId
+    return jobId.slice(0, maxLength) + '...'
 }
 
 export default JobsTable

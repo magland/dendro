@@ -25,7 +25,7 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
         )
     }
     return (
-        <div style={{padding: 20, maxWidth: 500}}>
+        <div style={{padding: 20}}>
             <div>
                 <Hyperlink onClick={() => {
                     setRoute({page: 'service', serviceName: job.serviceName})
@@ -34,7 +34,7 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
                 </Hyperlink>
             </div>
             <hr />
-            <table className="table">
+            <table className="table" style={{maxWidth: 500}}>
                 <tbody>
                     <tr>
                         <td>Job</td>

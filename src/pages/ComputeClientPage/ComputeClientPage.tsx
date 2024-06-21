@@ -25,7 +25,7 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
         )
     }
     return (
-        <div style={{padding: 20, maxWidth: 500}}>
+        <div style={{padding: 20}}>
             <div>
                 <Hyperlink onClick={() => {
                     setRoute({page: 'service', serviceName: computeClient.serviceName})
@@ -34,7 +34,7 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                 </Hyperlink>
             </div>
             <hr />
-            <table className="table">
+            <table className="table" style={{maxWidth: 500}}>
                 <tbody>
                     <tr>
                         <td>Compute client</td>
@@ -56,6 +56,13 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                         <td>{computeClient.description}</td>
                         <td />
                     </tr>
+                    <tr>
+                        <td>Compute slots</td>
+                        <td>
+                            <pre>{JSON.stringify(computeClient.computeSlots, null, 4)}</pre>
+                        </td>
+                        <td />
+                    </tr>
                 </tbody>
             </table>
             <hr />
@@ -66,21 +73,22 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                     </div>
                 )}
             </div> */}
+            <h3>Jobs</h3>
+            <JobsView
+                computeClientId={computeClientId}
+                serviceName={computeClient.serviceName}
+            />
+            <hr />
             <div>
                 {/* Delete computeClient */}
                 <button onClick={async () => {
-                    if (!window.confirm('Delete computeClient?')) return
+                    if (!window.confirm(`Delete computeClient ${computeClient.computeClientName}?`)) return
                     await deleteComputeClient()
                     setRoute({page: 'service', serviceName: computeClient.serviceName})
                 }}>
                     Delete compute client
                 </button>
             </div>
-            <h3>Jobs</h3>
-            <JobsView
-                computeClientId={computeClientId}
-                serviceName={computeClient.serviceName}
-            />
         </div>
     )
 }

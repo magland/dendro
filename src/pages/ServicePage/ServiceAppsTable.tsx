@@ -15,6 +15,9 @@ const ServiceAppsTable: FunctionComponent<ServiceAppsTableProps> = ({ serviceApp
                 <tr>
                     <th>App</th>
                     <th>Service</th>
+                    <th>Processors</th>
+                    <th>Description</th>
+                    <th>Source</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,6 +33,19 @@ const ServiceAppsTable: FunctionComponent<ServiceAppsTableProps> = ({ serviceApp
                             </Hyperlink>
                         </td>
                         <td>{ss.serviceName}</td>
+                        <td>
+                            {ss.appSpecification.processors.map(p => p.name).join(', ')}
+                        </td>
+                        <td>{ss.appSpecification.description}</td>
+                        <td>{
+                            ss.appSpecificationUri ? (
+                                <a href={ss.appSpecificationUri} target="_blank" rel="noreferrer">
+                                    source
+                                </a>
+                            ) : (
+                                <span>none</span>
+                            )
+                        }</td>
                     </tr>
                 ))}
             </tbody>

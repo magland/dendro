@@ -26,7 +26,7 @@ const ServiceAppPage: FunctionComponent<ServiceAppPageProps> = () => {
         )
     }
     return (
-        <div style={{padding: 20, maxWidth: 500}}>
+        <div style={{padding: 20}}>
             <div>
                 <Hyperlink onClick={() => {
                     setRoute({page: 'service', serviceName})
@@ -35,7 +35,7 @@ const ServiceAppPage: FunctionComponent<ServiceAppPageProps> = () => {
                 </Hyperlink>
             </div>
             <hr />
-            <table className="table">
+            <table className="table" style={{maxWidth: 500}}>
                 <tbody>
                     <tr>
                         <td>Service</td>
@@ -125,6 +125,7 @@ const ProcessorView: FunctionComponent<ProcessorViewProps> = ({processor}) => {
     return (
         <div>
             <h4>{processor.name}</h4>
+            <p>{processor.description}</p>
             <table className="scientific-table" style={{fontSize: 12}}>
                 <thead>
                     <tr>
