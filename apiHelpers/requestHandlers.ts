@@ -1468,7 +1468,7 @@ const getUserIdFromApiToken = async (authorizationToken: string): Promise<string
 const authenticateUserUsingGitHubToken = async (userId: string, gitHubAccessToken: string | undefined): Promise<boolean> => {
     if (!gitHubAccessToken) return false;
     const githubUserId = await getUserIdForGitHubAccessToken(gitHubAccessToken);
-    return userId === `github|${githubUserId}`;
+    return userId === githubUserId;
 }
 
 const fetchService = async (serviceName: string): Promise<PairioService | null> => {
