@@ -1,10 +1,8 @@
-import { FunctionComponent, useCallback } from "react";
-import LoginButton from "../../LoginButton";
 import { Hyperlink } from "@fi-sci/misc";
-import useRoute from "../../useRoute";
+import { FunctionComponent } from "react";
+import LoginButton from "../../LoginButton";
 import { useLogin } from "../../LoginContext/LoginContext";
-import { ResetUserApiKeyRequest, isResetUserApiKeyResponse } from "../../types";
-import { apiPostRequest } from "../../hooks";
+import useRoute from "../../useRoute";
 // import { getGitHubAccessToken } from "./App";
 
 type Props = {
