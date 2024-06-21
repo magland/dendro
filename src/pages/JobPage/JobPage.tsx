@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Hyperlink } from "@fi-sci/misc"
 import { FunctionComponent, useCallback, useEffect, useMemo, useState } from "react"
-import useRoute from "../../useRoute"
-import { useJob, useServiceApp } from "../../hooks"
+import { useJob } from "../../hooks"
 import { PairioJob } from "../../types"
+import useRoute from "../../useRoute"
 
 type JobPageProps = {
     // none
