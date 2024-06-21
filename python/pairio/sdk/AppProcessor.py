@@ -243,7 +243,9 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
         else:
             description = field.description if hasattr(field, 'description') else '' # type: ignore
         default_value = field.default if hasattr(field, 'default') else None,
-        if default_value == PydanticUndefined or (isinstance(default_value, tuple) and len(default_value) == 1 and default_value[0] == PydanticUndefined):
+        if isinstance(default_value, tuple) and len(default_value) == 1:
+            default_value = default_value[0]
+        if default_value == PydanticUndefined:
             default_value = None
         context_fields.append({
             'name': name,
