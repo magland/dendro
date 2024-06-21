@@ -1,5 +1,8 @@
-from pairio.client import submit_job, PairioJobDefinition, PairioJobRequiredResources, PairioJobOutputFile
+import os
+from pairio.client import submit_job, PairioJobDefinition, PairioJobRequiredResources, PairioJobOutputFile, PairioJobParameter
 
+
+service_name = os.getenv('PAIRIO_SERVICE_NAME', 'hello_world_service')
 
 def main():
     job_def = PairioJobDefinition(
@@ -12,7 +15,12 @@ def main():
                 fileBaseName='output.txt'
             )
         ],
-        parameters=[]
+        parameters=[
+            PairioJobParameter(
+                name='name',
+                value='world'
+            )
+        ]
     )
     required_resources = PairioJobRequiredResources(
         numCpus=1,
@@ -21,7 +29,7 @@ def main():
         timeSec=60
     )
     job = submit_job(
-        service_name='hello_world_service',
+        service_name=service_name,
         job_definition=job_def,
         required_resources=required_resources,
         tags=['example']

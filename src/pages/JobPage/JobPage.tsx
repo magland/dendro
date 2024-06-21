@@ -4,6 +4,7 @@ import { FunctionComponent, useCallback, useEffect, useMemo, useState } from "re
 import { useJob } from "../../hooks"
 import { PairioJob } from "../../types"
 import useRoute from "../../useRoute"
+import { timeAgoString } from "../../timeStrings"
 
 type JobPageProps = {
     // none
@@ -61,6 +62,24 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
                         <td>
                             {job.status}
                         </td>
+                    </tr>
+                    <tr>
+                        <td>Created</td>
+                        <td>{
+                            timeAgoString(job.timestampCreatedSec)
+                        }</td>
+                    </tr>
+                    <tr>
+                        <td>Starting</td>
+                        <td>{job.timestampStartingSec ? timeAgoString(job.timestampStartingSec) : ''}</td>
+                    </tr>
+                    <tr>
+                        <td>Started</td>
+                        <td>{job.timestampStartedSec ? timeAgoString(job.timestampStartedSec) : ''}</td>
+                    </tr>
+                    <tr>
+                        <td>Finished</td>
+                        <td>{job.timestampFinishedSec ? timeAgoString(job.timestampFinishedSec) : ''}</td>
                     </tr>
                     <tr>
                         <td>Error</td>

@@ -27,7 +27,7 @@ class PairioJobOutputFile(BaseModel):
 
 class PairioJobParameter(BaseModel):
     name: str
-    value: Union[str, None] = None
+    value: Union[str, int, float, bool, List[str], List[int], List[float], List[bool], None]
 
 
 class PairioJobRequiredResources(BaseModel):
