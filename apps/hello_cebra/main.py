@@ -108,7 +108,7 @@ class CebraNwbEmbedding1(ProcessorBase):
 
         embedding = model.transform(spike_counts)
 
-        with open('output.h5', 'wb') as f:
+        with open('embedding.h5', 'wb') as f:
             with h5py.File(f, 'w') as hf:
                 hf.create_dataset('embedding', data=embedding)
 

@@ -10,8 +10,8 @@ url1 = 'https://api.dandiarchive.org/api/assets/2ae6bf3c-788b-4ece-8c01-4b4a5680
 
 def main():
     job_def = PairioJobDefinition(
-        appName='hello_world',
-        processorName='hello_world_2',
+        appName='hello_cebra',
+        processorName='cebra_nwb_embedding_1',
         inputFiles=[
             PairioJobInputFile(
                 name='input',
@@ -55,7 +55,8 @@ def main():
         job_definition=job_def,
 
         required_resources=required_resources,
-        tags=['example', 'cebra']
+        tags=['example', 'cebra'],
+        rerun_failing=True
     )
     print(job.job_url, job.status)
 
