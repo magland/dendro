@@ -174,7 +174,8 @@ export const setServiceInfoHandler = allowCors(async (req: VercelRequest, res: V
             return;
         }
         if (!userIsAdminForService(service, userId)) {
-            res.status(401).json({ error: "User is not authorized to modify this service." })
+            res.status(401).json({ error: `User ${userId} is not authorized to modify this service.` })
+            return;
         }
         const update: { [key: string]: any } = {};
         if (rr.users !== undefined) update['users'] = rr.users;
@@ -1768,7 +1769,7 @@ const getUserIdForGitHubAccessToken = async (gitHubAccessToken: string) => {
     }
 
     const data = await response.json();
-    const userId = data.login;
+    const userId = 'github|' + data.login;
     gitHubUserIdCache[gitHubAccessToken] = userId;
     return userId;
 }

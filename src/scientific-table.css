@@ -11,6 +11,7 @@
 .scientific-table {
     border-collapse: collapse;
     width: 100%;
+    font-size: 12px;
 }
 
 /* Table header */

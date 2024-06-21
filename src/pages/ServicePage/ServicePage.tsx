@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Hyperlink } from "@fi-sci/misc"
-import { FunctionComponent, useState } from "react"
+import { Hyperlink, SmallIconButton } from "@fi-sci/misc"
+import { FunctionComponent, useCallback, useEffect, useMemo, useState } from "react"
 import { useService } from "../../hooks"
 import useRoute from "../../useRoute"
 import ComputeClientsView from "./ComputeClientsView"
 import ServiceAppsView from "./ServiceAppsView"
 import JobsView from "../ComputeClientPage/JobsView"
+import { PairioService, PairioServiceUser } from "../../types"
+import { Add, Delete } from "@mui/icons-material"
 
 type ServicePageProps = {
     width: number
@@ -19,7 +21,12 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({width, height}) => {
         throw new Error('Invalid route')
     }
     const serviceName = route.serviceName
-    const { service, deleteService } = useService(serviceName)
+    const { service, deleteService, setServiceInfo } = useService(serviceName)
+    const [editingUsers, setEditingUsers] = useState(false)
+
+    const setUsers = useCallback(async (users: PairioServiceUser[]) => {
+        await setServiceInfo({users})
+    }, [setServiceInfo])
 
     // const handleLoadFromSource = useCallback(async () => {
     //     if (!service) return
@@ -90,6 +97,11 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({width, height}) => {
                                 </div>
                             ))}
                         </td>
+                        <td>
+                            <Hyperlink onClick={() => setEditingUsers(true)}>
+                                Edit users
+                            </Hyperlink>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -101,6 +113,11 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({width, height}) => {
                     </div>
                 )}
             </div>
+            {
+                editingUsers && (
+                    <EditUsersControl service={service} onSetUsers={users => setUsers(users)} />
+                )
+            }
             <hr />
             <h3>Apps</h3>
             <ServiceAppsView serviceName={serviceName} />
@@ -146,5 +163,114 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({width, height}) => {
 //     }
 // }
 
+type EditUsersControlProps = {
+    service: PairioService
+    onSetUsers: (users: PairioServiceUser[]) => Promise<void>
+}
+
+const EditUsersControl: FunctionComponent<EditUsersControlProps> = ({service, onSetUsers}) => {
+    const [localEditUsers, setLocalEditUsers] = useState<PairioServiceUser[]>(service.users)
+    useEffect(() => {
+        setLocalEditUsers(service.users)
+    }, [service])
+    const somethingChanged = useMemo(() => {
+        return deterministicHash(localEditUsers) !== deterministicHash(service.users)
+    }, [localEditUsers, service])
+    return (
+        <div>
+            <div>
+                <SmallIconButton
+                    icon={<Add />}
+                    label="Add user"
+                    onClick={() => {
+                        let ghUserName = prompt('Enter the GitHub user name')
+                        if (!ghUserName) return
+                        if (ghUserName.startsWith('github|')) {
+                            ghUserName = ghUserName.slice('github|'.length)
+                        }
+                        const userId = 'github|' + ghUserName
+                        const newUsers = [...localEditUsers, {userId, admin: false, createJobs: true, processJobs: false}]
+                        setLocalEditUsers(newUsers)
+                    }}
+                />
+                &nbsp;
+                {
+                    somethingChanged && (
+                        <button onClick={async () => {
+                            await onSetUsers(localEditUsers)
+                        }}>
+                            Save changes
+                        </button>
+                    )
+                }
+            </div>
+            <table className="scientific-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>User</th>
+                        <th>Admin</th>
+                        <th>Create jobs</th>
+                        <th>Process jobs</th>
+                    </tr>
+                </thead>
+                {
+                    localEditUsers.map((user, index) => (
+                        <tr key={index}>
+                            <td>
+                                <SmallIconButton
+                                    icon={<Delete />}
+                                    onClick={() => {
+                                        const newUsers = [...localEditUsers]
+                                        newUsers.splice(index, 1)
+                                        setLocalEditUsers(newUsers)
+                                    }}
+                                />
+                            </td>
+                            <td>{user.userId}</td>
+                            <td>
+                                <input
+                                    type="checkbox"
+                                    checked={user.admin}
+                                    onChange={e => {
+                                        const newUsers = [...localEditUsers]
+                                        newUsers[index] = {...user, admin: e.target.checked}
+                                        setLocalEditUsers(newUsers)
+                                    }}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="checkbox"
+                                    checked={user.createJobs}
+                                    onChange={e => {
+                                        const newUsers = [...localEditUsers]
+                                        newUsers[index] = {...user, createJobs: e.target.checked}
+                                        setLocalEditUsers(newUsers)
+                                    }}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="checkbox"
+                                    checked={user.processJobs}
+                                    onChange={e => {
+                                        const newUsers = [...localEditUsers]
+                                        newUsers[index] = {...user, processJobs: e.target.checked}
+                                        setLocalEditUsers(newUsers)
+                                    }}
+                                />
+                            </td>
+                        </tr>
+                    ))
+                }
+            </table>
+        </div>
+    )
+}
+
+const deterministicHash = (x: any) => {
+    return JSON.stringify(x)
+}
 
 export default ServicePage

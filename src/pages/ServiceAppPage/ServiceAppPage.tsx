@@ -126,7 +126,7 @@ const ProcessorView: FunctionComponent<ProcessorViewProps> = ({processor}) => {
         <div>
             <h4>{processor.name}</h4>
             <p>{processor.description}</p>
-            <table className="scientific-table" style={{fontSize: 12}}>
+            <table className="scientific-table">
                 <thead>
                     <tr>
                         <th>Name</th>

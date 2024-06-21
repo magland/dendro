@@ -13,7 +13,7 @@ type JobsTableProps = {
 const JobsTable: FunctionComponent<JobsTableProps> = ({ jobs, selectedJobIds, onSelectedJobIdsChanged }) => {
     const { setRoute } = useRoute()
     return (
-        <table className="scientific-table" style={{fontSize: 12}}>
+        <table className="scientific-table">
             <thead>
                 <tr>
                     {selectedJobIds && (<th />)}
