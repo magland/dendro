@@ -10,7 +10,7 @@ setup(
     author="Jeremy Magland, Luiz Tauffer",
     author_email="jmagland@flatironinstitute.org",
     url="https://github.com/magland/pairio",
-    description="Web framework for neurophysiology data analysis",
+    description="",
     packages=find_packages(),
     include_package_data=True,
     package_data={'pairio': ['version.txt']},
