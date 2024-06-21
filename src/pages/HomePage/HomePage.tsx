@@ -13,40 +13,32 @@ type Props = {
 
 const HomePage: FunctionComponent<Props> = () => {
   const { setRoute } = useRoute();
-  const { userId, githubAccessToken } = useLogin();
-  const handleResetApiKey = useCallback(async () => {
-    if (!userId) throw Error('Missing userId');
-    if (!githubAccessToken) throw Error('Missing githubAccessToken');
-    const req: ResetUserApiKeyRequest = {
-      type: 'resetUserApiKeyRequest',
-      userId
-    }
-    const resp = await apiPostRequest('resetUserApiKey', req, githubAccessToken);
-    if (!isResetUserApiKeyResponse(resp)) {
-      throw Error('Unexpected response');
-    }
-    alert(`New API key: ${resp.apiKey}`)
-  }, [userId, githubAccessToken]);
+  const { userId } = useLogin();
   return (
     <div style={{padding: 30}}>
-      <h3>Pairio - a prototype for the next Dendro</h3>
-      <LoginButton />
+      <h3>Pairio is a prototype for the next Dendro</h3>
+      <p>
+        <a href="https://github.com/magland/pairio" target="_blank" rel="noopener noreferrer">Read more...</a>
+      </p>
+      <div>
+        <LoginButton />
+      </div>
       <hr />
       {userId && (
         <div>
           <div>
             <Hyperlink onClick={() => {
               setRoute({page: 'services'})
-            }}>Services</Hyperlink>
+            }}>View services</Hyperlink>
           </div>
         </div>
       )}
       <hr />
-      {userId && (
-        <button onClick={handleResetApiKey}>
-          Reset API Key
-        </button>
-      )}
+      <div>
+        <Hyperlink onClick={() => {
+          setRoute({page: 'settings'})
+        }}>View settings</Hyperlink>
+      </div>
     </div>
   )
 };

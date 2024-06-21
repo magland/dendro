@@ -27,6 +27,8 @@ export type Route = {
 } | {
     page: 'job'
     jobId: string
+} | {
+    page: 'settings'
 }
 
 const useRoute = () => {
@@ -103,6 +105,11 @@ const useRoute = () => {
                 jobId
             }
         }
+        else if (p === '/settings') {
+            return {
+                page: 'settings'
+            }
+        }
         else {
             return {
                 page: 'home'
@@ -137,6 +144,9 @@ const useRoute = () => {
         }
         else if (r.page === 'job') {
             navigate(`/job/${r.jobId}`)
+        }
+        else if (r.page === 'settings') {
+            navigate('/settings')
         }
         else {
             navigate('/')

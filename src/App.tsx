@@ -12,6 +12,7 @@ import { useWindowDimensions } from '@fi-sci/misc'
 import RegisterComputeClientPage from './pages/RegisterComputeClientPage/RegisterComputeClientPage'
 import ServiceAppPage from './pages/ServiceAppPage/ServiceAppPage'
 import JobPage from './pages/JobPage/JobPage'
+import SettingsPage from './pages/SettingsPage/SettingsPage'
 // import useRoute from './useRoute'
 
 function App() {
@@ -53,6 +54,9 @@ function MainWindow() {
   }
   else if (route.page === 'job') {
     return <JobPage />
+  }
+  else if (route.page === 'settings') {
+    return <SettingsPage />
   }
   else {
     return <div>Invalid route</div>
