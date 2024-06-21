@@ -20,6 +20,9 @@ jobs:
             name: Install Vercel CLI
             run: npm install --global vercel@latest
         -
+            name: Prepare API source for prod
+            run: python devel/prepare_api_for_dev_prod.py
+        -
             name: Set vercel.json for production
             run: cp _vercel_prod.json vercel.json
         -
