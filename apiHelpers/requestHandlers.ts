@@ -408,6 +408,8 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             outputFileResults.push(ofr);
         }
 
+        const isRunnable = await checkJobRunnable(rr.jobDependencies)
+
         const job: PairioJob = {
             jobId,
             jobPrivateKey,
@@ -417,6 +419,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             projectName: rr.projectName,
             jobDefinition: rr.jobDefinition,
             jobDefinitionHash: computeSha1(JSONStringifyDeterministic(rr.jobDefinition)),
+            jobDependencies: rr.jobDependencies,
             requiredResources: rr.requiredResources,
             secrets: rr.secrets,
             inputFileUrlList: rr.jobDefinition.inputFiles.map(f => f.url),
@@ -430,6 +433,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             timestampFinishedSec: null,
             canceled: false,
             status: 'pending',
+            isRunnable,
             error: null,
             computeClientId: null,
             computeClientName: null,
@@ -459,6 +463,20 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
         res.status(500).json({ error: e.message });
     }
 });
+
+const checkJobRunnable = async (jobDependencies: string[]) => {
+    for (const jobId of jobDependencies) {
+        const job = await fetchJob(jobId);
+        if (!job) {
+            return false;
+        }
+        if (job.status !== 'completed') {
+            return false;
+        }
+    }
+    return true;
+
+}
 
 // deleteJobs handler
 export const deleteJobsHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
@@ -858,6 +876,29 @@ export const setJobStatusHandler = allowCors(async (req: VercelRequest, res: Ver
                 }
             }
             await updateJob(rr.jobId, { status: rr.status, error: rr.error, timestampFinishedSec: Date.now() / 1000 })
+            if (rr.status === 'completed') {
+                // maybe some other jobs have become runnable
+                const jobsThatMayHaveBecomeRunnable = await fetchJobs({
+                    status: 'pending',
+                    isRunnable: false,
+                    jobDependencies: { $contains: rr.jobId }
+                })
+                for (const j of jobsThatMayHaveBecomeRunnable) {
+                    const nowRunnable = await checkJobRunnable(j.jobDependencies);
+                    if (nowRunnable) {
+                        await updateJob(j.jobId, { isRunnable: true });
+                        await publishPubsubMessage(
+                            j.serviceName,
+                            {
+                                type: 'jobStatusChanged',
+                                serviceName: j.serviceName,
+                                jobId: j.jobId,
+                                status: j.status
+                            }
+                        )
+                    }
+                }
+            }
         }
         else {
             res.status(400).json({ error: "Invalid status" });

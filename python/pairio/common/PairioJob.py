@@ -1,5 +1,4 @@
 from typing import Union, List
-from xmlrpc.client import Boolean
 from .. import BaseModel
 
 
@@ -56,6 +55,14 @@ class PairioJobOutputFileResult(BaseModel):
     url: str
     size: Union[int, None]
 
+# for purposes of passing the output of one job to the input of another
+class SpecialJobOutput(BaseModel):
+    jobId: str
+    name: str
+    fileBaseName: str
+    url: str
+    size: Union[int, None]
+
 class PairioJob(BaseModel):
     jobId: str
     jobPrivateKey: Union[str, None]
@@ -65,6 +72,7 @@ class PairioJob(BaseModel):
     projectName: str
     jobDefinition: PairioJobDefinition
     jobDefinitionHash: str
+    jobDependencies: List[str]
     requiredResources: PairioJobRequiredResources
     secrets: Union[List[PairioJobSecret], None]
     inputFileUrlList: List[str]
@@ -76,8 +84,9 @@ class PairioJob(BaseModel):
     timestampStartingSec: Union[float, None]
     timestampStartedSec: Union[float, None]
     timestampFinishedSec: Union[float, None]
-    canceled: Boolean
+    canceled: bool
     status: str
+    isRunnable: bool
     error: Union[str, None]
     computeClientId: Union[str, None]
     computeClientName: Union[str, None]
@@ -90,8 +99,14 @@ class PairioJob(BaseModel):
     def get_output(self, name: str):
         for output in self.outputFileResults:
             if output.name == name:
-                return output
-        return None
+                return SpecialJobOutput(
+                    jobId=self.jobId,
+                    name=output.name,
+                    fileBaseName=output.fileBaseName,
+                    url=output.url,
+                    size=output.size
+                )
+        raise Exception(f'Output not found: {name}')
 
 
 # // ComputeClientComputeSlot

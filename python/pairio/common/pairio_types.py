@@ -1,4 +1,6 @@
 from typing import List, Union, Any
+
+from .PairioJob import SpecialJobOutput
 from .. import BaseModel
 
 class PairioAppProcessorParameter(BaseModel):
@@ -112,7 +114,7 @@ class PairioServiceApp(BaseModel):
 class PairioJobInputFile(BaseModel):
     name: str
     fileBaseName: str
-    url: str
+    url: Union[str, SpecialJobOutput]
 
 
 class PairioJobOutputFile(BaseModel):

@@ -1,4 +1,4 @@
-from pairio.client import submit_job, PairioJobDefinition, PairioJobRequiredResources, PairioJobOutputFile
+from pairio.client import submit_job, PairioJobDefinition, PairioJobRequiredResources, PairioJobInputFile, PairioJobOutputFile
 
 
 def main():
@@ -34,7 +34,7 @@ def main():
             PairioJobInputFile(
                 name='input',
                 fileBaseName='input.txt',
-                url=job.outputs['output']
+                url=job.get_output('output')
             )
         ],
         outputFiles=[
@@ -45,7 +45,12 @@ def main():
         ],
         parameters=[]
     )
-    print(job2_def.job_url)
+    job2 = submit_job(
+        service_name='hello_world_service',
+        job_definition=job2_def,
+        required_resources=required_resources
+    )
+    print(job2.job_url)
 
 if __name__ == '__main__':
     main()

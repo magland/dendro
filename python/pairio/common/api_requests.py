@@ -223,7 +223,8 @@ def create_job(
     job_definition: PairioJobDefinition,
     required_resources: PairioJobRequiredResources,
     secrets: List[PairioJobSecret],
-    user_api_key: str
+    user_api_key: str,
+    job_dependencies: List[str] = []
 ):
     req = {
         'type': 'createJobRequest',
@@ -233,7 +234,8 @@ def create_job(
         'projectName': project_name,
         'jobDefinition': job_definition.model_dump(),
         'requiredResources': required_resources.model_dump(),
-        'secrets': [s.model_dump() for s in secrets]
+        'secrets': [s.model_dump() for s in secrets],
+        'jobDependencies': []
     }
     headers = {
         'Authorization': f'Bearer: {user_api_key}'

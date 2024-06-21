@@ -253,6 +253,7 @@ export type PairioJob = {
   projectName: string
   jobDefinition: PairioJobDefinition
   jobDefinitionHash: string
+  jobDependencies: string[]
   requiredResources: PairioJobRequiredResources
   secrets: PairioJobSecret[] | null
   inputFileUrlList: string[]
@@ -266,6 +267,7 @@ export type PairioJob = {
   timestampFinishedSec: number | null
   canceled: boolean
   status: PairioJobStatus
+  isRunnable: boolean
   error: string | null
   computeClientId: string | null
   computeClientName: string | null
@@ -282,6 +284,7 @@ export const isPairioJob = (x: any): x is PairioJob => {
     projectName: isString,
     jobDefinition: isPairioJobDefinition,
     jobDefinitionHash: isString,
+    jobDependencies: isArrayOf(isString),
     requiredResources: isPairioJobRequiredResources,
     secrets: isOneOf([isArrayOf(isPairioJobSecret), isNull]),
     inputFileUrlList: isArrayOf(isString),
@@ -295,6 +298,7 @@ export const isPairioJob = (x: any): x is PairioJob => {
     timestampFinishedSec: isOneOf([isNumber, isNull]),
     canceled: isBoolean,
     status: isPairioJobStatus,
+    isRunnable: isBoolean,
     error: isOneOf([isString, isNull]),
     computeClientId: isOneOf([isString, isNull]),
     computeClientName: isOneOf([isString, isNull]),
@@ -610,6 +614,7 @@ export type CreateJobRequest = {
   jobDefinition: PairioJobDefinition
   requiredResources: PairioJobRequiredResources
   secrets: PairioJobSecret[]
+  jobDependencies: string[]
 }
 
 export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
@@ -621,7 +626,8 @@ export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
     projectName: isString,
     jobDefinition: isPairioJobDefinition,
     requiredResources: isPairioJobRequiredResources,
-    secrets: isArrayOf(isPairioJobSecret)
+    secrets: isArrayOf(isPairioJobSecret),
+    jobDependencies: isArrayOf(isString)
   })
 }
 
