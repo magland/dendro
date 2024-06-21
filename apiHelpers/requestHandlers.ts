@@ -401,6 +401,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
         for (const oo of rr.jobDefinition.outputFiles) {
             const ofr: PairioJobOutputFileResult = {
                 name: oo.name,
+                fileBaseName: oo.fileBaseName,
                 url: await createOutputFileUrl({ serviceName: rr.serviceName, appName: rr.jobDefinition.appName, processorName: rr.jobDefinition.processorName, jobId, outputName: oo.name, outputFileBaseName: oo.fileBaseName }),
                 size: null
             }
@@ -444,9 +445,12 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
                 jobId: job.jobId
             }
         )
+        // hide the private key and the secrets
+        job.jobPrivateKey = null;
+        job.secrets = null;
         const resp: CreateJobResponse = {
             type: 'createJobResponse',
-            jobId
+            job
         };
         res.status(200).json(resp);
     }

@@ -229,6 +229,7 @@ export const isPairioJobDefinition = (x: any): x is PairioJobDefinition => {
 
 export type PairioJobOutputFileResult = {
   name: string
+  fileBaseName: string
   url: string
   size: number | null
 }
@@ -236,6 +237,7 @@ export type PairioJobOutputFileResult = {
 export const isPairioJobOutputFileResult = (x: any): x is PairioJobOutputFileResult => {
   return validateObject(x, {
     name: isString,
+    fileBaseName: isString,
     url: isString,
     size: isOneOf([isNumber, isNull])
   })
@@ -625,13 +627,13 @@ export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
 
 export type CreateJobResponse = {
   type: 'createJobResponse'
-  jobId: string
+  job: PairioJob
 }
 
 export const isCreateJobResponse = (x: any): x is CreateJobResponse => {
   return validateObject(x, {
     type: isEqualTo('createJobResponse'),
-    jobId: isString
+    job: isPairioJob
   })
 }
 

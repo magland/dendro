@@ -52,6 +52,7 @@ class PairioJobDefinition(BaseModel):
 
 class PairioJobOutputFileResult(BaseModel):
     name: str
+    fileBaseName: str
     url: str
     size: Union[int, None]
 
@@ -81,6 +82,16 @@ class PairioJob(BaseModel):
     computeClientId: Union[str, None]
     computeClientName: Union[str, None]
     imageUri: Union[str, None]
+
+    @property
+    def job_url(self):
+        return f'https://pairio.vercel.app/job/{self.jobId}'
+
+    def get_output(self, name: str):
+        for output in self.outputFileResults:
+            if output.name == name:
+                return output
+        return None
 
 
 # // ComputeClientComputeSlot

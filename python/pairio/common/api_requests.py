@@ -225,20 +225,6 @@ def create_job(
     secrets: List[PairioJobSecret],
     user_api_key: str
 ):
-    # export type CreateJobRequest = {
-    #     type: 'createJobRequest'
-    #     serviceName: string
-    #     userId: string
-    #     batchId: string
-    #     projectName: string
-    #     jobDefinition: PairioJobDefinition
-    #     requiredResources: PairioJobRequiredResources
-    #     secrets: PairioJobSecret[]
-    # }
-    # export type CreateJobResponse = {
-    #     type: 'createJobResponse'
-    #     jobId: string
-    # }
     req = {
         'type': 'createJobRequest',
         'serviceName': service_name,
@@ -259,7 +245,9 @@ def create_job(
     )
     if resp['type'] != 'createJobResponse':
         raise Exception('Unexpected response for createJobRequest')
-    return resp['jobId']
+    job = resp['job']
+    job = PairioJob(**job)
+    return job
 
 
 def _post_api_request(*,
