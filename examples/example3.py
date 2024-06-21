@@ -63,7 +63,8 @@ def main():
         service_name=service_name,
         job_definition=job2_def,
         required_resources=required_resources,
-        tags=['example']
+        tags=['example'],
+        rerun_failing=True
     )
     print(job2.job_url, job2.status, job2.isRunnable)
 

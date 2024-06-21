@@ -210,10 +210,20 @@ job2 = submit_job(
     service_name=service_name,
     job_definition=job2_def,
     required_resources=required_resources,
-    tags=['example']
+    tags=['example'],
+    rerun_failing=True
 )
 print(job2.job_url, job2.status, job2.isRunnable)
 ```
+
+Running this will produce two jobs and the output will look something like this:
+
+```bash
+https://pairio.vercel.app/job/tzl2neSljRZzpQQltIpW completed
+https://pairio.vercel.app/job/RpEMsaParNDaY7aP3oU2 completed True
+```
+
+Click on that second link and you should see the output file "output.json" which contains the number of characters in the input file. The input file is the output of the first job, which is a text file with the contents "Hello, world!".
 
 ### Install from source
 
