@@ -1,4 +1,5 @@
-from pairio.sdk import App, ProcessorBase, BaseModel, OutputFile
+import json
+from pairio.sdk import App, ProcessorBase, BaseModel, InputFile, OutputFile
 
 app = App(
     app_name='hello_world',
@@ -41,8 +42,38 @@ class HelloWorld2Processor(ProcessorBase):
             f.write('Hello, world!')
         context.output.upload('output.txt')
 
+class CountCharactersProcessorContext(BaseModel):
+    input: InputFile
+    output: OutputFile
+
+
+class CountCharactersProcessor(ProcessorBase):
+    name = 'count_characters'
+    description = 'Counts the number of characters in a text file'
+    label = 'count_characters'
+    image = 'magland/pairio-hello-world:0.1.0'
+    executable = '/app/main.py'
+    attributes = {}
+
+    @staticmethod
+    def run(
+        context: CountCharactersProcessorContext
+    ):
+        context.input.download('input.txt')
+        with open('input.txt', 'r') as f:
+            txt = f.read()
+        num_characters = len(txt)
+        output = {
+            'num_characters': num_characters
+        }
+        with open('output.txt', 'w') as f:
+            json.dump(output, f)
+
+        context.output.upload('output.json')
+
 app.add_processor(HelloWorld1Processor)
 app.add_processor(HelloWorld2Processor)
+app.add_processor(CountCharactersProcessor)
 
 if __name__ == '__main__':
     app.run()

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Hyperlink } from "@fi-sci/misc"
-import { FunctionComponent, useCallback, useEffect, useState } from "react"
+import { FunctionComponent, useCallback, useEffect, useMemo, useState } from "react"
 import useRoute from "../../useRoute"
 import { useJob, useServiceApp } from "../../hooks"
+import { PairioJob } from "../../types"
 
 type JobPageProps = {
     // none
@@ -64,6 +65,8 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
                 </tbody>
             </table>
             <hr />
+            <InputsOutputsView job={job} />
+            <hr />
             <ConsoleOutputView consoleOutputUrl={job.consoleOutputUrl} />
         </div>
     )
@@ -115,6 +118,75 @@ const useRemoteText = (url: string) => {
         }
     }, [refreshCode])
     return { text, refreshText }
+}
+
+type InputsOutputsViewProps = {
+    job: PairioJob
+}
+
+type InputsOutputsViewRow = {
+    type: 'input' | 'output'
+    name: string
+    fileBaseName: string
+    size: number | null | undefined
+    url: string | undefined
+}
+
+const InputsOutputsView: FunctionComponent<InputsOutputsViewProps> = ({ job }) => {
+    const rows = useMemo(() => {
+        const r: InputsOutputsViewRow[] = []
+        for (const x of job.jobDefinition.inputFiles) {
+            r.push({
+                type: 'input',
+                name: x.name,
+                fileBaseName: x.fileBaseName,
+                size: undefined,
+                url: x.url
+            })
+        }
+        for (const x of job.jobDefinition.outputFiles) {
+            const xr = job.outputFileResults.find(y => y.name === x.name)
+            r.push({
+                type: 'output',
+                name: x.name,
+                fileBaseName: x.fileBaseName,
+                size: xr ? xr.size : undefined,
+                url: xr ? xr.url : undefined
+            })
+        }
+        return r
+    }, [job])
+    return (
+        <table className="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Size</th>
+                    <th>URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows.map((row, i) => {
+                    const doLinkToFile = row.url && row.size !== undefined && row.size !== null && row.size < 1000 * 1000 * 10
+                    return (
+                        <tr key={i}>
+                            <td>{row.name}</td>
+                            <td>{row.type}</td>
+                            <td>{row.size}</td>
+                            <td>{
+                                doLinkToFile ? (
+                                    <a href={row.url} target="_blank" rel="noopener noreferrer">{row.url}</a>
+                                ) : (
+                                    <span>{row.url || ''}</span>
+                                )
+                            }</td>
+                        </tr>
+                    )
+                })}
+            </tbody>
+        </table>
+    )
 }
 
 export default JobPage

@@ -28,6 +28,27 @@
             ],
             "parameters": [],
             "attributes": []
+        },
+        {
+            "name": "count_characters",
+            "description": "Counts the number of characters in a text file",
+            "label": "count_characters",
+            "image": "magland/pairio-hello-world:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [
+                {
+                    "name": "input",
+                    "description": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": ""
+                }
+            ],
+            "parameters": [],
+            "attributes": []
         }
     ]
 }
