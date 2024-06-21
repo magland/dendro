@@ -230,14 +230,14 @@ export const isPairioJobDefinition = (x: any): x is PairioJobDefinition => {
 export type PairioJobOutputFileResult = {
   name: string
   url: string
-  size: number
+  size: number | null
 }
 
 export const isPairioJobOutputFileResult = (x: any): x is PairioJobOutputFileResult => {
   return validateObject(x, {
     name: isString,
     url: isString,
-    size: isNumber
+    size: isOneOf([isNumber, isNull])
   })
 }
 

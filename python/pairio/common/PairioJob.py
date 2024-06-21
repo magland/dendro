@@ -53,7 +53,7 @@ class PairioJobDefinition(BaseModel):
 class PairioJobOutputFileResult(BaseModel):
     name: str
     url: str
-    size: int
+    size: Union[int, None]
 
 class PairioJob(BaseModel):
     jobId: str

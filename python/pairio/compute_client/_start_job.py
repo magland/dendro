@@ -17,6 +17,8 @@ def _start_job(*,
 ):
     job_id = job.jobId
     job_private_key = job.jobPrivateKey
+    if job_private_key is None:
+        raise JobException('Unexpected: job_private_key is None')
     job_required_resources = job.requiredResources
     set_job_status(
         job_id=job_id,
@@ -46,7 +48,7 @@ def _start_job(*,
         'JOB_PRIVATE_KEY': job_private_key,
         'COMPUTE_CLIENT_ID': compute_client_id,
         'PROCESSOR_EXECUTABLE': processor_executable,
-        'PAIRIO_API_URL': 'https://pairio.vercel.app'
+        'PAIRIO_API_URL': os.environ.get('PAIRIO_API_URL', 'https://pairio.vercel.app')
     }
 
     if job_required_resources.timeSec is not None:
@@ -101,6 +103,7 @@ def _run_container_job(*,
     tmpdir = job_dir + '/tmp' # important to provide a /tmp directory for singularity or apptainer so that it doesn't run out of disk space
     os.makedirs(tmpdir, exist_ok=True)
     exe = f'python {processor_executable}' if processor_executable.endswith('.py') else processor_executable
+    pairio_api_url = os.getenv('PAIRIO_API_URL', 'https://pairio.vercel.app')
 
     # We need to create this shell script so that we can catch errors in the parent process
     # and report them back to the server. See comments in the code below.
@@ -138,6 +141,9 @@ fi
             cmd2.extend(['--cpus', str(num_cpus)])
         if use_gpu:
             cmd2.extend(['--gpus', 'all'])
+        if pairio_api_url.startswith('http://localhost:'):
+            # in this case we are in dev mode and we need to allow access to the host network
+            cmd2.extend(['--network', 'host'])
         cmd2.extend([processor_image])
         cmd2.extend(['/bin/bash', '/tmp/run.sh'])
         print(f'Pulling image {processor_image}')
@@ -177,6 +183,11 @@ fi
             cmd2.extend(['--env', f'{k}={v}'])
         # we want kachery temporary files to be stored in the /tmp/.kachery-cloud directory
         cmd2.extend(['--env', 'KACHERY_CLOUD_DIR=/tmp/.kachery-cloud'])
+
+        if pairio_api_url.startswith('http://localhost:'):
+            # in this case we are in dev mode and we need to allow access to the host network
+            # maybe nothing special needs to be done here
+            pass
 
         # don't use --cpus for now because we run into cgroups issues and the container fails to start
         # if num_cpus is not None:

@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import allowCors from "./allowCors"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient"; // remove .js for local dev
 import publishPubsubMessage from "./publicPubsubMessage"; // remove .js for local dev
-import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, GetJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioService, PairioServiceApp, PairioUser, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isGetJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types"; // remove .js for local dev
+import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, GetJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioJobOutputFileResult, PairioService, PairioServiceApp, PairioUser, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isGetJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types"; // remove .js for local dev
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -397,6 +397,16 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
         const consoleOutputUrl = await createOutputFileUrl({ serviceName: rr.serviceName, appName: rr.jobDefinition.appName, processorName: rr.jobDefinition.processorName, jobId, outputName: 'console_output', outputFileBaseName: 'output.txt' });
         const resourceUtilizationLogUrl = await createOutputFileUrl({ serviceName: rr.serviceName, appName: rr.jobDefinition.appName, processorName: rr.jobDefinition.processorName, jobId, outputName: 'resource_utilization_log', outputFileBaseName: 'log.jsonl' });
 
+        const outputFileResults: PairioJobOutputFileResult[] = [];
+        for (const oo of rr.jobDefinition.outputFiles) {
+            const ofr: PairioJobOutputFileResult = {
+                name: oo.name,
+                url: await createOutputFileUrl({ serviceName: rr.serviceName, appName: rr.jobDefinition.appName, processorName: rr.jobDefinition.processorName, jobId, outputName: oo.name, outputFileBaseName: oo.fileBaseName }),
+                size: null
+            }
+            outputFileResults.push(ofr);
+        }
+
         const job: PairioJob = {
             jobId,
             jobPrivateKey,
@@ -410,7 +420,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             secrets: rr.secrets,
             inputFileUrlList: rr.jobDefinition.inputFiles.map(f => f.url),
             outputFileUrlList: [],
-            outputFileResults: [],
+            outputFileResults,
             consoleOutputUrl,
             resourceUtilizationLogUrl,
             timestampCreatedSec: Date.now() / 1000,
@@ -909,16 +919,14 @@ export const getSignedUploadUrlHandler = allowCors(async (req: VercelRequest, re
                 return;
             }
             const ooResult = job.outputFileResults.find(o => (o.name === rr.outputName));
-            if (ooResult) {
-                res.status(400).json({ error: "Output file has already been uploaded" });
+            if (!ooResult) {
+                res.status(400).json({ error: "Output file result not found" });
                 return;
             }
-            url = await createOutputFileUrl({ serviceName: job.serviceName, appName: job.jobDefinition.appName, processorName: job.jobDefinition.processorName, jobId: job.jobId, outputName: rr.outputName, outputFileBaseName: oo.fileBaseName });
-            job.outputFileResults.push({
-                name: rr.outputName,
-                url,
-                size: rr.size
-            });
+            url = ooResult.url;
+
+            // set the size of the output file result
+            ooResult.size = rr.size;
             await updateJob(rr.jobId, { outputFileResults: job.outputFileResults });
         }
         else if (rr.uploadType === 'consoleOutput') {
