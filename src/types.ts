@@ -250,7 +250,7 @@ export type PairioJob = {
   serviceName: string
   userId: string
   batchId: string
-  projectName: string
+  tags: string[]
   jobDefinition: PairioJobDefinition
   jobDefinitionHash: string
   jobDependencies: string[]
@@ -281,7 +281,7 @@ export const isPairioJob = (x: any): x is PairioJob => {
     serviceName: isString,
     userId: isString,
     batchId: isString,
-    projectName: isString,
+    tags: isArrayOf(isString),
     jobDefinition: isPairioJobDefinition,
     jobDefinitionHash: isString,
     jobDependencies: isArrayOf(isString),
@@ -610,11 +610,12 @@ export type CreateJobRequest = {
   serviceName: string
   userId: string
   batchId: string
-  projectName: string
+  tags: string[]
   jobDefinition: PairioJobDefinition
   requiredResources: PairioJobRequiredResources
   secrets: PairioJobSecret[]
   jobDependencies: string[]
+  skipCache?: boolean
 }
 
 export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
@@ -623,11 +624,12 @@ export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
     serviceName: isString,
     userId: isString,
     batchId: isString,
-    projectName: isString,
+    tags: isArrayOf(isString),
     jobDefinition: isPairioJobDefinition,
     requiredResources: isPairioJobRequiredResources,
     secrets: isArrayOf(isPairioJobSecret),
-    jobDependencies: isArrayOf(isString)
+    jobDependencies: isArrayOf(isString),
+    skipCache: optional(isBoolean)
   })
 }
 
@@ -684,6 +686,7 @@ export type GetJobsRequest = {
   inputFileUrl?: string
   outputFileUrl?: string
   status?: PairioJobStatus | PairioJobStatus[]
+  limit?: number
 }
 
 export const isGetJobsRequest = (x: any): x is GetJobsRequest => {
@@ -700,6 +703,7 @@ export const isGetJobsRequest = (x: any): x is GetJobsRequest => {
     inputFileUrl: optional(isString),
     outputFileUrl: optional(isString),
     status: optional(isOneOf([isPairioJobStatus, isArrayOf(isPairioJobStatus)])),
+    limit: optional(isNumber)
   })
 }
 

@@ -5,6 +5,7 @@ import allowCors from "./allowCors.js"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient.js"; // remove .js for local dev
 import publishPubsubMessage from "./publicPubsubMessage.js"; // remove .js for local dev
 import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, GetJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioJobOutputFileResult, PairioService, PairioServiceApp, PairioUser, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isGetJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types.js"; // remove .js for local dev
+import { Document } from "mongodb";
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -392,6 +393,47 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             return;
         }
 
+        const jobDefinitionHash = computeSha1(JSONStringifyDeterministic(rr.jobDefinition))
+
+        if (!rr.skipCache) {
+            const match = {
+                serviceName: rr.serviceName,
+                jobDefinitionHash,
+                status: {
+                    // Look for anything that is not pending or failed in the cache
+                    $nin: ['pending', 'failed']
+                }
+            }
+            const pipeline = [
+                { $match: match },
+                { $sort: { timestampCreatedSec: -1 } }, // get the most recent matching job
+                { $limit: 1 }
+            ]
+            let jobs = await fetchJobs(pipeline);
+            if (jobs.length > 0) {
+                const job = jobs[0];
+                let allTagsWereAlreadyPresentOnJob = true;
+                for (const tag of rr.tags) {
+                    if (!job.tags.includes(tag)) {
+                        job.tags.push(tag);
+                        allTagsWereAlreadyPresentOnJob = false;
+                    }
+                }
+                if (!allTagsWereAlreadyPresentOnJob) {
+                    await updateJob(job.jobId, { tags: job.tags });
+                }
+                // hide the private key and the secrets
+                job.jobPrivateKey = null;
+                job.secrets = null;
+                const resp: CreateJobResponse = {
+                    type: 'createJobResponse',
+                    job
+                };
+                res.status(200).json(resp);
+                return;
+            }
+        }
+
         const jobId = generateJobId();
         const jobPrivateKey = generateJobPrivateKey();
         const consoleOutputUrl = await createOutputFileUrl({ serviceName: rr.serviceName, appName: rr.jobDefinition.appName, processorName: rr.jobDefinition.processorName, jobId, outputName: 'console_output', outputFileBaseName: 'output.txt' });
@@ -416,9 +458,9 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             serviceName: rr.serviceName,
             userId: rr.userId,
             batchId: rr.batchId,
-            projectName: rr.projectName,
+            tags: rr.tags,
             jobDefinition: rr.jobDefinition,
-            jobDefinitionHash: computeSha1(JSONStringifyDeterministic(rr.jobDefinition)),
+            jobDefinitionHash,
             jobDependencies: rr.jobDependencies,
             requiredResources: rr.requiredResources,
             secrets: rr.secrets,
@@ -579,7 +621,14 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
         if (rr.inputFileUrl) query['inputFileList'] = rr.inputFileUrl;
         if (rr.outputFileUrl) query['outputFileList'] = rr.outputFileUrl;
         if (rr.status) query['status'] = rr.status;
-        const jobs = await fetchJobs(query);
+        const pipeline: any[] = [
+            { $match: query },
+            { $sort: { timestampCreatedSec: -1 } }
+        ]
+        if (rr.limit) {
+            pipeline.push({ $limit: rr.limit });
+        }
+        const jobs = await fetchJobs(pipeline);
         // hide the private keys and secrets for the jobs
         for (const job of jobs) {
             job.jobPrivateKey = null;
@@ -624,20 +673,30 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
             res.status(401).json({ error: "This compute client is not allowed to process jobs for this service" });
             return;
         }
-        let pendingJobs = await fetchJobs({ serviceName: service.serviceName, status: 'pending' });
+        const pipeline = [
+            { $match: { serviceName: service.serviceName, status: 'pending', isRunnable: true } },
+            { $sample: { size: 200 } }, // thinking of the case of many pending jobs, but we don't want to always get the same ones (but there is a potential problem here)
+            { $sort: { timestampCreatedSec: 1 } } // handle earliest jobs first
+        ]
+        let runnableJobs = await fetchJobs(pipeline);
         // scramble the pending jobs so that we don't always get the same ones
         // and minimize conflicts between compute clients when there are many
         // pending jobs
-        pendingJobs = shuffleArray(pendingJobs);
-        const runningJobs = await fetchJobs({ serviceName: service.serviceName, status: 'running' });
-        const runnableJobs: PairioJob[] = [];
-        for (const pj of pendingJobs) {
-            if (computeResourceHasEnoughCapacityForJob(computeClient, pj, [...runningJobs, ...runnableJobs])) {
-                runnableJobs.push(pj);
+        runnableJobs = shuffleArray(runnableJobs);
+        const pipeline2 = [
+            { $match: { serviceName: service.serviceName, status: 'running' } },
+            { $sort: { timestampCreatedSec: 1 } }
+            // important not to limit here, because we really need to know all the running jobs
+        ]
+        const runningJobs = await fetchJobs(pipeline2);
+        const runnableReadyJobs: PairioJob[] = [];
+        for (const pj of runnableJobs) {
+            if (computeResourceHasEnoughCapacityForJob(computeClient, pj, [...runningJobs, ...runnableReadyJobs])) {
+                runnableReadyJobs.push(pj);
             }
         }
         // remove secrets, but don't remove job private keys
-        for (const job of runnableJobs) {
+        for (const job of runnableReadyJobs) {
             job.secrets = null;
         }
         for (const job of runningJobs) {
@@ -645,7 +704,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
         }
         const resp: GetRunnableJobsForComputeClientResponse = {
             type: 'getRunnableJobsForComputeClientResponse',
-            runnableJobs,
+            runnableJobs: runnableReadyJobs,
             runningJobs
         }
         res.status(200).json(resp);
@@ -709,12 +768,11 @@ export const getJobHandler = allowCors(async (req: VercelRequest, res: VercelRes
         return;
     }
     try {
-        const jobs = await fetchJobs({ jobId: rr.jobId });
-        if (jobs.length === 0) {
+        const job = await fetchOneJobByJobId(rr.jobId);
+        if (!job) {
             res.status(404).json({ error: "Job not found" });
             return;
         }
-        const job = jobs[0];
         if (rr.includePrivateKey) {
             if (!rr.computeClientId) {
                 res.status(400).json({ error: "computeClientId must be provided if includePrivateKey is true" });
@@ -759,12 +817,11 @@ export const cancelJobHandler = allowCors(async (req: VercelRequest, res: Vercel
         return;
     }
     try {
-        const jobs = await fetchJobs({ jobId: rr.jobId });
-        if (jobs.length === 0) {
+        const job = await fetchOneJobByJobId(rr.jobId);
+        if (!job) {
             res.status(404).json({ error: "Job not found" });
             return;
         }
-        const job = jobs[0];
         const authorizationToken = req.headers.authorization?.split(" ")[1]; // Extract the token
         if (!(await authenticateUserUsingApiToken(job.userId, authorizationToken))) {
             res.status(401).json({ error: "Unauthorized" });
@@ -878,11 +935,11 @@ export const setJobStatusHandler = allowCors(async (req: VercelRequest, res: Ver
             await updateJob(rr.jobId, { status: rr.status, error: rr.error, timestampFinishedSec: Date.now() / 1000 })
             if (rr.status === 'completed') {
                 // maybe some other jobs have become runnable
-                const jobsThatMayHaveBecomeRunnable = await fetchJobs({
-                    status: 'pending',
-                    isRunnable: false,
-                    jobDependencies: rr.jobId
-                })
+                const pipeline = [
+                    { $match: { jobDependencies: rr.jobId, status: 'pending', isRunnable: false } }
+                    // do not limit
+                ]
+                const jobsThatMayHaveBecomeRunnable = await fetchJobs(pipeline)
                 for (const j of jobsThatMayHaveBecomeRunnable) {
                     const nowRunnable = await checkJobRunnable(j.jobDependencies);
                     if (nowRunnable) {
@@ -936,12 +993,11 @@ export const getSignedUploadUrlHandler = allowCors(async (req: VercelRequest, re
         return;
     }
     try {
-        const jobs = await fetchJobs({ jobId: rr.jobId });
-        if (jobs.length === 0) {
+        const job = await fetchOneJobByJobId(rr.jobId);
+        if (!job) {
             res.status(404).json({ error: "Job not found" });
             return;
         }
-        const job = jobs[0];
         const computeClientId = job.computeClientId;
         if (!computeClientId) {
             res.status(400).json({ error: "Job does not have a compute client" });
@@ -1556,11 +1612,11 @@ const fetchJob = async (jobId: string) => {
     return job;
 }
 
-const fetchJobs = async (query: { [key: string]: any }) => {
+const fetchJobs = async (pipeline: any[] | undefined) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.jobs);
     const jobs = await collection
-        .find(query)
+        .aggregate(pipeline)
         .toArray();
     for (const job of jobs) {
         removeMongoId(job);
@@ -1571,6 +1627,20 @@ const fetchJobs = async (query: { [key: string]: any }) => {
         }
     }
     return jobs.map((job: any) => job as PairioJob);
+}
+
+const fetchOneJobByJobId = async (jobId: string) => {
+    const client = await getMongoClient();
+    const collection = client.db(dbName).collection(collectionNames.jobs);
+    const job = await collection.findOne({ jobId });
+    if (!job) return null;
+    removeMongoId(job);
+    if (!isPairioJob(job)) {
+        console.warn('invalid job:', job)
+        await collection.deleteOne({ jobId: job.jobId });
+        throw Error('Invalid job in database');
+    }
+    return job;
 }
 
 const updateJob = async (jobId: string, update: any) => {

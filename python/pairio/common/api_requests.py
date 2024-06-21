@@ -219,23 +219,25 @@ def create_job(
     *,
     service_name: str,
     batch_id: str,
-    project_name: str,
+    tags: List[str],
     job_definition: PairioJobDefinition,
     required_resources: PairioJobRequiredResources,
     secrets: List[PairioJobSecret],
     user_api_key: str,
-    job_dependencies: List[str] = []
+    job_dependencies: List[str] = [],
+    skip_cache: bool = False
 ):
     req = {
         'type': 'createJobRequest',
         'serviceName': service_name,
         'userId': '',  # determined from the api key
         'batchId': batch_id,
-        'projectName': project_name,
+        'tags': tags,
         'jobDefinition': job_definition.model_dump(),
         'requiredResources': required_resources.model_dump(),
         'secrets': [s.model_dump() for s in secrets],
-        'jobDependencies': job_dependencies
+        'jobDependencies': job_dependencies,
+        'skipCache': skip_cache
     }
     headers = {
         'Authorization': f'Bearer: {user_api_key}'

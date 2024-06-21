@@ -280,7 +280,8 @@ export const useJobs = (o: { computeClientId?: string, serviceName: string }) =>
             const req: GetJobsRequest = {
                 type: 'getJobsRequest',
                 computeClientId,
-                serviceName
+                serviceName,
+                limit: 100
             }
             const resp = await apiPostRequest('getJobs', req)
             if (canceled) return
