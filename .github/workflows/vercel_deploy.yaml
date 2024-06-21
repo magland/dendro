@@ -21,7 +21,7 @@ jobs:
             run: npm install --global vercel@latest
         -
             name: Prepare API source for prod
-            run: python devel/prepare_api_for_dev_prod.py
+            run: python devel/prepare_api_for_dev_prod.py prod
         -
             name: Set vercel.json for production
             run: cp _vercel_prod.json vercel.json
