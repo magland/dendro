@@ -215,6 +215,7 @@ export type PairioJobDefinition = {
   inputFiles: PairioJobInputFile[]
   outputFiles: PairioJobOutputFile[]
   parameters: PairioJobParameter[]
+  cacheBust?: string
 }
 
 export const isPairioJobDefinition = (x: any): x is PairioJobDefinition => {
@@ -223,7 +224,8 @@ export const isPairioJobDefinition = (x: any): x is PairioJobDefinition => {
     processorName: isString,
     inputFiles: isArrayOf(isPairioJobInputFile),
     outputFiles: isArrayOf(isPairioJobOutputFile),
-    parameters: isArrayOf(isPairioJobParameter)
+    parameters: isArrayOf(isPairioJobParameter),
+    cacheBust: optional(isString)
   })
 }
 
@@ -616,8 +618,8 @@ export type CreateJobRequest = {
   secrets: PairioJobSecret[]
   jobDependencies: string[]
   skipCache?: boolean
-  rerunFailed?: boolean
-  deleteFailed?: boolean
+  rerunFailing?: boolean
+  deleteFailing?: boolean
 }
 
 export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
@@ -632,8 +634,8 @@ export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
     secrets: isArrayOf(isPairioJobSecret),
     jobDependencies: isArrayOf(isString),
     skipCache: optional(isBoolean),
-    rerunFailed: optional(isBoolean),
-    deleteFailed: optional(isBoolean)
+    rerunFailing: optional(isBoolean),
+    deleteFailing: optional(isBoolean)
   })
 }
 

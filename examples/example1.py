@@ -19,7 +19,8 @@ def main():
         service_name='hello_world_service',
         job_definition=job_def,
         required_resources=required_resources,
-        tags=['example']
+        tags=['example'],
+        rerun_failing=True
     )
     print(job.job_url, job.status)
 

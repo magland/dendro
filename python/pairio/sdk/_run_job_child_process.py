@@ -29,16 +29,18 @@ class ContextObject:
             obj = getattr(obj, part)
             assert isinstance(obj, ContextObject), f'Unexpected type for {part}'
         obj._pairio_set_attribute(parts[-1], value)
-    def dict(self):
+    def dict(self, *, exclude_none=False):
         ret = {}
         for k, v in self._pairio_attributes.items():
+            if exclude_none and v is None:
+                continue
             if isinstance(v, ContextObject):
-                ret[k] = v.dict()
+                ret[k] = v.dict(exclude_none=exclude_none)
             else:
                 ret[k] = v
         return ret
-    def model_dump(self):
-        return self.dict()
+    def model_dump(self, *, exclude_none=False):
+        return self.dict(exclude_none=exclude_none)
 
 def _run_job_child_process(*, job_id: str, job_private_key: str, processors: List[AppProcessor]):
     """

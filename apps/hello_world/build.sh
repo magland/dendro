@@ -1,3 +1,12 @@
+#!/bin/bash
+
+set -ex
+
+this_dir=$(dirname $0)
+cd $this_dir
+
+bash make_spec.sh
+
 docker build -t magland/pairio-hello-world:0.1.0 .
 
 # prompt user to push to docker hub

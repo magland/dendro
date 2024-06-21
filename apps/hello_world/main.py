@@ -1,5 +1,5 @@
 import json
-from pairio.sdk import App, ProcessorBase, BaseModel, InputFile, OutputFile
+from pairio.sdk import App, ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 app = App(
     app_name='hello_world',
@@ -7,11 +7,11 @@ app = App(
 )
 
 class HelloWorld1ProcessorContext(BaseModel):
-    pass
+    name: str = Field(description='The name to say hello to', default='world')
 
 class HelloWorld1Processor(ProcessorBase):
     name = 'hello_world_1'
-    description = 'Prints "Hello, world!"'
+    description = 'Prints "Hello, {name}!"'
     label = 'hello_world_1'
     image = 'magland/pairio-hello-world:0.1.0'
     executable = '/app/main.py'
@@ -21,14 +21,16 @@ class HelloWorld1Processor(ProcessorBase):
     def run(
         context: HelloWorld1ProcessorContext
     ):
-        print('Hello, world!')
+        name = context.name
+        print(f'Hello, {name}!')
 
 class HelloWorld2ProcessorContext(BaseModel):
-    output: OutputFile
+    output: OutputFile = Field(description='The output text file')
+    name: str = Field(description='The name to say hello to', default='world')
 
 class HelloWorld2Processor(ProcessorBase):
     name = 'hello_world_2'
-    description = 'Outputs a text file with "Hello, world!" in it'
+    description = 'Outputs a text file with "Hello, {name}!" in it'
     label = 'hello_world_2'
     image = 'magland/pairio-hello-world:0.1.0'
     executable = '/app/main.py'
@@ -38,13 +40,15 @@ class HelloWorld2Processor(ProcessorBase):
     def run(
         context: HelloWorld2ProcessorContext
     ):
+        name = context.name
         with open('output.txt', 'w') as f:
-            f.write('Hello, world!')
+            f.write(f'Hello, {name}!')
         context.output.upload('output.txt')
 
 class CountCharactersProcessorContext(BaseModel):
-    input: InputFile
-    output: OutputFile
+    input: InputFile = Field(description='The input text file')
+    output: OutputFile = Field(description='The output JSON file')
+    include_whitespace: bool = Field(description='Whether to include whitespace in the count', default=True)
 
 
 class CountCharactersProcessor(ProcessorBase):
@@ -59,9 +63,12 @@ class CountCharactersProcessor(ProcessorBase):
     def run(
         context: CountCharactersProcessorContext
     ):
+        include_whitespace = context.include_whitespace
         context.input.download('input.txt')
         with open('input.txt', 'r') as f:
             txt = f.read()
+        if not include_whitespace:
+            txt = txt.replace(' ', '').replace('\n', '').replace('\t', '').replace('\r', '')
         num_characters = len(txt)
         output = {
             'num_characters': num_characters

@@ -48,6 +48,7 @@ class PairioJobDefinition(BaseModel):
     inputFiles: List[PairioJobInputFile]
     outputFiles: List[PairioJobOutputFile]
     parameters: List[PairioJobParameter]
+    cacheBust: Union[str, None] = None  # Note: it is very important to set exclude_none=True when serializing this model
 
 class PairioJobOutputFileResult(BaseModel):
     name: str

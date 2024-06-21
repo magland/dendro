@@ -10,7 +10,10 @@ def submit_job(
     service_name: str,
     job_definition: PairioJobDefinition,
     required_resources: PairioJobRequiredResources,
-    tags: List[str] = []
+    tags: List[str] = [],
+    skip_cache: bool = False,
+    rerun_failing: bool = False,
+    delete_failing: bool = False
 ):
     user_api_key = os.environ.get('PAIRIO_API_KEY', None)
     if user_api_key is None:
@@ -34,6 +37,9 @@ def submit_job(
         required_resources=required_resources,
         secrets=[],
         user_api_key=user_api_key,
-        job_dependencies=job_dependencies
+        job_dependencies=job_dependencies,
+        skip_cache=skip_cache,
+        rerun_failing=rerun_failing,
+        delete_failing=delete_failing
     )
     return job

@@ -226,8 +226,8 @@ def create_job(
     user_api_key: str,
     job_dependencies: List[str] = [],
     skip_cache: bool = False,
-    rerun_failed: bool = False,
-    delete_failed: bool = False
+    rerun_failing: bool = False,
+    delete_failing: bool = False
 ):
     req = {
         'type': 'createJobRequest',
@@ -235,13 +235,13 @@ def create_job(
         'userId': '',  # determined from the api key
         'batchId': batch_id,
         'tags': tags,
-        'jobDefinition': job_definition.model_dump(),
+        'jobDefinition': job_definition.model_dump(exclude_none=True),  # important to exclude none here for the cacheBust field
         'requiredResources': required_resources.model_dump(),
         'secrets': [s.model_dump() for s in secrets],
         'jobDependencies': job_dependencies,
         'skipCache': skip_cache,
-        'rerunFailed': rerun_failed,
-        'deleteFailed': delete_failed
+        'rerunFailing': rerun_failing,
+        'deleteFailing': delete_failing
     }
     headers = {
         'Authorization': f'Bearer: {user_api_key}'

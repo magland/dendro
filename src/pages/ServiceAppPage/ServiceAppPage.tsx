@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Hyperlink } from "@fi-sci/misc"
-import { FunctionComponent } from "react"
+import { FunctionComponent, useMemo } from "react"
 import useRoute from "../../useRoute"
 import { useServiceApp } from "../../hooks"
+import { PairioAppProcessor } from "../../types"
 
 type ServiceAppPageProps = {
     // none
@@ -64,18 +65,92 @@ const ServiceAppPage: FunctionComponent<ServiceAppPageProps> = () => {
                             )}
                         </td>
                     </tr>
+                </tbody>
+            </table>
+            <hr />
+            <h3>Processors</h3>
+            {
+                serviceApp.appSpecification.processors.map((processor) => (
+                    <ProcessorView processor={processor} key={processor.name} />
+                ))
+            }
+        </div>
+    )
+}
+
+type ProcessorViewProps = {
+    processor: PairioAppProcessor
+}
+
+type ProcessorViewRow = {
+    type: 'input' | 'output' | 'parameter'
+    name: string
+    description: string
+    parameterType: string | undefined
+    defaultValue: any | undefined
+}
+
+const ProcessorView: FunctionComponent<ProcessorViewProps> = ({processor}) => {
+    const rows: ProcessorViewRow[] = useMemo(() => {
+        const r: ProcessorViewRow[] = []
+        for (const x of processor.inputs) {
+            r.push({
+                type: 'input',
+                name: x.name,
+                description: x.description,
+                parameterType: undefined,
+                defaultValue: undefined
+            })
+        }
+        for (const x of processor.outputs) {
+            r.push({
+                type: 'output',
+                name: x.name,
+                description: x.description,
+                parameterType: undefined,
+                defaultValue: undefined
+            })
+        }
+        for (const x of processor.parameters) {
+            r.push({
+                type: 'parameter',
+                name: x.name,
+                description: x.description,
+                parameterType: x.type,
+                defaultValue: x.defaultValue
+            })
+        }
+        return r
+    }, [processor])
+    return (
+        <div>
+            <h4>{processor.name}</h4>
+            <table className="table">
+                <thead>
                     <tr>
-                        <td>Processors</td>
-                        <td>
-                            {
-                                serviceApp.appSpecification.processors.map((processor: any) => (
-                                    <div key={processor.name}>
-                                        {processor.name}
-                                    </div>
-                                ))
-                            }
-                        </td>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Default Value</th>
+                        <th>Description</th>
                     </tr>
+                </thead>
+                <tbody>
+                    {
+                        rows.map(row => (
+                            <tr key={row.name}>
+                                <td>{row.name}</td>
+                                <td>{
+                                    row.type === 'parameter' ? (
+                                        row.parameterType
+                                    ) : (
+                                        row.type
+                                    )
+                                }</td>
+                                <td>{row.defaultValue}</td>
+                                <td>{row.description}</td>
+                            </tr>
+                        ))
+                    }
                 </tbody>
             </table>
         </div>

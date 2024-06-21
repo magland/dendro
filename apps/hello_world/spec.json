@@ -4,18 +4,25 @@
     "processors": [
         {
             "name": "hello_world_1",
-            "description": "Prints \"Hello, world!\"",
+            "description": "Prints \"Hello, {name}!\"",
             "label": "hello_world_1",
             "image": "magland/pairio-hello-world:0.1.0",
             "executable": "/app/main.py",
             "inputs": [],
             "outputs": [],
-            "parameters": [],
+            "parameters": [
+                {
+                    "name": "name",
+                    "type": "str",
+                    "description": "The name to say hello to",
+                    "defaultValue": null
+                }
+            ],
             "attributes": []
         },
         {
             "name": "hello_world_2",
-            "description": "Outputs a text file with \"Hello, world!\" in it",
+            "description": "Outputs a text file with \"Hello, {name}!\" in it",
             "label": "hello_world_2",
             "image": "magland/pairio-hello-world:0.1.0",
             "executable": "/app/main.py",
@@ -23,10 +30,17 @@
             "outputs": [
                 {
                     "name": "output",
-                    "description": ""
+                    "description": "The output text file"
                 }
             ],
-            "parameters": [],
+            "parameters": [
+                {
+                    "name": "name",
+                    "type": "str",
+                    "description": "The name to say hello to",
+                    "defaultValue": null
+                }
+            ],
             "attributes": []
         },
         {
@@ -38,16 +52,23 @@
             "inputs": [
                 {
                     "name": "input",
-                    "description": ""
+                    "description": "The input text file"
                 }
             ],
             "outputs": [
                 {
                     "name": "output",
-                    "description": ""
+                    "description": "The output JSON file"
                 }
             ],
-            "parameters": [],
+            "parameters": [
+                {
+                    "name": "include_whitespace",
+                    "type": "bool",
+                    "description": "Whether to include whitespace in the count",
+                    "defaultValue": null
+                }
+            ],
             "attributes": []
         }
     ]

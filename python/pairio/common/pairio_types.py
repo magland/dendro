@@ -133,6 +133,7 @@ class PairioJobDefinition(BaseModel):
     inputFiles: List[PairioJobInputFile]
     outputFiles: List[PairioJobOutputFile]
     parameters: List[PairioJobParameter]
+    cacheBust: Union[str, None] = None  # Note: it is very important to set exclude_none=True when serializing this model
 
 # // PairioJobInputFile
 # export type PairioJobInputFile = {
@@ -152,16 +153,6 @@ class PairioJobDefinition(BaseModel):
 # export type PairioJobParameter = {
 #   name: string
 #   value: string | number | boolean | string[] | number[] | boolean[] | null // null means undefined
-# }
-
-
-# // PairioJobDefinition
-# export type PairioJobDefinition = {
-#   appName: string
-#   processorName: string
-#   inputFiles: PairioJobInputFile[]
-#   outputFiles: PairioJobOutputFile[]
-#   parameters: PairioJobParameter[]
 # }
 
 class PairioJobRequiredResources(BaseModel):
