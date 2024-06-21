@@ -69,7 +69,7 @@ class PairioJob(BaseModel):
     serviceName: str
     userId: str
     batchId: str
-    projectName: str
+    tags: List[str]
     jobDefinition: PairioJobDefinition
     jobDefinitionHash: str
     jobDependencies: List[str]

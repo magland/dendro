@@ -23,7 +23,8 @@ def main():
     job = submit_job(
         service_name='hello_world_service',
         job_definition=job_def,
-        required_resources=required_resources
+        required_resources=required_resources,
+        tags=['example']
     )
     print(job.job_url)
 
@@ -48,7 +49,8 @@ def main():
     job2 = submit_job(
         service_name='hello_world_service',
         job_definition=job2_def,
-        required_resources=required_resources
+        required_resources=required_resources,
+        tags=['example']
     )
     print(job2.job_url)
 

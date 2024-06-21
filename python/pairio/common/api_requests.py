@@ -225,7 +225,9 @@ def create_job(
     secrets: List[PairioJobSecret],
     user_api_key: str,
     job_dependencies: List[str] = [],
-    skip_cache: bool = False
+    skip_cache: bool = False,
+    rerun_failed: bool = False,
+    delete_failed: bool = False
 ):
     req = {
         'type': 'createJobRequest',
@@ -237,7 +239,9 @@ def create_job(
         'requiredResources': required_resources.model_dump(),
         'secrets': [s.model_dump() for s in secrets],
         'jobDependencies': job_dependencies,
-        'skipCache': skip_cache
+        'skipCache': skip_cache,
+        'rerunFailed': rerun_failed,
+        'deleteFailed': delete_failed
     }
     headers = {
         'Authorization': f'Bearer: {user_api_key}'

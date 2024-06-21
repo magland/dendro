@@ -41,6 +41,10 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
                         <td>{jobId}</td>
                     </tr>
                     <tr>
+                        <td>Job definition hash</td>
+                        <td>{job.jobDefinitionHash}</td>
+                    </tr>
+                    <tr>
                         <td>Service</td>
                         <td>{job.serviceName}</td>
                     </tr>

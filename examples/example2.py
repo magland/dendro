@@ -20,12 +20,13 @@ def main():
         memoryGb=4,
         timeSec=60
     )
-    job_id = submit_job(
+    job = submit_job(
         service_name='hello_world_service',
         job_definition=job_def,
-        required_resources=required_resources
+        required_resources=required_resources,
+        tags=['example']
     )
-    print(job_id)
+    print(job.job_url, job.status)
 
 if __name__ == '__main__':
     main()

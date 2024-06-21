@@ -616,6 +616,8 @@ export type CreateJobRequest = {
   secrets: PairioJobSecret[]
   jobDependencies: string[]
   skipCache?: boolean
+  rerunFailed?: boolean
+  deleteFailed?: boolean
 }
 
 export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
@@ -629,7 +631,9 @@ export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
     requiredResources: isPairioJobRequiredResources,
     secrets: isArrayOf(isPairioJobSecret),
     jobDependencies: isArrayOf(isString),
-    skipCache: optional(isBoolean)
+    skipCache: optional(isBoolean),
+    rerunFailed: optional(isBoolean),
+    deleteFailed: optional(isBoolean)
   })
 }
 
@@ -680,7 +684,7 @@ export type GetJobsRequest = {
   processorName?: string
   computeClientId?: string
   batchId?: string
-  projectName?: string
+  tag?: string
   serviceName?: string
   appName?: string
   inputFileUrl?: string
@@ -697,7 +701,7 @@ export const isGetJobsRequest = (x: any): x is GetJobsRequest => {
     processorName: optional(isString),
     computeClientId: optional(isString),
     batchId: optional(isString),
-    projectName: optional(isString),
+    tag: optional(isString),
     serviceName: optional(isString),
     appName: optional(isString),
     inputFileUrl: optional(isString),

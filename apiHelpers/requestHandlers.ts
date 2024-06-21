@@ -5,7 +5,6 @@ import allowCors from "./allowCors.js"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient.js"; // remove .js for local dev
 import publishPubsubMessage from "./publicPubsubMessage.js"; // remove .js for local dev
 import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, GetJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioJobOutputFileResult, PairioService, PairioServiceApp, PairioUser, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isGetJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types.js"; // remove .js for local dev
-import { Document } from "mongodb";
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -398,11 +397,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
         if (!rr.skipCache) {
             const match = {
                 serviceName: rr.serviceName,
-                jobDefinitionHash,
-                status: {
-                    // Look for anything that is not pending or failed in the cache
-                    $nin: ['pending', 'failed']
-                }
+                jobDefinitionHash
             }
             const pipeline = [
                 { $match: match },
@@ -412,25 +407,46 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             let jobs = await fetchJobs(pipeline);
             if (jobs.length > 0) {
                 const job = jobs[0];
-                let allTagsWereAlreadyPresentOnJob = true;
-                for (const tag of rr.tags) {
-                    if (!job.tags.includes(tag)) {
-                        job.tags.push(tag);
-                        allTagsWereAlreadyPresentOnJob = false;
+                if ((job.status === 'failed') && (rr.rerunFailed)) {
+                    // we're not going to use this one because we are going to rerun the failed job
+                    if (rr.deleteFailed) {
+                        await deleteJobs({
+                            serviceName: rr.serviceName,
+                            jobIds: [job.jobId]
+                        })
                     }
                 }
-                if (!allTagsWereAlreadyPresentOnJob) {
-                    await updateJob(job.jobId, { tags: job.tags });
+                else {
+                    let allTagsWereAlreadyPresentOnJob = true;
+                    for (const tag of rr.tags) {
+                        if (!job.tags.includes(tag)) {
+                            job.tags.push(tag);
+                            allTagsWereAlreadyPresentOnJob = false;
+                        }
+                    }
+                    if (!allTagsWereAlreadyPresentOnJob) {
+                        await updateJob(job.jobId, { tags: job.tags });
+                    }
+                    // notify the compute clients as though the status has changed
+                    await publishPubsubMessage(
+                        job.serviceName,
+                        {
+                            type: 'jobStatusChanged',
+                            serviceName: job.serviceName,
+                            jobId: job.jobId,
+                            status: job.status
+                        }
+                    )
+                    // hide the private key and the secrets
+                    job.jobPrivateKey = null;
+                    job.secrets = null;
+                    const resp: CreateJobResponse = {
+                        type: 'createJobResponse',
+                        job
+                    };
+                    res.status(200).json(resp);
+                    return;
                 }
-                // hide the private key and the secrets
-                job.jobPrivateKey = null;
-                job.secrets = null;
-                const resp: CreateJobResponse = {
-                    type: 'createJobResponse',
-                    job
-                };
-                res.status(200).json(resp);
-                return;
             }
         }
 
@@ -593,9 +609,6 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
         else if ((rr.serviceName) && (rr.appName)) {
             okayToProceed = true;
         }
-        else if (rr.projectName) {
-            okayToProceed = true;
-        }
         else if (rr.inputFileUrl) {
             okayToProceed = true;
         }
@@ -615,7 +628,7 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
         if (rr.processorName) query['processorName'] = rr.processorName;
         if (rr.computeClientId) query['computeClientId'] = rr.computeClientId;
         if (rr.batchId) query['batchId'] = rr.batchId;
-        if (rr.projectName) query['projectName'] = rr.projectName;
+        if (rr.tag) query['tags'] = rr.tag;
         if (rr.serviceName) query['serviceName'] = rr.serviceName;
         if (rr.appName) query['appName'] = rr.appName;
         if (rr.inputFileUrl) query['inputFileList'] = rr.inputFileUrl;
@@ -1629,7 +1642,7 @@ const fetchJobs = async (pipeline: any[] | undefined) => {
     return jobs.map((job: any) => job as PairioJob);
 }
 
-const fetchOneJobByJobId = async (jobId: string) => {
+const fetchOneJobByJobId = async (jobId: string): Promise<PairioJob | null> => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.jobs);
     const job = await collection.findOne({ jobId });
