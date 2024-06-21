@@ -1,6 +1,8 @@
 from typing import Any, List, Union, Dict, Type
 from dataclasses import dataclass
 import inspect
+
+from pydantic_core import PydanticUndefined
 from .. import BaseModel
 from .ProcessorBase import ProcessorBase
 from .InputFile import InputFile
@@ -240,11 +242,14 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
             description = field_info.description if hasattr(field_info, 'description') else '' # type: ignore
         else:
             description = field.description if hasattr(field, 'description') else '' # type: ignore
+        default_value = field.default if hasattr(field, 'default') else None,
+        if default_value == PydanticUndefined or (isinstance(default_value, tuple) and len(default_value) == 1 and default_value[0] == PydanticUndefined):
+            default_value = None
         context_fields.append({
             'name': name,
             'description': description,
             'annotation': annotation,
-            'defaultValue': field.default if hasattr(field, 'default') else None,
+            'defaultValue': default_value,
             'options': options
         })
 
@@ -255,7 +260,7 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
         name: str = context_field['name']
         description: str = context_field['description']
         annotation: Any = context_field['annotation']
-        defaultValue: Any = context_field.get('default', None)
+        defaultValue: Any = context_field.get('defaultValue', None)
         options: Union[List[str], None] = context_field['options']
         if annotation == InputFile or annotation == List[InputFile]:
             is_list = annotation == List[InputFile]
