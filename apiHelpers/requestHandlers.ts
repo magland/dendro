@@ -576,8 +576,8 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
         if (rr.projectName) query['projectName'] = rr.projectName;
         if (rr.serviceName) query['serviceName'] = rr.serviceName;
         if (rr.appName) query['appName'] = rr.appName;
-        if (rr.inputFileUrl) query['inputFileList'] = { $contains: rr.inputFileUrl };
-        if (rr.outputFileUrl) query['outputFileList'] = { $contains: rr.outputFileUrl };
+        if (rr.inputFileUrl) query['inputFileList'] = rr.inputFileUrl;
+        if (rr.outputFileUrl) query['outputFileList'] = rr.outputFileUrl;
         if (rr.status) query['status'] = rr.status;
         const jobs = await fetchJobs(query);
         // hide the private keys and secrets for the jobs
@@ -881,7 +881,7 @@ export const setJobStatusHandler = allowCors(async (req: VercelRequest, res: Ver
                 const jobsThatMayHaveBecomeRunnable = await fetchJobs({
                     status: 'pending',
                     isRunnable: false,
-                    jobDependencies: { $contains: rr.jobId }
+                    jobDependencies: rr.jobId
                 })
                 for (const j of jobsThatMayHaveBecomeRunnable) {
                     const nowRunnable = await checkJobRunnable(j.jobDependencies);

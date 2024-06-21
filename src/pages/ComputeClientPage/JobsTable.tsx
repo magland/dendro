@@ -57,7 +57,11 @@ const JobsTable: FunctionComponent<JobsTableProps> = ({ jobs, selectedJobIds, on
                         </td>
                         <td>{job.serviceName}</td>
                         <td>{job.jobDefinition.appName}/{job.jobDefinition.processorName}</td>
-                        <td>{job.status}</td>
+                        <td>{
+                            job.status === 'pending' ? (
+                                job.isRunnable ? 'runnable' : 'pending'
+                            ) : job.status
+                        }</td>
                         <td>{job.error}</td>
                         <td>{job.userId}</td>
                         <td>{job.computeClientName}</td>

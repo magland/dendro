@@ -66,7 +66,7 @@ class CountCharactersProcessor(ProcessorBase):
         output = {
             'num_characters': num_characters
         }
-        with open('output.txt', 'w') as f:
+        with open('output.json', 'w') as f:
             json.dump(output, f)
 
         context.output.upload('output.json')

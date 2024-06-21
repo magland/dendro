@@ -62,6 +62,12 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
                         <td>Error</td>
                         <td>{job.error}</td>
                     </tr>
+                    <tr>
+                        <td>Dependencies</td>
+                        <td>{
+                            job.jobDependencies.join(', ')
+                        }</td>
+                    </tr>
                 </tbody>
             </table>
             <hr />

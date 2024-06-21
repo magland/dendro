@@ -235,7 +235,7 @@ def create_job(
         'jobDefinition': job_definition.model_dump(),
         'requiredResources': required_resources.model_dump(),
         'secrets': [s.model_dump() for s in secrets],
-        'jobDependencies': []
+        'jobDependencies': job_dependencies
     }
     headers = {
         'Authorization': f'Bearer: {user_api_key}'
