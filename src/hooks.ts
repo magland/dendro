@@ -138,6 +138,7 @@ export const useService = (serviceName: string) => {
         if (!githubAccessToken) return
         const spec = await loadJsonFromUri(o.sourceUri)
         if (!isPairioAppSpecification(spec)) {
+            console.warn(spec)
             throw Error('Invalid app specification')
         }
         const serviceApp: PairioServiceApp = {
@@ -347,6 +348,7 @@ export const useServiceApp = (serviceName: string, appName: string) => {
         if (!githubAccessToken) return
         const spec = await loadJsonFromUri(serviceApp.appSpecificationUri)
         if (!isPairioAppSpecification(spec)) {
+            console.warn(spec)
             throw Error('Invalid app specification')
         }
         const req: SetServiceAppInfoRequest = {
@@ -429,9 +431,19 @@ const loadJsonFromUri = async (uri: string) => {
 const getUrlFromUri = (uri: string) => {
     if (uri.startsWith('https://github.com/')) {
         const raw_url = uri.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/')
-        return raw_url
+        return raw_url + `?cachebust=${randomString(5)}`
     }
     else {
         return uri
     }
+}
+
+const randomString = (length: number) => {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
 }

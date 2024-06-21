@@ -2,11 +2,6 @@ from typing import Any, List, Union, Dict, Type
 from dataclasses import dataclass
 import inspect
 from .. import BaseModel
-try:
-    from pydantic_core import PydanticUndefined
-except ImportError:
-    # pydantic v1
-    PydanticUndefined = None
 from .ProcessorBase import ProcessorBase
 from .InputFile import InputFile
 from .OutputFile import OutputFile
@@ -72,7 +67,7 @@ class AppProcessorParameter:
             'type': _type_to_string(self.type),
             'description': self.description
         }
-        if self.defaultValue != PydanticUndefined:
+        if self.defaultValue is not None:
             ret['defaultValue'] = self.defaultValue
         if self.options is not None:
             ret['options'] = self.options
@@ -81,7 +76,7 @@ class AppProcessorParameter:
         return ret
     @staticmethod
     def from_spec(spec):
-        defaultValue = spec.get('defaultValue', PydanticUndefined)
+        defaultValue = spec.get('defaultValue', None)
         options = spec.get('options', None)
         return AppProcessorParameter(
             name=spec['name'],
@@ -249,7 +244,7 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
             'name': name,
             'description': description,
             'annotation': annotation,
-            'defaultValue': field.default if hasattr(field, 'default') else PydanticUndefined,
+            'defaultValue': field.default if hasattr(field, 'default') else None,
             'options': options
         })
 
@@ -272,7 +267,7 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
             # check to make sure other fields are not set
             if options is not None:
                 raise AppProcessorException(f"Input {name} has options set - only parameters can have options")
-            if defaultValue is not PydanticUndefined and defaultValue is not None: # None case only necessary for pydantic v1
+            if defaultValue is not None:
                 raise AppProcessorException(f"Input {name} has default set - only parameters can have default set")
         elif annotation == OutputFile:
             outputs.append(AppProcessorOutput(
@@ -282,7 +277,7 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
             # check to make sure other fields are not set
             if options is not None:
                 raise AppProcessorException(f"Output {name} has options set - only parameters can have options")
-            if defaultValue is not PydanticUndefined and defaultValue is not None: # None case only necessary for pydantic v1
+            if defaultValue is not None:
                 raise AppProcessorException(f"Output {name} has default set - only parameters can have default set")
         elif _is_valid_parameter_type(annotation):
             parameters.append(AppProcessorParameter(

@@ -7,7 +7,7 @@ class PairioAppProcessorParameter(BaseModel):
     name: str
     type: str
     description: str
-    defaultValue: Any
+    defaultValue: Union[str, int, float, bool, List[str], List[int], List[float], None] = None
     options: Union[List, None] = None
 
 
@@ -96,14 +96,6 @@ class PairioServiceApp(BaseModel):
 # // PairioAppProcessorParameterTypes
 # export type PairioAppProcessorParameterTypes = 'str' | 'int' | 'float' | 'bool' | 'List[str]' | 'List[int]' | 'List[float]' | 'Optional[str]' | 'Optional[int]' | 'Optional[float]' | 'Optional[bool]'
 
-# // PairioAppProcessorParameter
-# export type PairioAppProcessorParameter = {
-#   name: string
-#   type: PairioAppProcessorParameterTypes
-#   description: string
-#   defaultValue: string | number | boolean | string[] | number[] | undefined
-#   options?: any[]
-# }
 #
 # // PairioAppProcessorAttribute
 # export type PairioAppProcessorAttribute = {

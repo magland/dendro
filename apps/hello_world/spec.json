@@ -14,8 +14,7 @@
                 {
                     "name": "name",
                     "type": "str",
-                    "description": "The name to say hello to",
-                    "defaultValue": null
+                    "description": "The name to say hello to"
                 }
             ],
             "attributes": []
@@ -37,8 +36,7 @@
                 {
                     "name": "name",
                     "type": "str",
-                    "description": "The name to say hello to",
-                    "defaultValue": null
+                    "description": "The name to say hello to"
                 }
             ],
             "attributes": []
@@ -65,8 +63,7 @@
                 {
                     "name": "include_whitespace",
                     "type": "bool",
-                    "description": "Whether to include whitespace in the count",
-                    "defaultValue": null
+                    "description": "Whether to include whitespace in the count"
                 }
             ],
             "attributes": []

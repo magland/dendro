@@ -350,7 +350,7 @@ export type PairioAppProcessorParameter = {
   name: string
   type: PairioAppProcessorParameterTypes
   description: string
-  defaultValue: string | number | boolean | string[] | number[] | undefined
+  defaultValue?: string | number | boolean | string[] | number[]
   options?: any[]
 }
 
@@ -359,7 +359,7 @@ export const isPairioAppProcessorParameter = (x: any): x is PairioAppProcessorPa
     name: isString,
     type: isPairioAppProcessorParameterTypes,
     description: isString,
-    defaultValue: isOneOf([isString, isNumber, isBoolean, isArrayOf(isString), isArrayOf(isNumber), isNull]),
+    defaultValue: optional(isOneOf([isString, isNumber, isBoolean, isArrayOf(isString), isArrayOf(isNumber)])),
     options: optional(isArrayOf(() => true))
   })
 }

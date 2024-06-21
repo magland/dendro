@@ -81,11 +81,6 @@ class App:
             compute_client_id=COMPUTE_CLIENT_ID
         )
 
-    def make_spec_file(self, spec_output_file: str = 'spec.json'):
-        """Create a spec.json file. This is called internally."""
-        with open(spec_output_file, 'w', encoding='utf-8') as f:
-            json.dump(self.get_spec(), f, indent=4)
-
     def get_spec(self):
         """Get the spec for this app. This is called internally."""
         processors = []
