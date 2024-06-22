@@ -189,7 +189,6 @@ export const useComputeClients = (serviceName: string) => {
     }, [refreshCode, serviceName])
 
     const pingComputeClients = useCallback(async () => {
-        if (!computeClients) return
         const req: PingComputeClientsRequest = {
             type: 'pingComputeClientsRequest',
             serviceName
@@ -199,7 +198,7 @@ export const useComputeClients = (serviceName: string) => {
             console.error('Invalid response', resp)
             return
         }
-    }, [computeClients, serviceName])
+    }, [computeClients])
 
     return {
         computeClients,

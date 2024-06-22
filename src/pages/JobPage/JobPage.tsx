@@ -94,7 +94,7 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
                 </tbody>
             </table>
             <hr />
-            <InputsOutputsView job={job} />
+            <InputsOutputsParametersView job={job} />
             <hr />
             <ConsoleOutputView consoleOutputUrl={job.consoleOutputUrl} />
         </div>
@@ -149,21 +149,26 @@ const useRemoteText = (url: string) => {
     return { text, refreshText }
 }
 
-type InputsOutputsViewProps = {
+type InputsOutputsParametersViewProps = {
     job: PairioJob
 }
 
-type InputsOutputsViewRow = {
-    type: 'input' | 'output'
+type InputsOutputsParametersViewRow = {
+    type: 'input' | 'output' | 'parameter'
     name: string
-    fileBaseName: string
-    size: number | null | undefined
-    url: string | undefined
+
+    // for inputs and outputs
+    fileBaseName?: string
+    size?: number | null | undefined
+    url?: string | undefined
+
+    // for parameters
+    value?: any
 }
 
-const InputsOutputsView: FunctionComponent<InputsOutputsViewProps> = ({ job }) => {
+const InputsOutputsParametersView: FunctionComponent<InputsOutputsParametersViewProps> = ({ job }) => {
     const rows = useMemo(() => {
-        const r: InputsOutputsViewRow[] = []
+        const r: InputsOutputsParametersViewRow[] = []
         for (const x of job.jobDefinition.inputFiles) {
             r.push({
                 type: 'input',
@@ -183,6 +188,13 @@ const InputsOutputsView: FunctionComponent<InputsOutputsViewProps> = ({ job }) =
                 url: xr ? xr.url : undefined
             })
         }
+        for (const x of job.jobDefinition.parameters) {
+            r.push({
+                type: 'parameter',
+                name: x.name,
+                value: x.value
+            })
+        }
         return r
     }, [job])
     return (
@@ -191,8 +203,8 @@ const InputsOutputsView: FunctionComponent<InputsOutputsViewProps> = ({ job }) =
                 <tr>
                     <th>Name</th>
                     <th>Type</th>
+                    <th>Value / URL</th>
                     <th>Size</th>
-                    <th>URL</th>
                 </tr>
             </thead>
             <tbody>
@@ -202,14 +214,18 @@ const InputsOutputsView: FunctionComponent<InputsOutputsViewProps> = ({ job }) =
                         <tr key={i}>
                             <td>{row.name}</td>
                             <td>{row.type}</td>
-                            <td>{row.size}</td>
                             <td>{
-                                doLinkToFile ? (
-                                    <a href={row.url} target="_blank" rel="noopener noreferrer">{row.url}</a>
+                                row.url ? (
+                                    doLinkToFile ? (
+                                        <a href={row.url} target="_blank" rel="noopener noreferrer">{row.url}</a>
+                                    ) : (
+                                        <span>{row.url || ''}</span>
+                                    )
                                 ) : (
-                                    <span>{row.url || ''}</span>
+                                    <span>{row.value}</span>
                                 )
                             }</td>
+                            <td>{row.size ? row.size : ''}</td>
                         </tr>
                     )
                 })}

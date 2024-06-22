@@ -28,7 +28,7 @@ const HomePage: FunctionComponent<Props> = () => {
           }}>View services</Hyperlink>
         </div>
       </div>
-      <div>
+      {recentServices.length > 0 && <div>
         Recent services: {
           recentServices.map(serviceName => (
             <span key={serviceName}>
@@ -39,7 +39,7 @@ const HomePage: FunctionComponent<Props> = () => {
             </span>
           ))
         }
-      </div>
+      </div>}
       <hr />
       <div>
         <Hyperlink onClick={() => {
