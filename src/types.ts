@@ -276,6 +276,7 @@ export type PairioJob = {
   error: string | null
   computeClientId: string | null
   computeClientName: string | null
+  computeClientUserId: string | null
   imageUri: string | null
 }
 
@@ -307,6 +308,7 @@ export const isPairioJob = (x: any): x is PairioJob => {
     error: isOneOf([isString, isNull]),
     computeClientId: isOneOf([isString, isNull]),
     computeClientName: isOneOf([isString, isNull]),
+    computeClientUserId: optional(isOneOf([isString, isNull])), // make non-optional in future?
     imageUri: isOneOf([isString, isNull])
   })
 }
@@ -1178,5 +1180,71 @@ export type PingComputeClientsResponse = {
 export const isPingComputeClientsResponse = (x: any): x is PingComputeClientsResponse => {
   return validateObject(x, {
     type: isEqualTo('pingComputeClientsResponse')
+  })
+}
+
+// computeUserStats
+export type ComputeUserStatsRequest = {
+  type: 'computeUserStatsRequest'
+  userId: string
+}
+
+export const isComputeUserStatsRequest = (x: any): x is ComputeUserStatsRequest => {
+  return validateObject(x, {
+    type: isEqualTo('computeUserStatsRequest'),
+    userId: isString
+  })
+}
+
+export type UserStats = {
+  userId: string
+  consumed: {
+    numJobs: number
+    cpuHours: number
+    gpuHours: number
+    gbHours: number
+    jobHours: number
+  }
+  provided: {
+    numJobs: number
+    cpuHours: number
+    gpuHours: number
+    gbHours: number
+    jobHours: number
+  }
+}
+
+const isUserStats = (x: any): x is UserStats => {
+  if (!validateObject(x, {
+    userId: isString,
+    consumed: () => true,
+    provided: () => true
+  })) return false
+  if (!validateObject(x.consumed, {
+    numJobs: isNumber,
+    cpuHours: isNumber,
+    gpuHours: isNumber,
+    gbHours: isNumber,
+    jobHours: isNumber
+  })) return false
+  if (!validateObject(x.provided, {
+    numJobs: isNumber,
+    cpuHours: isNumber,
+    gpuHours: isNumber,
+    gbHours: isNumber,
+    jobHours: isNumber
+  })) return false
+  return true
+}
+
+export type ComputeUserStatsResponse = {
+  type: 'computeUserStatsResponse'
+  userStats: UserStats
+}
+
+export const isComputeUserStatsResponse = (x: any): x is ComputeUserStatsResponse => {
+  return validateObject(x, {
+    type: isEqualTo('computeUserStatsResponse'),
+    userStats: isUserStats
   })
 }

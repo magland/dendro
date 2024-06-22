@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import allowCors from "./allowCors"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient"; // remove .js for local dev
 import publishPubsubMessage from "./publicPubsubMessage"; // remove .js for local dev
-import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, GetJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioJobOutputFileResult, PairioService, PairioServiceApp, PairioUser, PingComputeClientsResponse, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isGetJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isPingComputeClientsRequest, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types"; // remove .js for local dev
+import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, ComputeUserStatsResponse, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, GetJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioJobOutputFileResult, PairioService, PairioServiceApp, PairioUser, PingComputeClientsResponse, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, UserStats, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isComputeUserStatsRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isGetJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isPingComputeClientsRequest, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types"; // remove .js for local dev
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -496,6 +496,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             error: null,
             computeClientId: null,
             computeClientName: null,
+            computeClientUserId: null,
             imageUri: null
         }
         await insertJob(job);
@@ -917,7 +918,13 @@ export const setJobStatusHandler = allowCors(async (req: VercelRequest, res: Ver
                 res.status(401).json({ error: "This compute client is not allowed to process jobs for this service" });
                 return;
             }
-            await atomicUpdateJob(rr.jobId, 'pending', { status: 'starting', computeClientId, computeClientName: computeClient.computeClientName, timestampStartingSec: Date.now() / 1000 });
+            await atomicUpdateJob(rr.jobId, 'pending', {
+                status: 'starting',
+                computeClientId,
+                computeClientName: computeClient.computeClientName,
+                computeClientUserId,
+                timestampStartingSec: Date.now() / 1000
+            });
         }
         else if (rr.status === 'running') {
             if (job.status !== 'starting') {
@@ -1939,6 +1946,69 @@ const validateJobDefinitionForServiceApp = (jobDefinition: PairioJobDefinition, 
         }
     }
 }
+
+// computeUserStats handler
+export const computeUserStatsHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
+    const rr = req.body;
+    if (!isComputeUserStatsRequest(rr)) {
+        res.status(400).json({ error: "Invalid request" });
+        return;
+    }
+    try {
+        const userId = rr.userId;
+        const computeStatsForJobs = (jobs: PairioJob[]) => {
+            let numJobs = 0;
+            let cpuHours = 0;
+            let gpuHours = 0;
+            let gbHours = 0;
+            let jobHours = 0;
+            for (const job of jobs) {
+                if ((job.timestampStartedSec !== null) && (job.timestampFinishedSec !== null)) {
+                    const rr = job.requiredResources
+                    numJobs++;
+                    const timeSec = job.timestampFinishedSec - job.timestampStartedSec;
+                    const cpuTimeSec = rr.numCpus * timeSec;
+                    const gpuTimeSec = rr.numGpus * timeSec;
+                    const gbTimeSec = rr.memoryGb * timeSec;
+                    const jobTimeSec = timeSec;
+                    cpuHours += cpuTimeSec / 3600;
+                    gpuHours += gpuTimeSec / 3600;
+                    gbHours += gbTimeSec / 3600;
+                    jobHours += jobTimeSec / 3600;
+                }
+            }
+            return {
+                numJobs,
+                cpuHours,
+                gpuHours,
+                gbHours,
+                jobHours
+            }
+        }
+        const consumedJobs = await fetchJobs([
+            { $match: { userId, status: { $in: ['completed', 'failed'] } } }
+        ]);
+        const consumedStats = computeStatsForJobs(consumedJobs);
+        const providedJobs = await fetchJobs([
+            { $match: { computeClientUserId: userId, status: { $in: ['completed', 'failed'] } } }
+        ]);
+        const providedStats = computeStatsForJobs(providedJobs);
+        const userStats: UserStats = {
+            userId,
+            consumed: consumedStats,
+            provided: providedStats
+        }
+        const resp: ComputeUserStatsResponse = {
+            type: 'computeUserStatsResponse',
+            userStats
+        }
+        res.status(200).json(resp);
+    }
+    catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+});
 
 const generateJobId = () => {
     return generateRandomId(20);
