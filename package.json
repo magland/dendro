@@ -1,7 +1,7 @@
 {
   "name": "pairio",
   "private": true,
-  "version": "0.5.2-10",
+  "version": "0.5.2-11",
   "type": "module",
   "scripts": {
     "dev": "vite",

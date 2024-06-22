@@ -308,7 +308,7 @@ export const isPairioJob = (x: any): x is PairioJob => {
     error: isOneOf([isString, isNull]),
     computeClientId: isOneOf([isString, isNull]),
     computeClientName: isOneOf([isString, isNull]),
-    computeClientUserId: optional(isOneOf([isString, isNull])), // make non-optional in future?
+    computeClientUserId: isOneOf([isString, isNull]),
     imageUri: isOneOf([isString, isNull])
   })
 }

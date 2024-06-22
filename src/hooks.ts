@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLogin } from "./LoginContext/LoginContext";
-import { AddServiceAppRequest, AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobRequest, GetJobsRequest, GetServiceAppRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, PingComputeClientsRequest, SetServiceAppInfoRequest, SetServiceInfoRequest, isAddServiceAppResponse, isAddServiceResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobResponse, isGetJobsResponse, isGetServiceAppResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceAppInfoResponse, isSetServiceInfoResponse } from "./types";
+import { AddServiceAppRequest, AddServiceRequest, ComputeUserStatsRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobRequest, GetJobsRequest, GetServiceAppRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, PingComputeClientsRequest, SetServiceAppInfoRequest, SetServiceInfoRequest, UserStats, isAddServiceAppResponse, isAddServiceResponse, isComputeUserStatsResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobResponse, isGetJobsResponse, isGetServiceAppResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceAppInfoResponse, isSetServiceInfoResponse } from "./types";
 
 const isLocalHost = window.location.hostname === 'localhost'
 const apiUrl = isLocalHost ? 'http://localhost:3000' : 'https://pairio.vercel.app'
@@ -415,6 +415,30 @@ export const useJob = (jobId: string) => {
     }, [jobId, refreshCode])
 
     return { job, refreshJob }
+}
+
+export const useUserStats = (userId: string) => {
+    const [userStats, setUserStats] = useState<UserStats | undefined>(undefined)
+    useEffect(() => {
+        let canceled = false
+        setUserStats(undefined)
+        ;(async () => {
+            const req: ComputeUserStatsRequest = {
+                type: 'computeUserStatsRequest',
+                userId
+            }
+            const resp = await apiPostRequest('computeUserStats', req)
+            if (!resp) return
+            if (canceled) return
+            if (!isComputeUserStatsResponse(resp)) {
+                console.error('Invalid response', resp)
+                return
+            }
+            setUserStats(resp.userStats)
+        })()
+        return () => { canceled = true }
+    }, [userId])
+    return { userStats }
 }
 
 export const apiPostRequest = async (path: string, req: any, accessToken?: string) => {
