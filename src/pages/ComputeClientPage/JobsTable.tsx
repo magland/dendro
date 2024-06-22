@@ -3,6 +3,10 @@ import { FunctionComponent } from "react";
 import { PairioJob } from "../../types";
 import useRoute from "../../useRoute";
 import { timeAgoString } from "../../timeStrings";
+import ServiceNameComponent from "../../components/ServiceNameComponent";
+import ServiceAppNameComponent from "../../components/ServiceAppNameComponent";
+import UserIdComponent from "../../components/UserIdComponent";
+import ComputeClientNameComponent from "../../components/ComputeClientNameComponent";
 
 type JobsTableProps = {
     jobs: PairioJob[]
@@ -58,16 +62,16 @@ const JobsTable: FunctionComponent<JobsTableProps> = ({ jobs, selectedJobIds, on
                             </Hyperlink>
                         </td>
                         <td>{timeAgoString(job.timestampCreatedSec)}</td>
-                        <td>{job.serviceName}</td>
-                        <td>{job.jobDefinition.appName}/{job.jobDefinition.processorName}</td>
+                        <td><ServiceNameComponent serviceName={job.serviceName} /></td>
+                        <td><ServiceAppNameComponent serviceName={job.serviceName} appName={job.jobDefinition.appName} />/{job.jobDefinition.processorName}</td>
                         <td>{
                             job.status === 'pending' ? (
                                 job.isRunnable ? 'runnable' : 'pending'
                             ) : job.status
                         }</td>
                         <td>{job.error}</td>
-                        <td>{job.userId}</td>
-                        <td>{job.computeClientName}</td>
+                        <td><UserIdComponent userId={job.userId} /></td>
+                        <td><ComputeClientNameComponent computeClientName={job.computeClientName || ''} computeClientId={job.computeClientId || ''} /></td>
                     </tr>
                 ))}
             </tbody>

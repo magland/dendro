@@ -5,6 +5,8 @@ import { useJob } from "../../hooks"
 import { PairioJob } from "../../types"
 import useRoute from "../../useRoute"
 import { timeAgoString } from "../../timeStrings"
+import ServiceNameComponent from "../../components/ServiceNameComponent"
+import ServiceAppNameComponent from "../../components/ServiceAppNameComponent"
 
 type JobPageProps = {
     // none
@@ -47,11 +49,11 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
                     </tr>
                     <tr>
                         <td>Service</td>
-                        <td>{job.serviceName}</td>
+                        <td><ServiceNameComponent serviceName={job.serviceName} /></td>
                     </tr>
                     <tr>
                         <td>App</td>
-                        <td>{job.jobDefinition.appName}</td>
+                        <td><ServiceAppNameComponent serviceName={job.serviceName} appName={job.jobDefinition.appName} /></td>
                     </tr>
                     <tr>
                         <td>Processor</td>

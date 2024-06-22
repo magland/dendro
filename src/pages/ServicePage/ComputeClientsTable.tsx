@@ -1,15 +1,15 @@
-import { Hyperlink } from "@fi-sci/misc";
 import { FunctionComponent } from "react";
-import { PairioComputeClient } from "../../types";
-import useRoute from "../../useRoute";
+import ComputeClientNameComponent from "../../components/ComputeClientNameComponent";
+import ServiceNameComponent from "../../components/ServiceNameComponent";
+import UserIdComponent from "../../components/UserIdComponent";
 import { timeAgoString } from "../../timeStrings";
+import { PairioComputeClient } from "../../types";
 
 type ComputeClientsTableProps = {
     computeClients: PairioComputeClient[]
 }
 
 const ComputeClientsTable: FunctionComponent<ComputeClientsTableProps> = ({ computeClients }) => {
-    const { setRoute } = useRoute()
     return (
         <table className="table">
             <thead>
@@ -24,16 +24,13 @@ const ComputeClientsTable: FunctionComponent<ComputeClientsTableProps> = ({ comp
                 {computeClients.map((cc) => (
                     <tr key={cc.computeClientId}>
                         <td>
-                            <Hyperlink
-                                onClick={() => {
-                                    setRoute({page: 'compute_client', computeClientId: cc.computeClientId})
-                                }}
-                            >
-                                {cc.computeClientName} ({cc.computeClientId})
-                            </Hyperlink>
+                            <ComputeClientNameComponent
+                                computeClientId={cc.computeClientId}
+                                computeClientName={cc.computeClientName}
+                            />
                         </td>
-                        <td>{cc.serviceName}</td>
-                        <td>{cc.userId}</td>
+                        <td><ServiceNameComponent serviceName={cc.serviceName} /></td>
+                        <td><UserIdComponent userId={cc.userId} /></td>
                         <td>{
                             cc.timestampLastActiveSec ? timeAgoString(cc.timestampLastActiveSec) : 'never'
                         }</td>

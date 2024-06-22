@@ -1,14 +1,13 @@
-import { Hyperlink } from "@fi-sci/misc";
 import { FunctionComponent } from "react";
+import ServiceNameComponent from "../../components/ServiceNameComponent";
+import UserIdComponent from "../../components/UserIdComponent";
 import { PairioService } from "../../types";
-import useRoute from "../../useRoute";
 
 type ServicesTableProps = {
     services: PairioService[]
 }
 
 const ServicesTable: FunctionComponent<ServicesTableProps> = ({ services }) => {
-    const { setRoute } = useRoute()
     return (
         <table className="table">
             <thead>
@@ -22,16 +21,21 @@ const ServicesTable: FunctionComponent<ServicesTableProps> = ({ services }) => {
                 {services.map((service) => (
                     <tr key={service.serviceName}>
                         <td>
-                            <Hyperlink
-                                onClick={() => {
-                                    setRoute({page: 'service', serviceName: service.serviceName})
-                                }}
-                            >
-                                {service.serviceName}
-                            </Hyperlink>
+                            <ServiceNameComponent serviceName={service.serviceName} />
                         </td>
-                        <td>{service.userId}</td>
-                        <td>{service.users.map(u => (u.userId)).join(' ')}</td>
+                        <td><UserIdComponent userId={service.userId} /></td>
+                        <td>{
+                            service.users.length === 0 ? (
+                                <span>none</span>
+                            ) : (
+                                service.users.map(u => (
+                                    <span>
+                                        <UserIdComponent userId={u.userId} />
+                                        &nbsp;
+                                    </span>
+                                ))
+                            )
+                        }</td>
                     </tr>
                 ))}
             </tbody>

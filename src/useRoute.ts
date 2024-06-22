@@ -29,6 +29,9 @@ export type Route = {
     jobId: string
 } | {
     page: 'settings'
+} | {
+    page: 'user'
+    userId: string
 }
 
 const useRoute = () => {
@@ -110,6 +113,21 @@ const useRoute = () => {
                 page: 'settings'
             }
         }
+        else if (p.startsWith('/user/')) {
+            const parts = p.slice('/user/'.length).split('/')
+            if (parts[0] === 'github') {
+                return {
+                    page: 'user',
+                    userId: `github|${parts[1]}`
+                }
+            }
+            else {
+                return {
+                    page: 'user',
+                    userId: parts[0]
+                }
+            }
+        }
         else {
             return {
                 page: 'home'
@@ -147,6 +165,14 @@ const useRoute = () => {
         }
         else if (r.page === 'settings') {
             navigate('/settings')
+        }
+        else if (r.page === 'user') {
+            if (r.userId.startsWith('github|')) {
+                navigate(`/user/github/${r.userId.slice('github|'.length)}`)
+            }
+            else {
+                navigate(`/user/${r.userId}`)
+            }
         }
         else {
             navigate('/')

@@ -9,6 +9,8 @@ import JobsView from "../ComputeClientPage/JobsView"
 import { PairioService, PairioServiceUser } from "../../types"
 import { Add, Delete } from "@mui/icons-material"
 import { reportRecentService } from "../HomePage/HomePage"
+import UserIdComponent from "../../components/UserIdComponent"
+import ServiceNameComponent from "../../components/ServiceNameComponent"
 
 type ServicePageProps = {
     width: number
@@ -82,12 +84,12 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({width, height}) => {
                 <tbody>
                     <tr>
                         <td>Service</td>
-                        <td>{serviceName}</td>
+                        <td><ServiceNameComponent serviceName={serviceName} /></td>
                         <td />
                     </tr>
                     <tr>
                         <td>Owner</td>
-                        <td>{service.userId}</td>
+                        <td><UserIdComponent userId={service.userId} /></td>
                         <td />
                     </tr>
                     <tr>
@@ -95,7 +97,7 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({width, height}) => {
                         <td>
                             {service.users.map((user, index) => (
                                 <div key={index}>
-                                    {user.userId}
+                                    <UserIdComponent userId={user.userId} />
                                     {user.admin && ' (admin)'}
                                     {user.createJobs && ' (create jobs)'}
                                     {user.processJobs && ' (process jobs)'}
@@ -232,7 +234,7 @@ const EditUsersControl: FunctionComponent<EditUsersControlProps> = ({service, on
                                     }}
                                 />
                             </td>
-                            <td>{user.userId}</td>
+                            <td><UserIdComponent userId={user.userId} /></td>
                             <td>
                                 <input
                                     type="checkbox"

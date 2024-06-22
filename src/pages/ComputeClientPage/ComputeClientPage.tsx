@@ -5,6 +5,9 @@ import { useComputeClient } from "../../hooks"
 import useRoute from "../../useRoute"
 import JobsView from "./JobsView"
 import { timeAgoString } from "../../timeStrings"
+import ServiceNameComponent from "../../components/ServiceNameComponent"
+import UserIdComponent from "../../components/UserIdComponent"
+import ComputeClientNameComponent from "../../components/ComputeClientNameComponent"
 
 type ComputeClientPageProps = {
     // none
@@ -39,7 +42,7 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                 <tbody>
                     <tr>
                         <td>Compute client</td>
-                        <td>{computeClient.computeClientName}</td>
+                        <td><ComputeClientNameComponent computeClientId={computeClientId} computeClientName={computeClient.computeClientName} /></td>
                         <td />
                     </tr>
                     <tr>
@@ -49,8 +52,12 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                     </tr>
                     <tr>
                         <td>User</td>
-                        <td>{computeClient.userId}</td>
+                        <td><UserIdComponent userId={computeClient.userId} /></td>
                         <td />
+                    </tr>
+                    <tr>
+                        <td>Service</td>
+                        <td><ServiceNameComponent serviceName={computeClient.serviceName} /></td>
                     </tr>
                     <tr>
                         <td>Description</td>

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLogin } from "./LoginContext/LoginContext";
 import { AddServiceAppRequest, AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobRequest, GetJobsRequest, GetServiceAppRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, PingComputeClientsRequest, SetServiceAppInfoRequest, SetServiceInfoRequest, isAddServiceAppResponse, isAddServiceResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobResponse, isGetJobsResponse, isGetServiceAppResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceAppInfoResponse, isSetServiceInfoResponse } from "./types";
 
@@ -166,13 +166,20 @@ export const useService = (serviceName: string) => {
 export const useComputeClients = (serviceName: string) => {
     const [computeClients, setComputeClients] = useState<PairioComputeClient[] | undefined>(undefined)
     const [refreshCode, setRefreshCode] = useState(0)
-    const refreshComputeClients = useCallback(() => {
+    const pingFirst = useRef(false)
+    const refreshComputeClients = useCallback((o?: {pingFirst: boolean}) => {
+        pingFirst.current = o?.pingFirst || false
         setRefreshCode(c => c + 1)
     }, [])
     useEffect(() => {
         let canceled = false
         setComputeClients(undefined);
         (async () => {
+            if (pingFirst.current) {
+                await pingComputeClients()
+                // give the compute clients some time to respond
+                await new Promise(r => setTimeout(r, 4000))
+            }
             const req: GetComputeClientsRequest = {
                 type: 'getComputeClientsRequest',
                 serviceName
@@ -202,8 +209,7 @@ export const useComputeClients = (serviceName: string) => {
 
     return {
         computeClients,
-        refreshComputeClients,
-        pingComputeClients
+        refreshComputeClients
     }
 }
 

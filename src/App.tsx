@@ -13,6 +13,7 @@ import RegisterComputeClientPage from './pages/RegisterComputeClientPage/Registe
 import ServiceAppPage from './pages/ServiceAppPage/ServiceAppPage'
 import JobPage from './pages/JobPage/JobPage'
 import SettingsPage from './pages/SettingsPage/SettingsPage'
+import UserPage from './pages/UserPage/UserPage'
 // import useRoute from './useRoute'
 
 function App() {
@@ -57,6 +58,9 @@ function MainWindow() {
   }
   else if (route.page === 'settings') {
     return <SettingsPage />
+  }
+  else if (route.page === 'user') {
+    return <UserPage />
   }
   else {
     return <div>Invalid route</div>

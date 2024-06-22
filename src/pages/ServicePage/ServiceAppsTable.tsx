@@ -1,14 +1,13 @@
-import { Hyperlink } from "@fi-sci/misc";
 import { FunctionComponent } from "react";
+import ServiceAppNameComponent from "../../components/ServiceAppNameComponent";
+import ServiceNameComponent from "../../components/ServiceNameComponent";
 import { PairioServiceApp } from "../../types";
-import useRoute from "../../useRoute";
 
 type ServiceAppsTableProps = {
     serviceApps: PairioServiceApp[]
 }
 
 const ServiceAppsTable: FunctionComponent<ServiceAppsTableProps> = ({ serviceApps }) => {
-    const { setRoute } = useRoute()
     return (
         <table className="table">
             <thead>
@@ -24,15 +23,12 @@ const ServiceAppsTable: FunctionComponent<ServiceAppsTableProps> = ({ serviceApp
                 {serviceApps.map((ss) => (
                     <tr key={ss.serviceName + ':' + ss.appName}>
                         <td>
-                            <Hyperlink
-                                onClick={() => {
-                                    setRoute({page: 'service_app', serviceName: ss.serviceName, appName: ss.appName})
-                                }}
-                            >
-                                {ss.appName}
-                            </Hyperlink>
+                            <ServiceAppNameComponent
+                                serviceName={ss.serviceName}
+                                appName={ss.appName}
+                            />
                         </td>
-                        <td>{ss.serviceName}</td>
+                        <td><ServiceNameComponent serviceName={ss.serviceName} /></td>
                         <td>
                             {ss.appSpecification.processors.map(p => p.name).join(', ')}
                         </td>

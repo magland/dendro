@@ -9,7 +9,7 @@ type ComputeClientsViewProps = {
 }
 
 export const ComputeClientsView: FunctionComponent<ComputeClientsViewProps> = ({ serviceName }) => {
-    const { computeClients, refreshComputeClients, pingComputeClients } = useComputeClients(serviceName)
+    const { computeClients, refreshComputeClients } = useComputeClients(serviceName)
     const { createComputeClient } = useService(serviceName)
     const [newComputeClientInfo, setNewComputeClientInfo] = useState<{computeClientId: string, computeClientPrivateKey: string} | null>(null)
 
@@ -35,8 +35,7 @@ export const ComputeClientsView: FunctionComponent<ComputeClientsViewProps> = ({
     )
 
     const handleRefreshComputeClients = useCallback(() => {
-        pingComputeClients()
-        refreshComputeClients()
+        refreshComputeClients({pingFirst: true})
     }, [refreshComputeClients])
 
     if (!computeClients) {

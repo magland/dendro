@@ -82,13 +82,13 @@ const JobsView: FunctionComponent<JobsViewProps> = ({computeClientId, serviceNam
                         }}
                     />
                 )}
+                &nbsp;
+                <FilterSelector
+                    filter={filter}
+                    setFilter={setFilter}
+                    appProcessorPairs={appProcessorPairs}
+                />
             </div>
-            <div>&nbsp;</div>
-            <FilterSelector
-                filter={filter}
-                setFilter={setFilter}
-                appProcessorPairs={appProcessorPairs}
-            />
             <div>&nbsp;</div>
             <JobsTable
                 jobs={filteredJobs}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLogin } from './LoginContext/LoginContext';
+import UserIdComponent from './components/UserIdComponent';
 
 const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
 const redirectUri = 'https://pairio.vercel.app/api/auth';
@@ -14,7 +15,7 @@ const LoginButton: React.FC = () => {
   else {
     return (
       <div>
-        <p>Logged in as {userId}</p>
+        <p>Logged in as <UserIdComponent userId={userId || ''} /></p>
         <button onClick={clearGithubAccessToken}>Log out</button>
       </div>
     );

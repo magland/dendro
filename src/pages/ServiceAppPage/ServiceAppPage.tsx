@@ -4,6 +4,8 @@ import { FunctionComponent, useMemo } from "react"
 import useRoute from "../../useRoute"
 import { useServiceApp } from "../../hooks"
 import { PairioAppProcessor } from "../../types"
+import ServiceNameComponent from "../../components/ServiceNameComponent"
+import ServiceAppNameComponent from "../../components/ServiceAppNameComponent"
 
 type ServiceAppPageProps = {
     // none
@@ -39,11 +41,11 @@ const ServiceAppPage: FunctionComponent<ServiceAppPageProps> = () => {
                 <tbody>
                     <tr>
                         <td>Service</td>
-                        <td>{serviceName}</td>
+                        <td><ServiceNameComponent serviceName={serviceName} /></td>
                     </tr>
                     <tr>
                         <td>App</td>
-                        <td>{appName}</td>
+                        <td><ServiceAppNameComponent serviceName={serviceName} appName={appName} /></td>
                     </tr>
                     <tr>
                         <td>Source</td>
