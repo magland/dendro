@@ -48,6 +48,8 @@ const UserStatsView: FunctionComponent<UserStatsViewProps> = ({ userId }) => {
                         <td />
                         <td>Consumed</td>
                         <td>Provided</td>
+                        <td>Consumed (deleted)</td>
+                        <td>Provided (deleted)</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -61,6 +63,12 @@ const UserStatsView: FunctionComponent<UserStatsViewProps> = ({ userId }) => {
                         <td>
                             {userStats.provided.numJobs}
                         </td>
+                        <td>
+                            {userStats.consumedDeleted.numJobs}
+                        </td>
+                        <td>
+                            {userStats.providedDeleted.numJobs}
+                        </td>
                     </tr>
                     <tr>
                         <td>
@@ -71,6 +79,12 @@ const UserStatsView: FunctionComponent<UserStatsViewProps> = ({ userId }) => {
                         </td>
                         <td>
                             {userStats.provided.cpuHours.toPrecision(5)}
+                        </td>
+                        <td>
+                            {userStats.consumedDeleted.cpuHours.toPrecision(5)}
+                        </td>
+                        <td>
+                            {userStats.providedDeleted.cpuHours.toPrecision(5)}
                         </td>
                     </tr>
                     <tr>
@@ -83,6 +97,12 @@ const UserStatsView: FunctionComponent<UserStatsViewProps> = ({ userId }) => {
                         <td>
                             {userStats.provided.gpuHours.toPrecision(5)}
                         </td>
+                        <td>
+                            {userStats.consumedDeleted.gpuHours.toPrecision(5)}
+                        </td>
+                        <td>
+                            {userStats.providedDeleted.gpuHours.toPrecision(5)}
+                        </td>
                     </tr>
                     <tr>
                         <td>
@@ -94,6 +114,12 @@ const UserStatsView: FunctionComponent<UserStatsViewProps> = ({ userId }) => {
                         <td>
                             {userStats.provided.gbHours.toPrecision(5)}
                         </td>
+                        <td>
+                            {userStats.consumedDeleted.gbHours.toPrecision(5)}
+                        </td>
+                        <td>
+                            {userStats.providedDeleted.gbHours.toPrecision(5)}
+                        </td>
                     </tr>
                     <tr>
                         <td>
@@ -104,6 +130,12 @@ const UserStatsView: FunctionComponent<UserStatsViewProps> = ({ userId }) => {
                         </td>
                         <td>
                             {userStats.provided.jobHours.toPrecision(5)}
+                        </td>
+                        <td>
+                            {userStats.consumedDeleted.jobHours.toPrecision(5)}
+                        </td>
+                        <td>
+                            {userStats.providedDeleted.jobHours.toPrecision(5)}
                         </td>
                     </tr>
                 </tbody>

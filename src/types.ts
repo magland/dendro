@@ -1212,13 +1212,29 @@ export type UserStats = {
     gbHours: number
     jobHours: number
   }
+  consumedDeleted: {
+    numJobs: number
+    cpuHours: number
+    gpuHours: number
+    gbHours: number
+    jobHours: number
+  }
+  providedDeleted: {
+    numJobs: number
+    cpuHours: number
+    gpuHours: number
+    gbHours: number
+    jobHours: number
+  }
 }
 
 const isUserStats = (x: any): x is UserStats => {
   if (!validateObject(x, {
     userId: isString,
     consumed: () => true,
-    provided: () => true
+    provided: () => true,
+    consumedDeleted: () => true,
+    providedDeleted: () => true,
   })) return false
   if (!validateObject(x.consumed, {
     numJobs: isNumber,
@@ -1228,6 +1244,20 @@ const isUserStats = (x: any): x is UserStats => {
     jobHours: isNumber
   })) return false
   if (!validateObject(x.provided, {
+    numJobs: isNumber,
+    cpuHours: isNumber,
+    gpuHours: isNumber,
+    gbHours: isNumber,
+    jobHours: isNumber
+  })) return false
+  if (!validateObject(x.consumedDeleted, {
+    numJobs: isNumber,
+    cpuHours: isNumber,
+    gpuHours: isNumber,
+    gbHours: isNumber,
+    jobHours: isNumber
+  })) return false
+  if (!validateObject(x.providedDeleted, {
     numJobs: isNumber,
     cpuHours: isNumber,
     gpuHours: isNumber,

@@ -18,7 +18,8 @@ const collectionNames = {
     services: 'services',
     serviceApps: 'serviceApps',
     computeClients: 'computeClients',
-    jobs: 'jobs'
+    jobs: 'jobs',
+    deletedJobs: 'deletedJobs'
 };
 
 // addService handler
@@ -1677,6 +1678,23 @@ const fetchJobs = async (pipeline: any[] | undefined) => {
     return jobs.map((job: any) => job as PairioJob);
 }
 
+const fetchDeletedJobs = async (pipeline: any[] | undefined) => {
+    const client = await getMongoClient();
+    const collection = client.db(dbName).collection(collectionNames.deletedJobs);
+    const jobs = await collection
+        .aggregate(pipeline)
+        .toArray();
+    for (const job of jobs) {
+        removeMongoId(job);
+        if (!isPairioJob(job)) {
+            console.warn('invalid job:', job)
+            await collection.deleteOne({ jobId: job.jobId });
+            throw Error('Invalid job in database');
+        }
+    }
+    return jobs.map((job: any) => job as PairioJob);
+}
+
 const fetchOneJobByJobId = async (jobId: string): Promise<PairioJob | null> => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.jobs);
@@ -1726,6 +1744,14 @@ const insertJob = async (job: PairioJob) => {
 const deleteJobs = async (o: { serviceName: string, jobIds: string[] }) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.jobs);
+
+    // move the jobs to the deleted jobs collection so we can still get stats on them
+    const collectionDeletedJobs = client.db(dbName).collection(collectionNames.deletedJobs)
+    const jobs = await collection.find({ serviceName: o.serviceName, jobId: { $in: o.jobIds } }).toArray();
+    for (const job of jobs) {
+        await collectionDeletedJobs.insertOne(job);
+    }
+
     await collection.deleteMany({ serviceName: o.serviceName, jobId: { $in: o.jobIds } });
 }
 
@@ -1993,10 +2019,20 @@ export const computeUserStatsHandler = allowCors(async (req: VercelRequest, res:
             { $match: { computeClientUserId: userId, status: { $in: ['completed', 'failed'] } } }
         ]);
         const providedStats = computeStatsForJobs(providedJobs);
+        const consumedDeletedJobs = await fetchDeletedJobs([
+            { $match: { userId, status: { $in: ['completed', 'failed'] } } }
+        ])
+        const consumedDeletedStats = computeStatsForJobs(consumedDeletedJobs)
+        const providedDeletedJobs = await fetchDeletedJobs([
+            { $match: { computeClientUserId: userId, status: { $in: ['completed', 'failed'] } } }
+        ])
+        const providedDeletedStats = computeStatsForJobs(providedDeletedJobs)
         const userStats: UserStats = {
             userId,
             consumed: consumedStats,
-            provided: providedStats
+            provided: providedStats,
+            consumedDeleted: consumedDeletedStats,
+            providedDeleted: providedDeletedStats
         }
         const resp: ComputeUserStatsResponse = {
             type: 'computeUserStatsResponse',
