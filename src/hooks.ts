@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLogin } from "./LoginContext/LoginContext";
-import { AddServiceAppRequest, AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobRequest, GetJobsRequest, GetServiceAppRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, SetServiceAppInfoRequest, SetServiceInfoRequest, isAddServiceAppResponse, isAddServiceResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobResponse, isGetJobsResponse, isGetServiceAppResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceAppInfoResponse, isSetServiceInfoResponse } from "./types";
+import { AddServiceAppRequest, AddServiceRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobRequest, GetJobsRequest, GetServiceAppRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, PingComputeClientsRequest, SetServiceAppInfoRequest, SetServiceInfoRequest, isAddServiceAppResponse, isAddServiceResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobResponse, isGetJobsResponse, isGetServiceAppResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceAppInfoResponse, isSetServiceInfoResponse } from "./types";
 
 const isLocalHost = window.location.hostname === 'localhost'
 const apiUrl = isLocalHost ? 'http://localhost:3000' : 'https://pairio.vercel.app'
@@ -188,9 +188,23 @@ export const useComputeClients = (serviceName: string) => {
         return () => { canceled = true }
     }, [refreshCode, serviceName])
 
+    const pingComputeClients = useCallback(async () => {
+        if (!computeClients) return
+        const req: PingComputeClientsRequest = {
+            type: 'pingComputeClientsRequest',
+            serviceName
+        }
+        const resp = await apiPostRequest('pingComputeClients', req)
+        if (!isGetComputeClientsResponse(resp)) {
+            console.error('Invalid response', resp)
+            return
+        }
+    }, [computeClients, serviceName])
+
     return {
         computeClients,
-        refreshComputeClients
+        refreshComputeClients,
+        pingComputeClients
     }
 }
 

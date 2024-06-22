@@ -61,6 +61,7 @@ export type PairioComputeClient = {
   userId: string
   description: string
   computeSlots: ComputeClientComputeSlot[]
+  timestampLastActiveSec?: number
 }
 
 export const isPairioComputeClient = (x: any): x is PairioComputeClient => {
@@ -71,7 +72,8 @@ export const isPairioComputeClient = (x: any): x is PairioComputeClient => {
     computeClientName: isString,
     userId: isString,
     description: isString,
-    computeSlots: isArrayOf(isComputeClientComputeSlot)
+    computeSlots: isArrayOf(isComputeClientComputeSlot),
+    timestampLastActiveSec: optional(isNumber)
   })
 }
 
@@ -1152,5 +1154,28 @@ export const isGetPubsubSubscriptionResponse = (x: any): x is GetPubsubSubscript
   return validateObject(x, {
     type: isEqualTo('getPubsubSubscriptionResponse'),
     subscription: () => true
+  })
+}
+
+// pingComputeClients
+export type PingComputeClientsRequest = {
+  type: 'pingComputeClientsRequest'
+  serviceName: string
+}
+
+export const isPingComputeClientsRequest = (x: any): x is PingComputeClientsRequest => {
+  return validateObject(x, {
+    type: isEqualTo('pingComputeClientsRequest'),
+    serviceName: isString
+  })
+}
+
+export type PingComputeClientsResponse = {
+  type: 'pingComputeClientsResponse'
+}
+
+export const isPingComputeClientsResponse = (x: any): x is PingComputeClientsResponse => {
+  return validateObject(x, {
+    type: isEqualTo('pingComputeClientsResponse')
   })
 }

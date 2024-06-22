@@ -2,6 +2,7 @@ import { Hyperlink } from "@fi-sci/misc";
 import { FunctionComponent } from "react";
 import { PairioComputeClient } from "../../types";
 import useRoute from "../../useRoute";
+import { timeAgoString } from "../../timeStrings";
 
 type ComputeClientsTableProps = {
     computeClients: PairioComputeClient[]
@@ -16,6 +17,7 @@ const ComputeClientsTable: FunctionComponent<ComputeClientsTableProps> = ({ comp
                     <th>Compute client</th>
                     <th>Service</th>
                     <th>Owner</th>
+                    <th>Last active</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,6 +34,9 @@ const ComputeClientsTable: FunctionComponent<ComputeClientsTableProps> = ({ comp
                         </td>
                         <td>{cc.serviceName}</td>
                         <td>{cc.userId}</td>
+                        <td>{
+                            cc.timestampLastActiveSec ? timeAgoString(cc.timestampLastActiveSec) : 'never'
+                        }</td>
                     </tr>
                 ))}
             </tbody>

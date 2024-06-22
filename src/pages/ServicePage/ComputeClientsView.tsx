@@ -2,14 +2,14 @@ import { FunctionComponent, useCallback, useState } from "react"
 import { useComputeClients, useService } from "../../hooks"
 import ComputeClientsTable from "./ComputeClientsTable"
 import { SmallIconButton } from "@fi-sci/misc"
-import { Add } from "@mui/icons-material"
+import { Add, Refresh } from "@mui/icons-material"
 
 type ComputeClientsViewProps = {
     serviceName: string
 }
 
 export const ComputeClientsView: FunctionComponent<ComputeClientsViewProps> = ({ serviceName }) => {
-    const { computeClients, refreshComputeClients } = useComputeClients(serviceName)
+    const { computeClients, refreshComputeClients, pingComputeClients } = useComputeClients(serviceName)
     const { createComputeClient } = useService(serviceName)
     const [newComputeClientInfo, setNewComputeClientInfo] = useState<{computeClientId: string, computeClientPrivateKey: string} | null>(null)
 
@@ -34,6 +34,11 @@ export const ComputeClientsView: FunctionComponent<ComputeClientsViewProps> = ({
         </div>
     )
 
+    const handleRefreshComputeClients = useCallback(() => {
+        pingComputeClients()
+        refreshComputeClients()
+    }, [refreshComputeClients])
+
     if (!computeClients) {
         return (
             <div>
@@ -48,6 +53,10 @@ export const ComputeClientsView: FunctionComponent<ComputeClientsViewProps> = ({
         <div>
             {newClientElement}
             <div>
+                <SmallIconButton
+                    icon={<Refresh />}
+                    onClick={handleRefreshComputeClients}
+                />
                 <SmallIconButton
                     onClick={handleAddComputeClient}
                     icon={<Add />}

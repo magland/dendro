@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import allowCors from "./allowCors"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient"; // remove .js for local dev
 import publishPubsubMessage from "./publicPubsubMessage"; // remove .js for local dev
-import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, GetJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioJobOutputFileResult, PairioService, PairioServiceApp, PairioUser, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isGetJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types"; // remove .js for local dev
+import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, GetJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioJobOutputFileResult, PairioService, PairioServiceApp, PairioUser, PingComputeClientsResponse, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isGetJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isPingComputeClientsRequest, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types"; // remove .js for local dev
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -678,6 +678,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
             res.status(401).json({ error: "Unauthorized: incorrect or missing compute client private key" });
             return;
         }
+        await updateComputeClient(rr.computeClientId, { lastAccessedSec: Date.now() / 1000 });
         const service = await fetchService(computeClient.serviceName);
         if (!service) {
             res.status(404).json({ error: "Service not found" });
@@ -698,7 +699,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
         // pending jobs
         runnableJobs = shuffleArray(runnableJobs);
         const pipeline2 = [
-            { $match: { serviceName: service.serviceName, status: 'running' } },
+            { $match: { serviceName: service.serviceName, status: 'running', computeClientId: rr.computeClientId } },
             { $sort: { timestampCreatedSec: 1 } }
             // important not to limit here, because we really need to know all the running jobs
         ]
@@ -1429,6 +1430,7 @@ export const getPubsubSubscriptionHandler = allowCors(async (req: VercelRequest,
             res.status(401).json({ error: "Unauthorized: incorrect or missing compute client private key" });
             return;
         }
+        await updateComputeClient(computeClientId, { lastAccessedSec: Date.now() / 1000 });
         const VITE_PUBNUB_SUBSCRIBE_KEY = process.env.VITE_PUBNUB_SUBSCRIBE_KEY;
         if (!VITE_PUBNUB_SUBSCRIBE_KEY) {
             res.status(500).json({ error: "VITE_PUBNUB_SUBSCRIBE_KEY not set" });
@@ -1441,6 +1443,31 @@ export const getPubsubSubscriptionHandler = allowCors(async (req: VercelRequest,
                 pubnubChannel: computeClient.serviceName,
                 pubnubUser: computeClientId
             }
+        }
+        res.status(200).json(resp);
+    }
+    catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// pingComputeClients handler
+export const pingComputeClientsHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
+    const rr = req.body;
+    if (!isPingComputeClientsRequest(rr)) {
+        res.status(400).json({ error: "Invalid request" });
+        return;
+    }
+    try {
+        const serviceName = rr.serviceName;
+        const msg = {
+            type: 'pingComputeClients',
+            serviceName
+        }
+        await publishPubsubMessage(serviceName, msg);
+        const resp: PingComputeClientsResponse = {
+            type: 'pingComputeClientsResponse'
         }
         res.status(200).json(resp);
     }

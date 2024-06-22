@@ -73,8 +73,11 @@ class ComputeClientDaemon:
                 for msg in messages:
                     if msg['type'] == 'newPendingJob':
                         jobs_have_changed = True
-                    if msg['type'] == 'jobStatusChanged':
+                    elif msg['type'] == 'jobStatusChanged':
                         jobs_have_changed = True
+                    elif msg['type'] == 'pingComputeClients':
+                        jobs_have_changed = True
+                        # will trigger a check for new jobs which will update the last active timestamp
 
                 if time_to_handle_jobs or jobs_have_changed:
                     timer_handle_jobs = time.time()
