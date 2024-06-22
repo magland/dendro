@@ -4,6 +4,7 @@ import { FunctionComponent } from "react"
 import { useComputeClient } from "../../hooks"
 import useRoute from "../../useRoute"
 import JobsView from "./JobsView"
+import { timeAgoString } from "../../timeStrings"
 
 type ComputeClientPageProps = {
     // none
@@ -62,6 +63,10 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                             <pre>{JSON.stringify(computeClient.computeSlots, null, 4)}</pre>
                         </td>
                         <td />
+                    </tr>
+                    <tr>
+                        <td>Last active</td>
+                        <td>{timeAgoString(computeClient.timestampLastActiveSec)}</td>
                     </tr>
                 </tbody>
             </table>

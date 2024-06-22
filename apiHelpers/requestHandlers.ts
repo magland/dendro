@@ -678,7 +678,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
             res.status(401).json({ error: "Unauthorized: incorrect or missing compute client private key" });
             return;
         }
-        await updateComputeClient(rr.computeClientId, { lastAccessedSec: Date.now() / 1000 });
+        await updateComputeClient(rr.computeClientId, { timestampLastActiveSec: Date.now() / 1000 });
         const service = await fetchService(computeClient.serviceName);
         if (!service) {
             res.status(404).json({ error: "Service not found" });
@@ -1430,7 +1430,7 @@ export const getPubsubSubscriptionHandler = allowCors(async (req: VercelRequest,
             res.status(401).json({ error: "Unauthorized: incorrect or missing compute client private key" });
             return;
         }
-        await updateComputeClient(computeClientId, { lastAccessedSec: Date.now() / 1000 });
+        await updateComputeClient(computeClientId, { timestampLastActiveSec: Date.now() / 1000 });
         const VITE_PUBNUB_SUBSCRIBE_KEY = process.env.VITE_PUBNUB_SUBSCRIBE_KEY;
         if (!VITE_PUBNUB_SUBSCRIBE_KEY) {
             res.status(500).json({ error: "VITE_PUBNUB_SUBSCRIBE_KEY not set" });
