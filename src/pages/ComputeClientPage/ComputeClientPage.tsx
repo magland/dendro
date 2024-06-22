@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Hyperlink } from "@fi-sci/misc"
-import { FunctionComponent } from "react"
+import { Hyperlink, SmallIconButton, isArrayOf } from "@fi-sci/misc"
+import { FunctionComponent, useEffect, useMemo, useState } from "react"
 import { useComputeClient } from "../../hooks"
 import useRoute from "../../useRoute"
 import JobsView from "./JobsView"
@@ -8,6 +8,9 @@ import { timeAgoString } from "../../timeStrings"
 import ServiceNameComponent from "../../components/ServiceNameComponent"
 import UserIdComponent from "../../components/UserIdComponent"
 import ComputeClientNameComponent from "../../components/ComputeClientNameComponent"
+import { ComputeClientComputeSlot, isComputeClientComputeSlot } from "../../types"
+import yaml from 'js-yaml'
+import { Edit, Save } from "@mui/icons-material"
 
 type ComputeClientPageProps = {
     // none
@@ -20,7 +23,7 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
         throw new Error('Invalid route')
     }
     const computeClientId = route.computeClientId
-    const { computeClient, deleteComputeClient } = useComputeClient(computeClientId)
+    const { computeClient, deleteComputeClient, setComputeClientInfo } = useComputeClient(computeClientId)
     if (!computeClient) {
         return (
             <div style={{padding: 20}}>
@@ -67,7 +70,12 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                     <tr>
                         <td>Compute slots</td>
                         <td>
-                            <pre>{JSON.stringify(computeClient.computeSlots, null, 4)}</pre>
+                            <ComputeSlotsView
+                                computeSlots={computeClient.computeSlots} editable={true}
+                                onSetComputeSlots={(computeSlots) => {
+                                    setComputeClientInfo({computeSlots})
+                                }}
+                            />
                         </td>
                         <td />
                     </tr>
@@ -103,6 +111,82 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
             </div>
         </div>
     )
+}
+
+type ComputeSlotsViewProps = {
+    computeSlots: ComputeClientComputeSlot[]
+    editable: boolean
+    onSetComputeSlots: (computeSlots: ComputeClientComputeSlot[]) => void
+}
+
+const ComputeSlotsView: FunctionComponent<ComputeSlotsViewProps> = ({ computeSlots, editable, onSetComputeSlots }) => {
+    const [editing, setEditing] = useState<boolean>(false)
+    const [editedYaml, setEditedYaml] = useState<string>('')
+    useEffect(() => {
+        if (!editable) {
+            setEditing(false)
+        }
+    }, [editable])
+    const computeSlotsYaml = useMemo(() => {
+        return jsonToYaml(computeSlots)
+    }, [computeSlots])
+    useEffect(() => {
+        setEditedYaml(computeSlotsYaml)
+    }, [computeSlotsYaml])
+    if (editing) {
+        return (
+            <div>
+                <div>
+                    <SmallIconButton
+                        icon={<Save />}
+                        title="Save compute slots"
+                        onClick={() => {
+                            const slots = yaml.load(editedYaml)
+                            if (!isArrayOf(isComputeClientComputeSlot)(slots)) {
+                                alert('Invalid compute slots')
+                                return
+                            }
+                            onSetComputeSlots(slots as ComputeClientComputeSlot[])
+                            setEditing(false)
+                        }}
+                    />
+                </div>
+                <div>
+                    <textarea
+                        value={editedYaml}
+                        onChange={evt => {
+                            setEditedYaml(evt.target.value)
+                        }}
+                        style={{width: '100%', height: 200}}
+                    />
+                </div>
+            </div>
+        )
+    }
+    else {
+        return (
+            <div>
+                {editable && <div>
+                    {!editing && (
+                        <SmallIconButton
+                            icon={<Edit />}
+                            title="Edit compute slots"
+                            onClick={() => {
+                                setEditing(true)
+                            }}
+                        />
+                    )}
+                </div>}
+                <pre>
+                    {jsonToYaml(computeSlots)}
+                </pre>
+            </div>
+        )
+    }
+}
+
+const jsonToYaml = (x: any) => {
+    return yaml.dump(x)
 }
 
 export default ComputeClientPage

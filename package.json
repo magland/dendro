@@ -1,7 +1,7 @@
 {
   "name": "pairio",
   "private": true,
-  "version": "0.5.2-13",
+  "version": "0.5.2-14",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,12 +16,14 @@
     "@fi-sci/misc": "^0.0.8",
     "@mui/icons-material": "^5.15.20",
     "@mui/material": "^5.15.20",
+    "js-yaml": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.2"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/react": "^18.2.56",
     "@types/react-dom": "^18.2.19",
     "@typescript-eslint/eslint-plugin": "^7.0.2",

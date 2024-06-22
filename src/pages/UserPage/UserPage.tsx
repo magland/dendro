@@ -42,7 +42,7 @@ const UserStatsView: FunctionComponent<UserStatsViewProps> = ({ userId }) => {
     }
     return (
         <div>
-            <table className="table">
+            <table className="table" style={{maxWidth: 700}}>
                 <thead>
                     <tr>
                         <td />

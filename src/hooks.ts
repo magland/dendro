@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLogin } from "./LoginContext/LoginContext";
-import { AddServiceAppRequest, AddServiceRequest, ComputeUserStatsRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobRequest, GetJobsRequest, GetServiceAppRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, PingComputeClientsRequest, SetServiceAppInfoRequest, SetServiceInfoRequest, UserStats, isAddServiceAppResponse, isAddServiceResponse, isComputeUserStatsResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobResponse, isGetJobsResponse, isGetServiceAppResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetServiceAppInfoResponse, isSetServiceInfoResponse } from "./types";
+import { AddServiceAppRequest, AddServiceRequest, ComputeClientComputeSlot, ComputeUserStatsRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobRequest, GetJobsRequest, GetServiceAppRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, PingComputeClientsRequest, SetComputeClientInfoRequest, SetServiceAppInfoRequest, SetServiceInfoRequest, UserStats, isAddServiceAppResponse, isAddServiceResponse, isComputeUserStatsResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobResponse, isGetJobsResponse, isGetServiceAppResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isSetComputeClientInfoResponse, isSetServiceAppInfoResponse, isSetServiceInfoResponse } from "./types";
 
 const isLocalHost = window.location.hostname === 'localhost'
 const apiUrl = isLocalHost ? 'http://localhost:3000' : 'https://pairio.vercel.app'
@@ -282,7 +282,23 @@ export const useComputeClient = (computeClientId: string) => {
         setComputeClient(undefined)
     }, [computeClientId, githubAccessToken])
 
-    return { computeClient, deleteComputeClient, refreshComputeClient }
+    const setComputeClientInfo = useCallback(async (o: { computeSlots: ComputeClientComputeSlot[] }) => {
+        if (!githubAccessToken) return
+        const { computeSlots } = o
+        const req: SetComputeClientInfoRequest = {
+            type: 'setComputeClientInfoRequest',
+            computeClientId,
+            computeSlots
+        }
+        const resp = await apiPostRequest('setComputeClientInfo', req, githubAccessToken)
+        if (!isSetComputeClientInfoResponse(resp)) {
+            console.error('Invalid response', resp)
+            return
+        }
+        refreshComputeClient()
+    }, [computeClientId, githubAccessToken, refreshComputeClient])
+
+    return { computeClient, deleteComputeClient, refreshComputeClient, setComputeClientInfo }
 }
 
 export const useJobs = (o: { computeClientId?: string, serviceName: string }) => {
