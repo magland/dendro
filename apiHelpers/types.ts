@@ -74,7 +74,7 @@ export const isPairioComputeClient = (x: any): x is PairioComputeClient => {
     description: isString,
     computeSlots: isArrayOf(isComputeClientComputeSlot),
     timestampLastActiveSec: optional(isNumber),
-    lastAccessedTimestamp: optional(isNumber) // to remove in future
+    lastAccessedSec: optional(isNumber) // to remove in future
   })
 }
 

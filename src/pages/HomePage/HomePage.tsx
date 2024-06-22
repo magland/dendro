@@ -1,7 +1,6 @@
 import { Hyperlink } from "@fi-sci/misc";
-import { FunctionComponent } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import LoginButton from "../../LoginButton";
-import { useLogin } from "../../LoginContext/LoginContext";
 import useRoute from "../../useRoute";
 // import { getGitHubAccessToken } from "./App";
 
@@ -11,7 +10,7 @@ type Props = {
 
 const HomePage: FunctionComponent<Props> = () => {
   const { setRoute } = useRoute();
-  const { userId } = useLogin();
+  const { recentServices } = useRecentServices();
   return (
     <div style={{padding: 30}}>
       <h3>Pairio is a prototype for the next Dendro</h3>
@@ -22,15 +21,25 @@ const HomePage: FunctionComponent<Props> = () => {
         <LoginButton />
       </div>
       <hr />
-      {userId && (
+      <div>
         <div>
-          <div>
-            <Hyperlink onClick={() => {
-              setRoute({page: 'services'})
-            }}>View services</Hyperlink>
-          </div>
+          <Hyperlink onClick={() => {
+            setRoute({page: 'services'})
+          }}>View services</Hyperlink>
         </div>
-      )}
+      </div>
+      <div>
+        Recent services: {
+          recentServices.map(serviceName => (
+            <span key={serviceName}>
+              <Hyperlink onClick={() => {
+                setRoute({page: 'service', serviceName})
+              }}>{serviceName}</Hyperlink>
+              &nbsp;
+            </span>
+          ))
+        }
+      </div>
       <hr />
       <div>
         <Hyperlink onClick={() => {
@@ -40,5 +49,60 @@ const HomePage: FunctionComponent<Props> = () => {
     </div>
   )
 };
+
+const useRecentServices = () => {
+  const [recentServices, setRecentServices] = useState<string[]>([]);
+  useEffect(() => {
+    const update = () => {
+      try {
+        const x = localStorage.getItem('recent_services');
+        if (x) {
+          const y = JSON.parse(x);
+          assertListOfStrings(y);
+          setRecentServices(y);
+        }
+      }
+      catch (err) {
+        console.warn(err);
+      }
+    };
+    const timeout = setTimeout(update, 1000);
+    return () => {
+      clearTimeout(timeout);
+    }
+  }, []);
+
+  return { recentServices };
+}
+
+export const reportRecentService = (serviceName: string) => {
+  let recentServices: string[] = [];
+  try {
+    const x = localStorage.getItem('recent_services');
+    if (x) {
+      recentServices = JSON.parse(x);
+      assertListOfStrings(recentServices);
+    }
+  }
+  catch (err) {
+    console.warn(err);
+  }
+  recentServices = recentServices.filter(name => (name !== serviceName));
+  recentServices.unshift(serviceName);
+  recentServices = recentServices.slice(0, 10);
+  localStorage.setItem('recent_services', JSON.stringify(recentServices));
+}
+
+const assertListOfStrings = (x: any) => {
+  if (!Array.isArray(x)) {
+    throw new Error('Expected array');
+  }
+  for (let i in x) {
+    if (typeof x[i] !== 'string') {
+      throw new Error('Expected string');
+    }
+  }
+}
+
 
 export default HomePage;

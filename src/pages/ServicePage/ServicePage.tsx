@@ -8,6 +8,7 @@ import ServiceAppsView from "./ServiceAppsView"
 import JobsView from "../ComputeClientPage/JobsView"
 import { PairioService, PairioServiceUser } from "../../types"
 import { Add, Delete } from "@mui/icons-material"
+import { reportRecentService } from "../HomePage/HomePage"
 
 type ServicePageProps = {
     width: number
@@ -27,6 +28,10 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({width, height}) => {
     const setUsers = useCallback(async (users: PairioServiceUser[]) => {
         await setServiceInfo({users})
     }, [setServiceInfo])
+
+    useEffect(() => {
+        reportRecentService(serviceName)
+    }, [serviceName])
 
     // const handleLoadFromSource = useCallback(async () => {
     //     if (!service) return
