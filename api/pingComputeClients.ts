@@ -1,3 +1,3 @@
-import { pingComputeClientsHandler } from "../apiHelpers/requestHandlers";
+import { pingComputeClientsHandler } from "../apiHelpers/requestHandlers"; // remove .js for local dev
 
 export default pingComputeClientsHandler;

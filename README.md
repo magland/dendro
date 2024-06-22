@@ -37,7 +37,7 @@ python examples/example1.py
 The output should look something like this:
 
 ```bash
-https://pairio.vercel.app/job/yPkCcpi7toFVaTlNQhXN completed
+https://pairio.vercel.app/job/9yS0phSTf1lqgLdKdFa5 completed
 ```
 
 Well, that was fast! What happened?
@@ -140,7 +140,7 @@ This code should be fairly self-explanatory. In addition to the parameter in the
 After running the script, you should see something like this:
 
 ```bash
-https://pairio.vercel.app/job/tzl2neSljRZzpQQltIpW completed
+https://pairio.vercel.app/job/Pjc2mcych7MOPz5nI1Up completed
 ```
 
 Opening that link once again brings you to job details where you can click on the URL of the generated output file to see the expected content "Hello, world!".
@@ -219,8 +219,8 @@ print(job2.job_url, job2.status, job2.isRunnable)
 Running this will produce two jobs and the output will look something like this:
 
 ```bash
-https://pairio.vercel.app/job/tzl2neSljRZzpQQltIpW completed
-https://pairio.vercel.app/job/RpEMsaParNDaY7aP3oU2 completed True
+https://pairio.vercel.app/job/Pjc2mcych7MOPz5nI1Up completed
+https://pairio.vercel.app/job/Ctv7xyt66vHvrwIKVasu completed True
 ```
 
 Click on that second link and you should see the output file "output.json" which contains the number of characters in the input file. The input file is the output of the first job, which is a text file with the contents "Hello, world!".
