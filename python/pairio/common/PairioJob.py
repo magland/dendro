@@ -130,19 +130,23 @@ class PairioJob(BaseModel):
             )
             if resp['type'] != 'getJobResponse':
                 raise Exception(f'Unexpected response: {resp}')
-            job = resp['job']
-            self.outputFileResults = job['outputFileResults']
-            self.timestampCreatedSec = job['timestampCreatedSec']
-            self.timestampStartingSec = job['timestampStartingSec']
-            self.timestampStartedSec = job['timestampStartedSec']
-            self.timestampFinishedSec = job['timestampFinishedSec']
-            self.canceled = job['canceled']
-            self.status = job['status']
-            self.isRunnable = job['isRunnable']
-            self.error = job['error']
-            self.computeClientId = job['computeClientId']
-            self.computeClientName = job['computeClientName']
-            self.imageUri = job['imageUri']
+            job = PairioJob(**resp['job'])
+            fields_to_copy = [
+                'outputFileResults',
+                'timestampCreatedSec',
+                'timestampStartingSec',
+                'timestampStartedSec',
+                'timestampFinishedSec',
+                'canceled',
+                'status',
+                'isRunnable',
+                'error',
+                'computeClientId',
+                'computeClientName',
+                'imageUri'
+            ]
+            for field in fields_to_copy:
+                setattr(self, field, getattr(job, field))
 
             if self.status in done_states:
                 print(f'{self.job_url} {self.status}')

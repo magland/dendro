@@ -3,9 +3,9 @@ import lindi
 from cebra_util import nwb_cebra, subsample_timeseries
 
 
-# 000129/sub-Indy/sub-Indy_desc-train_behavior+ecephys.nwb
-# https://neurosift.app/?p=/nwb&dandisetId=000129&dandisetVersion=draft&url=https://api.dandiarchive.org/api/assets/2ae6bf3c-788b-4ece-8c01-4b4a5680b25b/download/
-url1 = 'https://api.dandiarchive.org/api/assets/2ae6bf3c-788b-4ece-8c01-4b4a5680b25b/download/'
+# 000140/sub-Jenkins/sub-Jenkins_ses-small_desc-train_behavior+ecephys.nwb
+# https://neurosift.app/?p=/nwb&dandisetId=000140&dandisetVersion=0.220113.0408&url=https://api.dandiarchive.org/api/assets/7821971e-c6a4-4568-8773-1bfa205c13f8/download/
+url1 = 'https://api.dandiarchive.org/api/assets/7821971e-c6a4-4568-8773-1bfa205c13f8/download/'
 
 def main():
     bin_size_msec = 50
@@ -43,36 +43,36 @@ def main():
 
     finger_pos_subsampled = subsample_timeseries(
         nwb_url=url1,
-        timeseries_path='processing/behavior/finger_pos',
+        timeseries_path='processing/behavior/eye_pos',
         bin_size_msec=bin_size_msec,
         num_bins=num_bins,
         start_time_sec=0,
         local_cache=local_cache
     )
     r2 = linear_regression_r2(embedding, finger_pos_subsampled)
-    print(f'finger_pos R^2: {r2}')
+    print(f'eye_pos R^2: {r2}')
 
     finger_vel_subsampled = subsample_timeseries(
         nwb_url=url1,
-        timeseries_path='processing/behavior/finger_vel',
+        timeseries_path='processing/behavior/hand_pos',
         bin_size_msec=bin_size_msec,
         num_bins=num_bins,
         start_time_sec=0,
         local_cache=local_cache
     )
     r2 = linear_regression_r2(embedding, finger_vel_subsampled)
-    print(f'finger_vel R^2: {r2}')
+    print(f'hand_pos R^2: {r2}')
 
     target_pos_subsampled = subsample_timeseries(
         nwb_url=url1,
-        timeseries_path='processing/behavior/target_pos',
+        timeseries_path='processing/behavior/hand_vel',
         bin_size_msec=bin_size_msec,
         num_bins=num_bins,
         start_time_sec=0,
         local_cache=local_cache
     )
     r2 = linear_regression_r2(embedding, target_pos_subsampled)
-    print(f'target_pos R^2: {r2}')
+    print(f'hand_vel R^2: {r2}')
 
 
 def linear_regression_r2(X: np.ndarray, y: np.ndarray) -> float:
