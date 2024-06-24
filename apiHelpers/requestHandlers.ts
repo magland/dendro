@@ -394,7 +394,8 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             return;
         }
 
-        const jobDefinitionHash = computeSha1(JSONStringifyDeterministic(rr.jobDefinition))
+        const jobDefinitionNormalized = normalizeJobDefinitionForHash(rr.jobDefinition);
+        const jobDefinitionHash = computeSha1(JSONStringifyDeterministic(jobDefinitionNormalized));
 
         if (!rr.skipCache) {
             const match = {
@@ -2078,4 +2079,17 @@ const computeSha1 = (s: string) => {
     const hash = crypto.createHash('sha1');
     hash.update(s);
     return hash.digest('hex');
+}
+
+const normalizeJobDefinitionForHash = (jobDefinition: PairioJobDefinition) => {
+    return {
+        ...jobDefinition,
+        inputFiles: orderByName(jobDefinition.inputFiles),
+        outputFiles: orderByName(jobDefinition.outputFiles),
+        parameters: orderByName(jobDefinition.parameters)
+    }
+}
+
+const orderByName = (arr: any[]) => {
+    return arr.sort((a, b) => a.name.localeCompare(b.name));
 }

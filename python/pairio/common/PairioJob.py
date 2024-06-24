@@ -1,4 +1,5 @@
 from typing import Union, List
+import time
 from .. import BaseModel
 
 
@@ -108,6 +109,68 @@ class PairioJob(BaseModel):
                     size=output.size
                 )
         raise Exception(f'Output not found: {name}')
+
+    def wait_until_done(self, *, wait_sec: Union[float, None] = None):
+        from ..common.api_requests import _post_api_request
+        done_states = ['completed', 'failed']
+        if self.status in done_states:
+            print(f'{self.job_url} {self.status}')
+            return
+        timer = time.time()
+        last_status = None
+        while True:
+            req = {
+                'type': 'getJobRequest',
+                'jobId': self.jobId,
+                'includePrivateKey': False
+            }
+            resp = _post_api_request(
+                url_path='/api/getJob',
+                data=req
+            )
+            if resp['type'] != 'getJobResponse':
+                raise Exception(f'Unexpected response: {resp}')
+            job = resp['job']
+            self.outputFileResults = job['outputFileResults']
+            self.timestampCreatedSec = job['timestampCreatedSec']
+            self.timestampStartingSec = job['timestampStartingSec']
+            self.timestampStartedSec = job['timestampStartedSec']
+            self.timestampFinishedSec = job['timestampFinishedSec']
+            self.canceled = job['canceled']
+            self.status = job['status']
+            self.isRunnable = job['isRunnable']
+            self.error = job['error']
+            self.computeClientId = job['computeClientId']
+            self.computeClientName = job['computeClientName']
+            self.imageUri = job['imageUri']
+
+            if self.status in done_states:
+                print(f'{self.job_url} {self.status}')
+                break
+
+            if self.status != last_status:
+                print(f'{self.job_url} {self.status}')
+                if self.status == 'failed':
+                    print(f'Error: {self.error}')
+                last_status = self.status
+
+            # sleep for a while, depending on how long we've already been waiting
+            elapsed = time.time() - timer
+            if wait_sec is not None and elapsed > wait_sec:
+                print(f'Status: {self.status}')
+                break
+            if elapsed < 10:
+                time.sleep(2)
+            elif elapsed < 30:
+                time.sleep(4)
+            elif elapsed < 60:
+                time.sleep(5)
+            elif elapsed < 60 * 5:
+                time.sleep(20)
+            elif elapsed < 60 * 30:
+                time.sleep(60)
+            else:
+                time.sleep(60 * 5)
 
 
 # // ComputeClientComputeSlot

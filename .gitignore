@@ -1,5 +1,10 @@
 tmp
 
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
 # Logs
 logs
 *.log

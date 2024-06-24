@@ -3,6 +3,7 @@ import os
 import time
 import shutil
 import multiprocessing
+import traceback
 from pathlib import Path
 from .JobManager import JobManager
 from ..common.api_requests import get_pubsub_subscription, get_runnable_jobs_for_compute_client
@@ -62,13 +63,18 @@ class ComputeClientDaemon:
 
         try:
             print('Starting compute client')
-            reported_that_compute_client_is_running = False
+            last_report_that_compute_client_is_running = 0
             overall_timer = time.time()
             while True:
                 elapsed_handle_jobs = time.time() - timer_handle_jobs
                 # normally we will get pubsub messages for updates, but if we don't, we should check every 10 minutes
                 time_to_handle_jobs = elapsed_handle_jobs > 60 * 10
-                messages = pubsub_client.take_messages() if pubsub_client is not None else []
+                try:
+                    messages = pubsub_client.take_messages() if pubsub_client is not None else []
+                except Exception as e:
+                    traceback.print_exc()
+                    print(f'Error getting pubsub messages: {e}')
+                    messages = []
                 jobs_have_changed = False
                 for msg in messages:
                     if msg['type'] == 'newPendingJob':
@@ -81,20 +87,29 @@ class ComputeClientDaemon:
 
                 if time_to_handle_jobs or jobs_have_changed:
                     timer_handle_jobs = time.time()
-                    self._handle_jobs()
+                    try:
+                        self._handle_jobs()
+                    except Exception as e:
+                        traceback.print_exc()
+                        print(f'Error handling jobs: {e}')
 
-                self._job_manager.do_work()
+                try:
+                    self._job_manager.do_work()
+                except Exception as e:
+                    traceback.print_exc()
+                    print(f'Error doing work: {e}')
 
-                if not reported_that_compute_client_is_running:
+                elapsed_since_report_that_compute_client_is_running = time.time() - last_report_that_compute_client_is_running
+                if elapsed_since_report_that_compute_client_is_running > 60 * 5:
                     print(f'Compute client is running: {self._service_name} {self._compute_client_name} {self._compute_client_id}')
-                    reported_that_compute_client_is_running = True
+                    last_report_that_compute_client_is_running = time.time()
 
                 overall_elapsed = time.time() - overall_timer
                 if timeout is not None and overall_elapsed > timeout:
                     print(f'Compute client timed out after {timeout} seconds')
                     return
                 if overall_elapsed < 5:
-                    time.sleep(0.5) # for the first few seconds we can sleep for a short time
+                    time.sleep(0.2) # for the first few seconds we can sleep for a short time
                 else:
                     time.sleep(2)
         finally:
