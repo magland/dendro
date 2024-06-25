@@ -383,7 +383,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
         }
         const app = await fetchServiceApp(rr.serviceName, rr.jobDefinition.appName)
         if (!app) {
-            res.status(404).json({ error: "Service app not found" });
+            res.status(404).json({ error: `Service app not found: ${rr.jobDefinition.appName}` });
             return;
         }
         try {
@@ -1357,7 +1357,7 @@ export const deleteServiceAppHandler = allowCors(async (req: VercelRequest, res:
         }
         const app = await fetchServiceApp(rr.serviceName, rr.appName);
         if (!app) {
-            res.status(404).json({ error: "Service app not found" });
+            res.status(404).json({ error: `App ${rr.appName} not found` });
             return;
         }
         await deleteServiceApp(rr.serviceName, rr.appName);
@@ -1740,6 +1740,7 @@ const insertJob = async (job: PairioJob) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.jobs);
     await collection.insertOne(job);
+    removeMongoId(job);
 }
 
 const deleteJobs = async (o: { serviceName: string, jobIds: string[] }) => {

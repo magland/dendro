@@ -21,7 +21,7 @@ export const ComputeClientsView: FunctionComponent<ComputeClientsViewProps> = ({
         const {computeClientId, computeClientPrivateKey} = x
         setNewComputeClientInfo({computeClientId, computeClientPrivateKey})
         refreshComputeClients()
-    }, [createComputeClient])
+    }, [createComputeClient, refreshComputeClients])
 
     const newClientElement = newComputeClientInfo && (
         <div>

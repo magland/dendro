@@ -8,7 +8,7 @@ type UserPageProps = {
     // none
 }
 
-const UserPage: FunctionComponent<UserPageProps> = ({  }) => {
+const UserPage: FunctionComponent<UserPageProps> = () => {
     const { route, setRoute } = useRoute()
     if (route.page !== 'user') {
         throw new Error('Invalid route')

@@ -138,7 +138,7 @@ const FilterSelector: FunctionComponent<FilterSelectorProps> = ({filter, setFilt
     // if the app changed, reset the processor
     useEffect(() => {
         setFilter({...filter, processorName: undefined})
-    }, [filter.appName])
+    }, [filter, setFilter])
     return (
         <div style={{display: 'flex', gap: 10}}>
             <div>

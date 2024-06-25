@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Hyperlink } from "@fi-sci/misc";
 import { FunctionComponent, useEffect, useState } from "react";
 import LoginButton from "../../LoginButton";
@@ -25,11 +26,11 @@ const HomePage: FunctionComponent<Props> = () => {
         <div>
           <Hyperlink onClick={() => {
             setRoute({page: 'services'})
-          }}>View services</Hyperlink>
+          }}>Services</Hyperlink>
         </div>
       </div>
       {recentServices.length > 0 && <div>
-        Recent services: {
+        Recent: {
           recentServices.map(serviceName => (
             <span key={serviceName}>
               <Hyperlink onClick={() => {
@@ -44,8 +45,12 @@ const HomePage: FunctionComponent<Props> = () => {
       <div>
         <Hyperlink onClick={() => {
           setRoute({page: 'settings'})
-        }}>View settings</Hyperlink>
+        }}>Settings</Hyperlink>
       </div>
+      <hr />
+      <Hyperlink onClick={() => {
+        setRoute({page: 'playground'})
+      }}>Playground</Hyperlink>
     </div>
   )
 };
@@ -97,7 +102,7 @@ const assertListOfStrings = (x: any) => {
   if (!Array.isArray(x)) {
     throw new Error('Expected array');
   }
-  for (let i in x) {
+  for (const i in x) {
     if (typeof x[i] !== 'string') {
       throw new Error('Expected string');
     }

@@ -32,6 +32,12 @@ export type Route = {
 } | {
     page: 'user'
     userId: string
+} | {
+    page: 'playground'
+    serviceName?: string
+    appName?: string
+    processorName?: string
+    jobDefinition?: any
 }
 
 const useRoute = () => {
@@ -128,6 +134,20 @@ const useRoute = () => {
                 }
             }
         }
+        else if (p === '/playground') {
+            const serviceName = searchParams.get('service') || undefined
+            const appName = searchParams.get('app') || undefined
+            const processorName = searchParams.get('processor') || undefined
+            const jobDefinitionJson = searchParams.get('job_definition')
+            const jobDefinition = jobDefinitionJson ? JSON.parse(decodeURIComponent(jobDefinitionJson)) : undefined
+            return {
+                page: 'playground',
+                serviceName,
+                appName,
+                processorName,
+                jobDefinition
+            }
+        }
         else {
             return {
                 page: 'home'
@@ -173,6 +193,23 @@ const useRoute = () => {
             else {
                 navigate(`/user/${r.userId}`)
             }
+        }
+        else if (r.page === 'playground') {
+            const qstrs: string[] = []
+            if (r.serviceName) {
+                qstrs.push(`service=${r.serviceName}`)
+            }
+            if (r.appName) {
+                qstrs.push(`app=${r.appName}`)
+            }
+            if (r.processorName) {
+                qstrs.push(`processor=${r.processorName}`)
+            }
+            if (r.jobDefinition) {
+                qstrs.push(`job_definition=${encodeURIComponent(JSON.stringify(r.jobDefinition))}`)
+            }
+            const q = qstrs.join('&')
+            navigate(`/playground?${q}`)
         }
         else {
             navigate('/')

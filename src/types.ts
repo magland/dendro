@@ -310,7 +310,7 @@ export const isPairioJob = (x: any): x is PairioJob => {
     computeClientName: isOneOf([isString, isNull]),
     computeClientUserId: isOneOf([isString, isNull]),
     imageUri: isOneOf([isString, isNull])
-  })
+  }, {callback: console.log})
 }
 
 // PairioAppProcessorInputFile
@@ -781,7 +781,7 @@ export const isGetJobResponse = (x: any): x is GetJobResponse => {
   return validateObject(x, {
     type: isEqualTo('getJobResponse'),
     job: isPairioJob
-  })
+  }, {callback: console.log})
 }
 
 // cancelJob

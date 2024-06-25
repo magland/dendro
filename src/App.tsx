@@ -14,6 +14,7 @@ import ServiceAppPage from './pages/ServiceAppPage/ServiceAppPage'
 import JobPage from './pages/JobPage/JobPage'
 import SettingsPage from './pages/SettingsPage/SettingsPage'
 import UserPage from './pages/UserPage/UserPage'
+import PlaygroundPage from './pages/PlaygroundPage/PlaygroundPage'
 // import useRoute from './useRoute'
 
 function App() {
@@ -61,6 +62,9 @@ function MainWindow() {
   }
   else if (route.page === 'user') {
     return <UserPage />
+  }
+  else if (route.page === 'playground') {
+    return <PlaygroundPage />
   }
   else {
     return <div>Invalid route</div>

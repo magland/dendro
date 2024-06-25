@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Hyperlink } from "@fi-sci/misc"
+import { Hyperlink, SmallIconButton } from "@fi-sci/misc"
 import { FunctionComponent, useCallback, useEffect, useMemo, useState } from "react"
 import { useJob } from "../../hooks"
 import { PairioJob } from "../../types"
@@ -7,6 +7,7 @@ import useRoute from "../../useRoute"
 import { timeAgoString } from "../../timeStrings"
 import ServiceNameComponent from "../../components/ServiceNameComponent"
 import ServiceAppNameComponent from "../../components/ServiceAppNameComponent"
+import { Refresh } from "@mui/icons-material"
 
 type JobPageProps = {
     // none
@@ -19,7 +20,7 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
         throw new Error('Invalid route')
     }
     const jobId = route.jobId
-    const { job } = useJob(jobId)
+    const { job, refreshJob } = useJob(jobId)
     if (!job) {
         return (
             <div style={{padding: 20}}>
@@ -37,11 +38,32 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
                 </Hyperlink>
             </div>
             <hr />
+            <JobView job={job} refreshJob={refreshJob} />
+        </div>
+    )
+}
+
+type JobViewProps = {
+    job: PairioJob
+    refreshJob: () => void
+}
+
+export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob }) => {
+    return (
+        <div>
+            <div>
+                <SmallIconButton
+                    onClick={refreshJob}
+                    icon={<Refresh />}
+                    label="Refresh job"
+                    title="Refresh job"
+                />
+            </div>
             <table className="table" style={{maxWidth: 500}}>
                 <tbody>
                     <tr>
                         <td>Job</td>
-                        <td>{jobId}</td>
+                        <td>{job.jobId}</td>
                     </tr>
                     <tr>
                         <td>Job definition hash</td>
@@ -98,17 +120,21 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
             <hr />
             <InputsOutputsParametersView job={job} />
             <hr />
-            <ConsoleOutputView consoleOutputUrl={job.consoleOutputUrl} />
+            <ConsoleOutputView job={job} />
         </div>
     )
 }
 
 type ConsoleOutputViewProps = {
-    consoleOutputUrl: string
+    job: PairioJob
 }
 
-const ConsoleOutputView: FunctionComponent<ConsoleOutputViewProps> = ({ consoleOutputUrl }) => {
-    const { text, refreshText } = useRemoteText(consoleOutputUrl)
+const ConsoleOutputView: FunctionComponent<ConsoleOutputViewProps> = ({ job }) => {
+    const { text, refreshText } = useRemoteText(job.consoleOutputUrl)
+    useEffect(() => {
+        // if job changes, refresh text
+        refreshText()
+    }, [job, refreshText])
     return (
         <div>
             <h3>Console output</h3>
@@ -125,7 +151,7 @@ const ConsoleOutputView: FunctionComponent<ConsoleOutputViewProps> = ({ consoleO
 }
 
 const useRemoteText = (url: string) => {
-    const [text, setText] = useState<string | null>(null)
+    const [text, setText] = useState<string | null | undefined>(null)
     const [refreshCode, setRefreshCode] = useState(0)
     const refreshText = useCallback(() => {
         setRefreshCode(c => c + 1)
@@ -136,6 +162,10 @@ const useRemoteText = (url: string) => {
             setText(null)
             const response = await fetch(url)
             if (canceled) return
+            if (response.status === 404) {
+                setText(undefined)
+                return
+            }
             if (response.status !== 200) {
                 setText(`Error: ${response.status}`)
                 return
@@ -147,7 +177,7 @@ const useRemoteText = (url: string) => {
         return () => {
             canceled = true
         }
-    }, [refreshCode])
+    }, [refreshCode, url])
     return { text, refreshText }
 }
 

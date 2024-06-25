@@ -132,7 +132,7 @@ export const useService = (serviceName: string) => {
         const computeClientId = resp.computeClientId
         const computeClientPrivateKey = resp.computeClientPrivateKey
         return {computeClientId, computeClientPrivateKey}
-    }), [])
+    }), [userId, githubAccessToken, serviceName])
 
     const addServiceAppFromSourceUri = useMemo(() => (async (o: { sourceUri: string }) => {
         if (!githubAccessToken) return
@@ -158,7 +158,7 @@ export const useService = (serviceName: string) => {
             return
         }
         return serviceApp
-    }), [])
+    }), [serviceName, githubAccessToken])
 
     return { service, deleteService, setServiceInfo, refreshService, createComputeClient, addServiceAppFromSourceUri }
 }
@@ -171,6 +171,19 @@ export const useComputeClients = (serviceName: string) => {
         pingFirst.current = o?.pingFirst || false
         setRefreshCode(c => c + 1)
     }, [])
+
+    const pingComputeClients = useCallback(async () => {
+        const req: PingComputeClientsRequest = {
+            type: 'pingComputeClientsRequest',
+            serviceName
+        }
+        const resp = await apiPostRequest('pingComputeClients', req)
+        if (!isGetComputeClientsResponse(resp)) {
+            console.error('Invalid response', resp)
+            return
+        }
+    }, [serviceName])
+
     useEffect(() => {
         let canceled = false
         setComputeClients(undefined);
@@ -193,19 +206,7 @@ export const useComputeClients = (serviceName: string) => {
             setComputeClients(resp.computeClients)
         })()
         return () => { canceled = true }
-    }, [refreshCode, serviceName])
-
-    const pingComputeClients = useCallback(async () => {
-        const req: PingComputeClientsRequest = {
-            type: 'pingComputeClientsRequest',
-            serviceName
-        }
-        const resp = await apiPostRequest('pingComputeClients', req)
-        if (!isGetComputeClientsResponse(resp)) {
-            console.error('Invalid response', resp)
-            return
-        }
-    }, [computeClients])
+    }, [refreshCode, serviceName, pingComputeClients])
 
     return {
         computeClients,
@@ -399,7 +400,7 @@ export const useServiceApp = (serviceName: string, appName: string) => {
         }
         refreshServiceApp()
         alert('Updated from source')
-    }, [serviceApp, serviceName, appName, refreshServiceApp])
+    }, [serviceApp, serviceName, appName, githubAccessToken, refreshServiceApp])
 
     return { serviceApp, refreshServiceApp, updateFromSource }
 }

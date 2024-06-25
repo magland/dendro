@@ -13,6 +13,11 @@ const RegisterComputeClientPage: FunctionComponent<RegisterComputeClientPageProp
     const { route } = useRoute()
     const [code, setCode] = useState<string>('')
     const { userId, githubAccessToken } = useLogin()
+    if (route.page !== 'register_compute_client') {
+        throw new Error('Invalid route')
+    }
+    const serviceName = route.serviceName
+    const computeClientName = route.computeClientName
     const onRegister = useCallback(async () => {
         console.info('Registering compute client...')
         if (!userId) return
@@ -39,12 +44,7 @@ const RegisterComputeClientPage: FunctionComponent<RegisterComputeClientPageProp
         }
         const codeBase64 = btoa(JSON.stringify(codeJson))
         setCode(codeBase64)
-    }, [userId, githubAccessToken])
-    if (route.page !== 'register_compute_client') {
-        throw new Error('Invalid route')
-    }
-    const serviceName = route.serviceName
-    const computeClientName = route.computeClientName
+    }, [userId, githubAccessToken, serviceName, computeClientName])
     return (
         <div style={{padding: 20, maxWidth: 500}}>
             <h3>Register compute client</h3>
