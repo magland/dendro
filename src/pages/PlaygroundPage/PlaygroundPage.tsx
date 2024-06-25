@@ -381,7 +381,9 @@ const useLocalStorage = (state: PlaygroundState | undefined, dispatch: (action: 
         const obj = JSON.parse(json)
         if (typeof obj.pairioApiKey === 'string') {
             dispatch({type: 'set_string', key: 'pairioApiKey', value: obj.pairioApiKey})
+            return
         }
+        dispatch({type: 'set_string', key: 'pairioApiKey', value: undefined})
     }, [dispatch])
     useEffect(() => {
         if (!state) return
