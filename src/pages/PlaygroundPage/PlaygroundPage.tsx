@@ -6,6 +6,8 @@ import useRoute from "../../useRoute"
 import EditJobDefinitionWindow from "./EditJobDefinitionWindow/EditJobDefinitionWindow"
 import submitJob, { getJob } from "./submitJob"
 import { JobView } from "../JobPage/JobPage"
+import { ExpandableSection } from "./ExpandableSection"
+import SpecialCebraResultsView from "./SpecialCebraResultsView/SpecialCebraResultsView"
 
 type PlaygroundPageProps = {
     // none
@@ -166,6 +168,16 @@ const PlaygroundPage: FunctionComponent<PlaygroundPageProps> = () => {
                     )
                 }
                 <hr />
+                {
+                    job && job.jobDefinition.processorName === 'cebra_nwb_embedding_1' && job.status === 'completed' && (
+                        <>
+                            <ExpandableSection title="Special CEBRA results view">
+                                <SpecialCebraResultsView job={job} />
+                            </ExpandableSection>
+                            <hr />
+                        </>
+                    )
+                }
                 {
                     (serviceName && appName && processorName && job) && (
                         <JobView
