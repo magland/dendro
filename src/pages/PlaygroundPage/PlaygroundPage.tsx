@@ -1,7 +1,7 @@
 import { Hyperlink } from "@fi-sci/misc"
 import { FunctionComponent, useCallback, useEffect, useMemo, useReducer, useState } from "react"
 import { useServiceApp, useServiceApps, useServices } from "../../hooks"
-import { PairioJob, PairioJobDefinition, isPairioJobDefinition } from "../../types"
+import { PairioAppProcessorOutputFile, PairioJob, PairioJobDefinition, isPairioJobDefinition } from "../../types"
 import useRoute from "../../useRoute"
 import EditJobDefinitionWindow from "./EditJobDefinitionWindow/EditJobDefinitionWindow"
 import submitJob, { getJob } from "./submitJob"
@@ -299,13 +299,13 @@ const JobDefinitionSelector: FunctionComponent<JobDefinitionSelectorProps> = ({s
                 jd.inputFiles.push({name: ii.name, url: '', fileBaseName: ''})
             }
         }
-        for (const ii of processor.outputs) {
-            const x = jobDefinitionFromRoute2 && jobDefinitionFromRoute2.outputFiles.find(jd => (jd.name === ii.name))
+        for (const oo of processor.outputs) {
+            const x = jobDefinitionFromRoute2 && jobDefinitionFromRoute2.outputFiles.find(jd => (jd.name === oo.name))
             if (x) {
                 jd.outputFiles.push(x)
             }
             else {
-                jd.outputFiles.push({name: ii.name, fileBaseName: ''})
+                jd.outputFiles.push({name: oo.name, fileBaseName: determineDefaultFileBaseName(oo)})
             }
         }
         for (const pp of processor.parameters) {
@@ -394,6 +394,28 @@ export const JSONStringifyDeterministic = ( obj: any, space: string | number | u
     JSON.stringify( obj, function( key, value ){ allKeys.push( key ); return value; } )
     allKeys.sort();
     return JSON.stringify( obj, allKeys, space );
+}
+
+const determineDefaultFileBaseName = (oo: PairioAppProcessorOutputFile) => {
+    const words = oo.description.split(' ')
+    if (words.includes('.h5')) {
+        return `${oo.name}.h5`
+    }
+    else if (words.includes('.json')) {
+        return `${oo.name}.json`
+    }
+    else if (words.includes('.txt')) {
+        return `${oo.name}.txt`
+    }
+    else if (words.includes('.csv')) {
+        return `${oo.name}.csv`
+    }
+    else if (words.includes('.png')) {
+        return `${oo.name}.png`
+    }
+    else {
+        return `${oo.name}`
+    }
 }
 
 export default PlaygroundPage

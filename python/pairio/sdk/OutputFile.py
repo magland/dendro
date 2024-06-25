@@ -19,15 +19,13 @@ class OutputFile(BaseModel):
             raise Exception('Unexpected: job_id is None in OutputFile')
         if self.job_private_key is None:
             raise Exception('Unexpected: job_private_key is None in OutputFile')
-        local_file_base_name = os.path.basename(local_file_name)
         upload_url = get_upload_url(
             upload_type='output',
             job_id=self.job_id,
             job_private_key=self.job_private_key,
             output_name=self.name,
             other_name=None,
-            size=os.path.getsize(local_file_name),
-            fallback_file_base_name=local_file_base_name
+            size=os.path.getsize(local_file_name)
         )
 
         print(f'[] Uploading output file {self.name}') # it could be a security issue to provide the url in this print statement

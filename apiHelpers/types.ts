@@ -844,7 +844,6 @@ export type GetSignedUploadUrlRequest = {
   outputName?: string
   otherName?: string
   size: number
-  fallbackFileBaseName?: string
 }
 
 export const isGetSignedUploadUrlRequest = (x: any): x is GetSignedUploadUrlRequest => {
@@ -855,7 +854,7 @@ export const isGetSignedUploadUrlRequest = (x: any): x is GetSignedUploadUrlRequ
     outputName: optional(isString),
     otherName: optional(isString),
     size: isNumber,
-    fallbackFileBaseName: optional(isString)
+    fallbackFileBaseName: optional(isString) // historic -- to remove
   })
 }
 

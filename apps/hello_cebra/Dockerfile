@@ -13,7 +13,7 @@ RUN git clone https://github.com/magland/pairio \
     && cd pairio \
     && cd python \
     && pip install -e . \
-    && echo "v17"
+    && echo "v18"
 
 # Install lindi
 RUN pip install lindi==0.3.9

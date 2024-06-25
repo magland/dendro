@@ -176,8 +176,7 @@ def get_upload_url(*,
     upload_type: Literal['output', 'consoleOutput', 'resourceUtilizationLog', 'other'],
     output_name: Union[str, None],
     other_name: Union[str, None],
-    size: int,
-    fallback_file_base_name: Union[str, None] = None
+    size: int
 ) -> str:
     # // getSignedUploadUrl
     # export type GetSignedUploadUrlRequest = {
@@ -205,8 +204,6 @@ def get_upload_url(*,
         req['outputName'] = output_name
     if other_name is not None:
         req['otherName'] = other_name
-    if fallback_file_base_name is not None:
-        req['fallbackFileBaseName'] = fallback_file_base_name
     headers = {
         'Authorization': f'Bearer {job_private_key}'
     }

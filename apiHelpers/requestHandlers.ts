@@ -1046,10 +1046,6 @@ export const getSignedUploadUrlHandler = allowCors(async (req: VercelRequest, re
                 return;
             }
             url = ooResult.url;
-            if ((url.endsWith('/')) && (rr.fallbackFileBaseName)) {
-                // this means that the file base name was empty
-                url += rr.fallbackFileBaseName;
-            }
 
             // set the size of the output file result
             ooResult.size = rr.size;
