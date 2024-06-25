@@ -1,4 +1,4 @@
-import { CreateJobRequest, GetJobRequest, PairioJob, PairioJobDefinition, isCreateJobResponse, isGetJobResponse } from "../../types"
+import { CreateJobRequest, FindJobByDefinitionRequest, GetJobRequest, PairioJob, PairioJobDefinition, isCreateJobResponse, isGetJobResponse } from "../../types"
 
 const submitJob = async (o: {jobDefinition: PairioJobDefinition, pairioApiKey?: string, serviceName: string}): Promise<PairioJob> => {
     const { jobDefinition, pairioApiKey, serviceName } = o
@@ -47,6 +47,33 @@ const submitJob = async (o: {jobDefinition: PairioJobDefinition, pairioApiKey?: 
     }
     const job = json.job
     return job
+}
+
+export const findJobByDefinition = async (o: {jobDefinition: PairioJobDefinition, serviceName: string}): Promise<PairioJob | undefined> => {
+    const { jobDefinition, serviceName } = o
+    const url = '/api/findJobByDefinition'
+    const req: FindJobByDefinitionRequest = {
+        type: 'findJobByDefinitionRequest',
+        serviceName,
+        jobDefinition
+    }
+    const headers = {
+    }
+    const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...headers
+        },
+        body: JSON.stringify(req)
+    })
+    if (!resp.ok) {
+        throw Error(`Error in findJobByDefinitionRequest: ${await resp.text()}`)
+    }
+    const json = await resp.json()
+    if (json.job) {
+        return json.job || undefined
+    }
 }
 
 export const getJob = async (o: {jobId: string}): Promise<PairioJob> => {

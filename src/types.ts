@@ -654,6 +654,35 @@ export const isCreateJobResponse = (x: any): x is CreateJobResponse => {
   })
 }
 
+// findJobByDefinition
+export type FindJobByDefinitionRequest = {
+  type: 'findJobByDefinitionRequest'
+  serviceName: string
+  jobDefinition: PairioJobDefinition
+}
+
+export const isFindJobByDefinitionRequest = (x: any): x is FindJobByDefinitionRequest => {
+  return validateObject(x, {
+    type: isEqualTo('findJobByDefinitionRequest'),
+    serviceName: isString,
+    jobDefinition: isPairioJobDefinition
+  })
+}
+
+export type FindJobByDefinitionResponse = {
+  type: 'findJobByDefinitionResponse'
+  found: boolean
+  job?: PairioJob
+}
+
+export const isFindJobByDefinitionResponse = (x: any): x is FindJobByDefinitionResponse => {
+  return validateObject(x, {
+    type: isEqualTo('findJobByDefinitionResponse'),
+    found: isBoolean,
+    job: optional(isPairioJob)
+  })
+}
+
 // deleteJobs
 export type DeleteJobsRequest = {
   type: 'deleteJobsRequest'

@@ -4,7 +4,7 @@ import { useServiceApp, useServiceApps, useServices } from "../../hooks"
 import { PairioAppProcessorOutputFile, PairioJob, PairioJobDefinition, isPairioJobDefinition } from "../../types"
 import useRoute from "../../useRoute"
 import EditJobDefinitionWindow from "./EditJobDefinitionWindow/EditJobDefinitionWindow"
-import submitJob, { getJob } from "./submitJob"
+import submitJob, { findJobByDefinition, getJob } from "./submitJob"
 import { JobView } from "../JobPage/JobPage"
 import { ExpandableSection } from "./ExpandableSection"
 import SpecialCebraResultsView from "./SpecialCebraResultsView/SpecialCebraResultsView"
@@ -46,10 +46,10 @@ const PlaygroundPage: FunctionComponent<PlaygroundPageProps> = () => {
     useLocalStorage(state, dispatch)
     const [job, setJob] = useState<PairioJob | undefined>(undefined)
 
-    const handleSubmitJob = useCallback(async () => {
+    const handleSubmitJob = useCallback(async (o: {noSubmit: boolean}) => {
         try {
             const pairioApiKey = state?.pairioApiKey
-            if (!pairioApiKey) {
+            if ((!o.noSubmit) && (!pairioApiKey)) {
                 throw Error('Pairio API key is not set')
             }
             if (!serviceName) {
@@ -61,12 +61,21 @@ const PlaygroundPage: FunctionComponent<PlaygroundPageProps> = () => {
             if (jobDefinitionFromRoute.processorName !== processorName) {
                 throw Error('Inconsistent appName')
             }
-            const j = await submitJob({
-                jobDefinition: jobDefinitionFromRoute,
-                pairioApiKey,
-                serviceName,
-            })
-            setJob(j)
+            if (!o.noSubmit) {
+                const j = await submitJob({
+                    jobDefinition: jobDefinitionFromRoute,
+                    pairioApiKey,
+                    serviceName,
+                })
+                setJob(j)
+            }
+            else {
+                const j = await findJobByDefinition({
+                    jobDefinition: jobDefinitionFromRoute,
+                    serviceName
+                })
+                setJob(j)
+            }
         }
         catch (err: any) {
             alert(`Error: ${err.message}`)
@@ -161,8 +170,12 @@ const PlaygroundPage: FunctionComponent<PlaygroundPageProps> = () => {
                 {
                     (serviceName && appName && processorName && jobDefinitionFromRoute) && (
                         <div>
-                            <button onClick={handleSubmitJob}>
+                            <button onClick={() => handleSubmitJob({noSubmit: false})}>
                                 SUBMIT JOB
+                            </button>
+                            &nbsp;
+                            <button onClick={() => handleSubmitJob({noSubmit: true})}>
+                                FIND JOB
                             </button>
                         </div>
                     )
