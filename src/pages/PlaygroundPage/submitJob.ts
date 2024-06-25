@@ -14,10 +14,10 @@ const submitJob = async (o: {jobDefinition: PairioJobDefinition, pairioApiKey?: 
         tags: [],
         jobDefinition,
         requiredResources: {
-            numCpus: 1,
+            numCpus: 4,
             numGpus: 0,
             memoryGb: 4,
-            timeSec: 60
+            timeSec: 60 * 50
         },
         secrets: [],
         jobDependencies: [],
