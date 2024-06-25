@@ -310,7 +310,7 @@ export const isPairioJob = (x: any): x is PairioJob => {
     computeClientName: isOneOf([isString, isNull]),
     computeClientUserId: isOneOf([isString, isNull]),
     imageUri: isOneOf([isString, isNull])
-  }, {callback: console.log})
+  })
 }
 
 // PairioAppProcessorInputFile
@@ -781,7 +781,7 @@ export const isGetJobResponse = (x: any): x is GetJobResponse => {
   return validateObject(x, {
     type: isEqualTo('getJobResponse'),
     job: isPairioJob
-  }, {callback: console.log})
+  })
 }
 
 // cancelJob
@@ -844,6 +844,7 @@ export type GetSignedUploadUrlRequest = {
   outputName?: string
   otherName?: string
   size: number
+  fallbackFileBaseName?: string
 }
 
 export const isGetSignedUploadUrlRequest = (x: any): x is GetSignedUploadUrlRequest => {
@@ -853,7 +854,8 @@ export const isGetSignedUploadUrlRequest = (x: any): x is GetSignedUploadUrlRequ
     uploadType: isOneOf(['output', 'consoleOutput', 'resourceUtilizationLog', 'other'].map(isEqualTo)),
     outputName: optional(isString),
     otherName: optional(isString),
-    size: isNumber
+    size: isNumber,
+    fallbackFileBaseName: optional(isString)
   })
 }
 

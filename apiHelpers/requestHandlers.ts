@@ -407,7 +407,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
                 { $sort: { timestampCreatedSec: -1 } }, // get the most recent matching job
                 { $limit: 1 }
             ]
-            let jobs = await fetchJobs(pipeline);
+            const jobs = await fetchJobs(pipeline);
             if (jobs.length > 0) {
                 const job = jobs[0];
                 if ((job.status === 'failed') && (rr.rerunFailing)) {
@@ -608,9 +608,6 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
             okayToProceed = true;
         }
         else if (rr.serviceName) {
-            okayToProceed = true;
-        }
-        else if ((rr.serviceName) && (rr.appName)) {
             okayToProceed = true;
         }
         else if (rr.inputFileUrl) {
@@ -1049,6 +1046,10 @@ export const getSignedUploadUrlHandler = allowCors(async (req: VercelRequest, re
                 return;
             }
             url = ooResult.url;
+            if ((url.endsWith('/')) && (rr.fallbackFileBaseName)) {
+                // this means that the file base name was empty
+                url += rr.fallbackFileBaseName;
+            }
 
             // set the size of the output file result
             ooResult.size = rr.size;

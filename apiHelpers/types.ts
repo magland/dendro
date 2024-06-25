@@ -844,6 +844,7 @@ export type GetSignedUploadUrlRequest = {
   outputName?: string
   otherName?: string
   size: number
+  fallbackFileBaseName?: string
 }
 
 export const isGetSignedUploadUrlRequest = (x: any): x is GetSignedUploadUrlRequest => {
@@ -853,7 +854,8 @@ export const isGetSignedUploadUrlRequest = (x: any): x is GetSignedUploadUrlRequ
     uploadType: isOneOf(['output', 'consoleOutput', 'resourceUtilizationLog', 'other'].map(isEqualTo)),
     outputName: optional(isString),
     otherName: optional(isString),
-    size: isNumber
+    size: isNumber,
+    fallbackFileBaseName: optional(isString)
   })
 }
 

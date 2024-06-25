@@ -121,7 +121,7 @@ class CebraNwbEmbedding1(ProcessorBase):
                 hf.attrs['num_bins'] = num_bins
                 hf.attrs['start_time_sec'] = start_time_sec
                 hf.attrs['end_time_sec'] = end_time_sec
-                loss = model.state_dict()['loss']
+                loss = model.state_dict_['loss']
                 hf.create_dataset('loss', data=loss)
 
         context.output.upload('cebra.h5', delete_local_file=True)

@@ -22,7 +22,7 @@ const submitJob = async (o: {jobDefinition: PairioJobDefinition, pairioApiKey?: 
         secrets: [],
         jobDependencies: [],
         skipCache: false,
-        rerunFailing: false,
+        rerunFailing: true,
         deleteFailing: false
     }
     console.info('jobDefinition', jobDefinition)
