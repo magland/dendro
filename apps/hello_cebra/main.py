@@ -33,7 +33,7 @@ class CebraNwbEmbedding1(ProcessorBase):
 
         batch_size = context.batch_size
         bin_size_msec = context.bin_size_msec
-        MAX_ITERATIONS = context.max_iterations
+        max_iterations = context.max_iterations
         output_dimensions = context.output_dimensions
 
         bin_size_sec = bin_size_msec / 1000
@@ -86,7 +86,7 @@ class CebraNwbEmbedding1(ProcessorBase):
                 # This is the number of steps to train. I ran an example with 10_000
                 # which resulted in a usable embedding, but training longer might further
                 # improve the results
-                max_iterations=MAX_ITERATIONS,
+                max_iterations=max_iterations,
 
                 # This will be the number of output features. The optimal number depends
                 # on the complexity of the dataset.
@@ -108,11 +108,23 @@ class CebraNwbEmbedding1(ProcessorBase):
 
         embedding = model.transform(spike_counts)
 
-        with open('embedding.h5', 'wb') as f:
+        cebra.plot_loss
+
+        with open('cebra.h5', 'wb') as f:
             with h5py.File(f, 'w') as hf:
                 hf.create_dataset('embedding', data=embedding)
+                hf.attrs['batch_size'] = batch_size
+                hf.attrs['bin_size_msec'] = bin_size_msec
+                hf.attrs['max_iterations'] = max_iterations
+                hf.attrs['output_dimensions'] = output_dimensions
+                hf.attrs['num_units'] = num_units
+                hf.attrs['num_bins'] = num_bins
+                hf.attrs['start_time_sec'] = start_time_sec
+                hf.attrs['end_time_sec'] = end_time_sec
+                loss = model.state_dict()['loss']
+                hf.create_dataset('loss', data=loss)
 
-        context.output.upload('embedding.h5', delete_local_file=True)
+        context.output.upload('cebra.h5', delete_local_file=True)
 
 app.add_processor(CebraNwbEmbedding1)
 
