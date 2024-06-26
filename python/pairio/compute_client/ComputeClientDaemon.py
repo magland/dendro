@@ -15,14 +15,12 @@ class ComputeClientDaemon:
         dir: str,
         compute_client_id: str,
         compute_client_private_key: str,
-        compute_client_name: str,
-        service_name: str
+        compute_client_name: str
     ) -> None:
         self._dir = dir
         self._compute_client_id = compute_client_id
         self._compute_client_private_key = compute_client_private_key
         self._compute_client_name = compute_client_name
-        self._service_name = service_name
 
         self._job_manager = JobManager(
             compute_client_id=compute_client_id,
@@ -101,7 +99,7 @@ class ComputeClientDaemon:
 
                 elapsed_since_report_that_compute_client_is_running = time.time() - last_report_that_compute_client_is_running
                 if elapsed_since_report_that_compute_client_is_running > 60 * 5:
-                    print(f'Compute client is running: {self._service_name} {self._compute_client_name} {self._compute_client_id}')
+                    print(f'Compute client is running: {self._compute_client_name} {self._compute_client_id}')
                     last_report_that_compute_client_is_running = time.time()
 
                 overall_elapsed = time.time() - overall_timer

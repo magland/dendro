@@ -16,13 +16,11 @@ def start_compute_client(
     compute_client_id = config['compute_client_id']
     compute_client_private_key = config['compute_client_private_key']
     compute_client_name = config['compute_client_name']
-    service_name = config['service_name']
 
     daemon = ComputeClientDaemon(
         dir=dir,
         compute_client_id=compute_client_id,
         compute_client_private_key=compute_client_private_key,
-        compute_client_name=compute_client_name,
-        service_name=service_name
+        compute_client_name=compute_client_name
     )
     daemon.start()
