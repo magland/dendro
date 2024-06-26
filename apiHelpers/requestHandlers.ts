@@ -431,7 +431,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
                     }
                     // notify the compute clients as though the status has changed
                     await publishPubsubMessage(
-                        job.serviceName,
+                        'pairio-compute-clients',
                         {
                             type: 'jobStatusChanged',
                             serviceName: job.serviceName,
@@ -503,7 +503,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
         await insertJob(job);
 
         await publishPubsubMessage(
-            job.serviceName,
+            'pairio-compute-clients',
             {
                 type: 'newPendingJob',
                 serviceName: job.serviceName,
@@ -1023,7 +1023,7 @@ export const setJobStatusHandler = allowCors(async (req: VercelRequest, res: Ver
                     if (nowRunnable) {
                         await updateJob(j.jobId, { isRunnable: true });
                         await publishPubsubMessage(
-                            j.serviceName,
+                            'pairio-compute-clients',
                             {
                                 type: 'jobStatusChanged',
                                 serviceName: j.serviceName,
@@ -1040,7 +1040,7 @@ export const setJobStatusHandler = allowCors(async (req: VercelRequest, res: Ver
             return;
         }
         await publishPubsubMessage(
-            job.serviceName,
+            'pairio-compute-clients',
             {
                 type: 'jobStatusChanged',
                 serviceName: job.serviceName,
