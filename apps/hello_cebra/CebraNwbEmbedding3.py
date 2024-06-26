@@ -7,6 +7,7 @@ class CebraNwbEmbedding3Context(BaseModel):
     batch_size: int = Field(description='Batch size', default=1000)
     bin_size_msec: float = Field(description='Bin size in milliseconds', default=20)
     output_dimensions: int = Field(description='Output dimensions', default=10)
+    a: float = Field(description='Parameter a', default=1)
 
 class CebraNwbEmbedding3(ProcessorBase):
     name = 'cebra_nwb_embedding_3'
@@ -30,6 +31,7 @@ class CebraNwbEmbedding3(ProcessorBase):
         bin_size_msec = context.bin_size_msec
         max_iterations = context.max_iterations
         output_dimensions = context.output_dimensions
+        a = context.a
 
         bin_size_sec = bin_size_msec / 1000
 
@@ -75,7 +77,7 @@ class CebraNwbEmbedding3(ProcessorBase):
         for i in range(num_units):
             spike_counts[:, i], _ = np.histogram(spike_trains[i], bins=num_bins, range=(start_time_sec, end_time_sec))
 
-        t = np.arange(num_bins) * bin_size_sec
+        t = np.arange(num_bins) * bin_size_sec * a
 
         # Model setup
         def init_model():
