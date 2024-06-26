@@ -1846,7 +1846,7 @@ const fetchComputeClient = async (computeClientId: string) => {
     if (!computeClient) return null;
     removeMongoId(computeClient);
     if (!isPairioComputeClient(computeClient)) {
-        // await collection.deleteOne({ computeClientId });
+        await collection.deleteOne({ computeClientId });
         throw Error('Invalid compute client in database');
     }
     return computeClient;
@@ -1859,7 +1859,7 @@ const fetchComputeClientsForService = async (serviceName: string) => {
     for (const computeClient of computeClients) {
         removeMongoId(computeClient);
         if (!isPairioComputeClient(computeClient)) {
-            // await collection.deleteOne({ computeClientId: computeClient.computeClientId });
+            await collection.deleteOne({ computeClientId: computeClient.computeClientId });
             throw Error('Invalid compute client in database');
         }
     }

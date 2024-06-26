@@ -66,7 +66,7 @@ export type PairioComputeClient = {
 
 export const isPairioComputeClient = (x: any): x is PairioComputeClient => {
   return validateObject(x, {
-    serviceName: isArrayOf(isString),
+    serviceNames: isArrayOf(isString),
     computeClientId: isString,
     computeClientPrivateKey: isOneOf([isString, isNull]),
     computeClientName: isString,
