@@ -75,6 +75,8 @@ class ComputeClientDaemon:
                     messages = []
                 jobs_have_changed = False
                 for msg in messages:
+                    # service_name = msg.get('serviceName', '')
+                    # todo: in future we want to restrict to only messages from the services that this compute client is subscribed to
                     if msg['type'] == 'newPendingJob':
                         jobs_have_changed = True
                     elif msg['type'] == 'jobStatusChanged':

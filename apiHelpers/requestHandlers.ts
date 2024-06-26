@@ -1522,7 +1522,7 @@ export const getPubsubSubscriptionHandler = allowCors(async (req: VercelRequest,
             type: 'getPubsubSubscriptionResponse',
             subscription: {
                 pubnubSubscribeKey: VITE_PUBNUB_SUBSCRIBE_KEY,
-                pubnubChannel: computeClient.serviceName,
+                pubnubChannel: 'pairio-compute-clients', // cannot do this by service because we want to allow compute clients to subscribe to multiple services
                 pubnubUser: computeClientId
             }
         }
