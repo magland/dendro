@@ -1547,7 +1547,10 @@ export const pingComputeClientsHandler = allowCors(async (req: VercelRequest, re
             type: 'pingComputeClients',
             serviceName
         }
-        await publishPubsubMessage(serviceName, msg);
+        await publishPubsubMessage(
+            'pairio-compute-clients',
+            msg
+        );
         const resp: PingComputeClientsResponse = {
             type: 'pingComputeClientsResponse'
         }
