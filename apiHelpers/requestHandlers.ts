@@ -1855,7 +1855,7 @@ const fetchComputeClient = async (computeClientId: string) => {
 const fetchComputeClientsForService = async (serviceName: string) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.computeClients);
-    const computeClients = await collection.find({ serviceName }).toArray();
+    const computeClients = await collection.find({ serviceNames: serviceName }).toArray();
     for (const computeClient of computeClients) {
         removeMongoId(computeClient);
         if (!isPairioComputeClient(computeClient)) {
