@@ -414,7 +414,6 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
                     // we're not going to use this one because we are going to rerun the failed job
                     if (rr.deleteFailing) {
                         await deleteJobs({
-                            serviceName: rr.serviceName,
                             jobIds: [job.jobId]
                         })
                     }
@@ -595,7 +594,7 @@ export const deleteJobsHandler = allowCors(async (req: VercelRequest, res: Verce
     }
     try {
         const githubAccessToken = req.headers.authorization?.split(" ")[1]; // Extract the token
-        const { serviceName, userId, jobIds } = rr;
+        const { userId, jobIds } = rr;
         if (!userId) {
             res.status(400).json({ error: "userId must be provided" });
             return;
@@ -604,17 +603,23 @@ export const deleteJobsHandler = allowCors(async (req: VercelRequest, res: Verce
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
-        const service = await fetchService(serviceName);
-        if (!service) {
-            res.status(404).json({ error: "Service not found" });
-            return;
-        }
-        if (!userIsAllowedToDeleteJobsForService(service, userId)) {
-            res.status(401).json({ error: "This user is not allowed to delete jobs for this service" });
-            return;
+        const pipeline = [
+            { $match: { jobId: { $in: jobIds } } }
+        ]
+        const jobs = await fetchJobs(pipeline);
+        const distinctServiceNames = Array.from(new Set(jobs.map(j => j.serviceName)));
+        for (const serviceName of distinctServiceNames) {
+            const service = await fetchService(serviceName);
+            if (!service) {
+                res.status(404).json({ error: "Service not found" });
+                return;
+            }
+            if (!userIsAllowedToDeleteJobsForService(service, userId)) {
+                res.status(401).json({ error: `This user is not allowed to delete jobs for service ${serviceName}` });
+                return;
+            }
         }
         await deleteJobs({
-            serviceName,
             jobIds
         })
         const resp: DeleteJobsResponse = {
@@ -714,7 +719,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
         return;
     }
     try {
-        const computeClient = await fetchComputeClient(rr.computeClientId);
+        const computeClient: PairioComputeClient | null = await fetchComputeClient(rr.computeClientId);
         if (!computeClient) {
             res.status(404).json({ error: "Compute client not found" });
             return;
@@ -725,47 +730,53 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
             return;
         }
         await updateComputeClient(rr.computeClientId, { timestampLastActiveSec: Date.now() / 1000 });
-        const service = await fetchService(computeClient.serviceName);
-        if (!service) {
-            res.status(404).json({ error: "Service not found" });
-            return;
-        }
-        if (!userIsAllowedToProcessJobsForService(service, computeClient.userId)) {
-            res.status(401).json({ error: "This compute client is not allowed to process jobs for this service" });
-            return;
-        }
-        const pipeline = [
-            { $match: { serviceName: service.serviceName, status: 'pending', isRunnable: true } },
-            { $sample: { size: 200 } }, // thinking of the case of many pending jobs, but we don't want to always get the same ones (but there is a potential problem here)
-            { $sort: { timestampCreatedSec: 1 } } // handle earliest jobs first
-        ]
-        let runnableJobs = await fetchJobs(pipeline);
-        // scramble the pending jobs so that we don't always get the same ones
-        // and minimize conflicts between compute clients when there are many
-        // pending jobs
-        runnableJobs = shuffleArray(runnableJobs);
+
         const pipeline2 = [
-            { $match: { serviceName: service.serviceName, status: 'running', computeClientId: rr.computeClientId } },
+            { $match: { status: 'running', computeClientId: rr.computeClientId } },
             { $sort: { timestampCreatedSec: 1 } }
             // important not to limit here, because we really need to know all the running jobs
         ]
         const runningJobs = await fetchJobs(pipeline2);
-        const runnableReadyJobs: PairioJob[] = [];
-        for (const pj of runnableJobs) {
-            if (computeResourceHasEnoughCapacityForJob(computeClient, pj, [...runningJobs, ...runnableReadyJobs])) {
-                runnableReadyJobs.push(pj);
-            }
-        }
-        // remove secrets, but don't remove job private keys
-        for (const job of runnableReadyJobs) {
-            job.secrets = null;
-        }
         for (const job of runningJobs) {
+            // remove secrets, but don't remove job private keys
             job.secrets = null;
+        }
+
+        // we give priority to the first services in the list
+        const allRunnableReadyJobs: PairioJob[] = [];
+        for (const serviceName of computeClient.serviceNames) {
+            const service = await fetchService(serviceName);
+            if (!service) {
+                res.status(404).json({ error: "Service not found" });
+                return;
+            }
+            if (!userIsAllowedToProcessJobsForService(service, computeClient.userId)) {
+                res.status(401).json({ error: `This compute client is not allowed to process jobs for service: ${serviceName}` });
+                return;
+            }
+            const pipeline = [
+                { $match: { serviceName: service.serviceName, status: 'pending', isRunnable: true } },
+                { $sample: { size: 200 } }, // thinking of the case of many pending jobs, but we don't want to always get the same ones (but there is a potential problem here)
+                { $sort: { timestampCreatedSec: 1 } } // handle earliest jobs first
+            ]
+            let runnableJobs = await fetchJobs(pipeline);
+            // scramble the pending jobs so that we don't always get the same ones
+            // and minimize conflicts between compute clients when there are many
+            // pending jobs
+            runnableJobs = shuffleArray(runnableJobs);
+            for (const pj of runnableJobs) {
+                if (computeResourceHasEnoughCapacityForJob(computeClient, pj, [...runningJobs, ...allRunnableReadyJobs])) {
+                    allRunnableReadyJobs.push(pj);
+                }
+            }
+            // remove secrets, but don't remove job private keys
+            for (const job of allRunnableReadyJobs) {
+                job.secrets = null;
+            }
         }
         const resp: GetRunnableJobsForComputeClientResponse = {
             type: 'getRunnableJobsForComputeClientResponse',
-            runnableJobs: runnableReadyJobs,
+            runnableJobs: allRunnableReadyJobs,
             runningJobs
         }
         res.status(200).json(resp);
@@ -1177,7 +1188,7 @@ export const createComputeClientHandler = allowCors(async (req: VercelRequest, r
     }
     const computeClient: PairioComputeClient = {
         userId: rr.userId,
-        serviceName: rr.serviceName,
+        serviceNames: rr.serviceNames,
         computeClientId: generateComputeClientId(),
         computeClientPrivateKey: generateComputeClientPrivateKey(),
         computeClientName: rr.computeClientName,
@@ -1297,6 +1308,25 @@ export const setComputeClientInfoHandler = allowCors(async (req: VercelRequest, 
         if (rr.computeClientName !== undefined) update['computeClientName'] = rr.computeClientName;
         if (rr.description !== undefined) update['description'] = rr.description;
         if (rr.computeSlots !== undefined) update['computeSlots'] = rr.computeSlots;
+        if (rr.serviceNames !== undefined) {
+            for (const serviceName of rr.serviceNames) {
+                const service: PairioService | null = await fetchService(serviceName);
+                if (!service) {
+                    res.status(404).json({ error: `Service ${serviceName} not found` });
+                    return;
+                }
+                if (!userIsAllowedToProcessJobsForService(service, computeClient.userId)) {
+                    res.status(401).json({ error: `This compute client is not allowed to process jobs for service: ${serviceName}` });
+                    return;
+                }
+            }
+            update['serviceNames'] = rr.serviceNames;
+        }
+        // check if there is something to update
+        if (Object.keys(update).length === 0) {
+            res.status(400).json({ error: "Nothing to update" });
+            return;
+        }
         await updateComputeClient(rr.computeClientId, update);
         const resp: SetComputeClientInfoResponse = {
             type: 'setComputeClientInfoResponse'
@@ -1786,18 +1816,21 @@ const insertJob = async (job: PairioJob) => {
     removeMongoId(job);
 }
 
-const deleteJobs = async (o: { serviceName: string, jobIds: string[] }) => {
+const deleteJobs = async (o: { jobIds: string[] }) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.jobs);
 
     // move the jobs to the deleted jobs collection so we can still get stats on them
     const collectionDeletedJobs = client.db(dbName).collection(collectionNames.deletedJobs)
-    const jobs = await collection.find({ serviceName: o.serviceName, jobId: { $in: o.jobIds } }).toArray();
+    const jobs = await collection.find({ jobId: { $in: o.jobIds } }).toArray();
     for (const job of jobs) {
-        await collectionDeletedJobs.insertOne(job);
+        if (job.status !== 'pending') {
+            // don't save the pending jobs, because those won't count against the quotas
+            await collectionDeletedJobs.insertOne(job);
+        }
     }
 
-    await collection.deleteMany({ serviceName: o.serviceName, jobId: { $in: o.jobIds } });
+    await collection.deleteMany({ jobId: { $in: o.jobIds } });
 }
 
 const insertComputeClient = async (computeClient: PairioComputeClient) => {
@@ -1813,6 +1846,7 @@ const fetchComputeClient = async (computeClientId: string) => {
     if (!computeClient) return null;
     removeMongoId(computeClient);
     if (!isPairioComputeClient(computeClient)) {
+        // await collection.deleteOne({ computeClientId });
         throw Error('Invalid compute client in database');
     }
     return computeClient;
@@ -1825,6 +1859,7 @@ const fetchComputeClientsForService = async (serviceName: string) => {
     for (const computeClient of computeClients) {
         removeMongoId(computeClient);
         if (!isPairioComputeClient(computeClient)) {
+            // await collection.deleteOne({ computeClientId: computeClient.computeClientId });
             throw Error('Invalid compute client in database');
         }
     }

@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Hyperlink, SmallIconButton, isArrayOf } from "@fi-sci/misc"
+import { SmallIconButton, isArrayOf } from "@fi-sci/misc"
+import { Edit, Save } from "@mui/icons-material"
+import yaml from 'js-yaml'
 import { FunctionComponent, useEffect, useMemo, useState } from "react"
-import { useComputeClient } from "../../hooks"
-import useRoute from "../../useRoute"
-import JobsView from "./JobsView"
-import { timeAgoString } from "../../timeStrings"
+import ComputeClientNameComponent from "../../components/ComputeClientNameComponent"
 import ServiceNameComponent from "../../components/ServiceNameComponent"
 import UserIdComponent from "../../components/UserIdComponent"
-import ComputeClientNameComponent from "../../components/ComputeClientNameComponent"
+import { useComputeClient } from "../../hooks"
+import { timeAgoString } from "../../timeStrings"
 import { ComputeClientComputeSlot, isComputeClientComputeSlot } from "../../types"
-import yaml from 'js-yaml'
-import { Edit, Save } from "@mui/icons-material"
+import useRoute from "../../useRoute"
+import JobsView from "./JobsView"
 
 type ComputeClientPageProps = {
     // none
@@ -24,6 +24,16 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
     }
     const computeClientId = route.computeClientId
     const { computeClient, deleteComputeClient, setComputeClientInfo } = useComputeClient(computeClientId)
+
+    const handleEditServices = () => {
+        if (!computeClient) return
+        const txt = computeClient.serviceNames.join(', ')
+        const newTxt = window.prompt('Edit services:', txt)
+        const newServiceNames = newTxt ? newTxt.split(',').map(x => x.trim()) : []
+        if (newServiceNames.join(',') === computeClient.serviceNames.join(',')) return
+        setComputeClientInfo({serviceNames: newServiceNames})
+    }
+
     if (!computeClient) {
         return (
             <div style={{padding: 20}}>
@@ -33,14 +43,6 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
     }
     return (
         <div style={{padding: 20}}>
-            <div>
-                <Hyperlink onClick={() => {
-                    setRoute({page: 'service', serviceName: computeClient.serviceName})
-                }}>
-                    Back to service
-                </Hyperlink>
-            </div>
-            <hr />
             <table className="table" style={{maxWidth: 500}}>
                 <tbody>
                     <tr>
@@ -59,8 +61,25 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                         <td />
                     </tr>
                     <tr>
-                        <td>Service</td>
-                        <td><ServiceNameComponent serviceName={computeClient.serviceName} /></td>
+                        <td>Services</td>
+                        <td>
+                            {
+                                computeClient.serviceNames.map(sn => (
+                                    <>
+                                        <ServiceNameComponent serviceName={sn} />
+                                        <span>&nbsp;&nbsp;&nbsp;</span>
+                                    </>
+                                ))
+                            }
+                            <span>
+                                &nbsp;
+                                <SmallIconButton
+                                    icon={<Edit />}
+                                    title="Edit services"
+                                    onClick={handleEditServices}
+                                />
+                            </span>
+                        </td>
                     </tr>
                     <tr>
                         <td>Description</td>
@@ -96,7 +115,6 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
             <h3>Jobs</h3>
             <JobsView
                 computeClientId={computeClientId}
-                serviceName={computeClient.serviceName}
             />
             <hr />
             <div>
@@ -104,7 +122,7 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                 <button onClick={async () => {
                     if (!window.confirm(`Delete computeClient ${computeClient.computeClientName}?`)) return
                     await deleteComputeClient()
-                    setRoute({page: 'service', serviceName: computeClient.serviceName})
+                    setRoute({page: 'home'})
                 }}>
                     Delete compute client
                 </button>

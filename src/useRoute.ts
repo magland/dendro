@@ -38,6 +38,8 @@ export type Route = {
     appName?: string
     processorName?: string
     jobDefinition?: any
+    title?: string
+    notes?: string
 }
 
 const useRoute = () => {
@@ -140,12 +142,18 @@ const useRoute = () => {
             const processorName = searchParams.get('processor') || undefined
             const jobDefinitionJson = searchParams.get('job_definition')
             const jobDefinition = jobDefinitionJson ? JSON.parse(decodeURIComponent(jobDefinitionJson)) : undefined
+            const titleText = searchParams.get('title') || undefined
+            const title = titleText ? decodeURIComponent(titleText) : undefined
+            const notesText = searchParams.get('notes') || undefined
+            const notes = notesText ? decodeURIComponent(notesText) : undefined
             return {
                 page: 'playground',
                 serviceName,
                 appName,
                 processorName,
-                jobDefinition
+                jobDefinition,
+                title,
+                notes
             }
         }
         else {
@@ -207,6 +215,12 @@ const useRoute = () => {
             }
             if (r.jobDefinition) {
                 qstrs.push(`job_definition=${encodeURIComponent(JSON.stringify(r.jobDefinition))}`)
+            }
+            if (r.title) {
+                qstrs.push(`title=${encodeURIComponent(r.title)}`)
+            }
+            if (r.notes) {
+                qstrs.push(`notes=${encodeURIComponent(r.notes)}`)
             }
             const q = qstrs.join('&')
             navigate(`/playground?${q}`)

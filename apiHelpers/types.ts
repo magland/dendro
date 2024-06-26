@@ -54,7 +54,7 @@ export const isPairioServiceApp = (x: any): x is PairioServiceApp => {
 
 // PairioComputeClient
 export type PairioComputeClient = {
-  serviceName: string
+  serviceNames: string[]
   computeClientId: string
   computeClientPrivateKey: string | null
   computeClientName: string // unique for service
@@ -66,7 +66,7 @@ export type PairioComputeClient = {
 
 export const isPairioComputeClient = (x: any): x is PairioComputeClient => {
   return validateObject(x, {
-    serviceName: isString,
+    serviceName: isArrayOf(isString),
     computeClientId: isString,
     computeClientPrivateKey: isOneOf([isString, isNull]),
     computeClientName: isString,
@@ -686,7 +686,6 @@ export const isFindJobByDefinitionResponse = (x: any): x is FindJobByDefinitionR
 // deleteJobs
 export type DeleteJobsRequest = {
   type: 'deleteJobsRequest'
-  serviceName: string
   userId: string
   jobIds: string[]
 }
@@ -694,7 +693,6 @@ export type DeleteJobsRequest = {
 export const isDeleteJobsRequest = (x: any): x is DeleteJobsRequest => {
   return validateObject(x, {
     type: isEqualTo('deleteJobsRequest'),
-    serviceName: isString,
     userId: isString,
     jobIds: isArrayOf(isString)
   })
@@ -902,7 +900,7 @@ export const isGetSignedUploadUrlResponse = (x: any): x is GetSignedUploadUrlRes
 // createComputeClient
 export type CreateComputeClientRequest = {
   type: 'createComputeClientRequest'
-  serviceName: string
+  serviceNames: string[]
   computeClientName: string
   userId: string
 }
@@ -910,7 +908,7 @@ export type CreateComputeClientRequest = {
 export const isCreateComputeClientRequest = (x: any): x is CreateComputeClientRequest => {
   return validateObject(x, {
     type: isEqualTo('createComputeClientRequest'),
-    serviceName: isString,
+    serviceNames: isArrayOf(isString),
     computeClientName: isString,
     userId: isString
   })
@@ -1007,6 +1005,7 @@ export const isGetComputeClientsResponse = (x: any): x is GetComputeClientsRespo
 export type SetComputeClientInfoRequest = {
   type: 'setComputeClientInfoRequest'
   computeClientId: string
+  serviceNames?: string[]
   computeClientName?: string
   description?: string
   computeSlots?: ComputeClientComputeSlot[]
@@ -1016,6 +1015,7 @@ export const isSetComputeClientInfoRequest = (x: any): x is SetComputeClientInfo
   return validateObject(x, {
     type: isEqualTo('setComputeClientInfoRequest'),
     computeClientId: isString,
+    serviceNames: optional(isArrayOf(isString)),
     computeClientName: optional(isString),
     description: optional(isString),
     computeSlots: optional(isArrayOf(isComputeClientComputeSlot))

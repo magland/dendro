@@ -8,9 +8,11 @@ import submitJob, { findJobByDefinition, getJob } from "./submitJob"
 import { JobView } from "../JobPage/JobPage"
 import { ExpandableSection } from "./ExpandableSection"
 import SpecialCebraResultsView from "./SpecialCebraResultsView/SpecialCebraResultsView"
+import { Splitter } from "@fi-sci/splitter"
 
 type PlaygroundPageProps = {
-    // none
+    width: number
+    height: number
 }
 
 type PlaygroundState = {
@@ -36,7 +38,27 @@ const playgroundReducer = (state: PlaygroundState | undefined, action: Playgroun
     }
 }
 
-const PlaygroundPage: FunctionComponent<PlaygroundPageProps> = () => {
+const PlaygroundPage: FunctionComponent<PlaygroundPageProps> = ({ width, height }) => {
+    return (
+        <Splitter
+            direction="horizontal"
+            width={width}
+            height={height}
+            initialPosition={width / 2}
+        >
+            <LeftPanel
+                width={0}
+                height={0}
+            />
+            <RightPanel
+                width={0}
+                height={0}
+            />
+        </Splitter>
+    )
+}
+
+const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) => {
     const { route, setRoute } = useRoute()
     if (route.page !== 'playground') {
         throw new Error('Invalid route')
@@ -107,7 +129,7 @@ const PlaygroundPage: FunctionComponent<PlaygroundPageProps> = () => {
 
     if (!state) return <div>Loading...</div>
     return (
-        <div>
+        <div style={{position: 'absolute', width, height, overflowY: 'auto'}}>
             <div style={{padding: 20}}>
                 <h1>Pairio Playground</h1>
                 <p>
@@ -126,7 +148,7 @@ const PlaygroundPage: FunctionComponent<PlaygroundPageProps> = () => {
                         )
                     }
                 </p>
-                <table className="table" style={{maxWidth: 250}}>
+                <table className="table" style={{maxWidth: 400}}>
                     <tbody>
                         <tr>
                             <td>Service</td>
@@ -182,7 +204,7 @@ const PlaygroundPage: FunctionComponent<PlaygroundPageProps> = () => {
                 }
                 <hr />
                 {
-                    job && job.jobDefinition.processorName === 'cebra_nwb_embedding_1' && job.status === 'completed' && (
+                    job && job.jobDefinition.processorName.startsWith('cebra_nwb_embedding_') && job.status === 'completed' && (
                         <>
                             <ExpandableSection title="Special CEBRA results view">
                                 <SpecialCebraResultsView job={job} />
@@ -200,6 +222,94 @@ const PlaygroundPage: FunctionComponent<PlaygroundPageProps> = () => {
                     )
                 }
             </div>
+        </div>
+    )
+}
+
+type RightPanelProps = {
+    width: number
+    height: number
+}
+
+const RightPanel: FunctionComponent<RightPanelProps> = () => {
+    const { route, setRoute } = useRoute()
+    if (route.page !== 'playground') {
+        throw new Error('Invalid route')
+    }
+    const { title, notes } = route
+    return (
+        <div style={{padding: 20}}>
+            <EditTitleComponent
+                title={title}
+                onChange={title => {
+                    setRoute({...route, title})
+                }
+            } />
+            <div>&nbsp;</div>
+            <EditNotesComponent
+                notes={notes}
+                onChange={notes => {
+                    setRoute({...route, notes})
+                }}
+            />
+        </div>
+    )
+}
+
+type EditTitleComponentProps = {
+    title?: string
+    onChange: (title: string) => void
+}
+
+const EditTitleComponent: FunctionComponent<EditTitleComponentProps> = ({title, onChange}) => {
+    const [internalValue, setInternalValue] = useState(title || '')
+    useEffect(() => {
+        setInternalValue(title || '')
+    }, [title])
+    return (
+        <div>
+            <div>
+                Title:
+            </div>
+            <input
+                value={internalValue}
+                onChange={evt => {
+                    setInternalValue(evt.target.value)
+                }}
+                style={{width: '100%'}}
+            />
+            <br />
+            <button onClick={() => onChange(internalValue)}>
+                Set
+            </button>
+        </div>
+    )
+}
+
+type EditNotesComponentProps = {
+    notes?: string
+    onChange: (notes: string) => void
+}
+
+const EditNotesComponent: FunctionComponent<EditNotesComponentProps> = ({notes, onChange}) => {
+    const [internalValue, setInternalValue] = useState(notes || '')
+    useEffect(() => {
+        setInternalValue(notes || '')
+    }, [notes])
+    return (
+        <div>
+            <div>Notes:</div>
+            <textarea
+                value={internalValue}
+                onChange={evt => {
+                    setInternalValue(evt.target.value)
+                }}
+                style={{width: '100%', height: 200}}
+            />
+            <br />
+            <button onClick={() => onChange(internalValue)}>
+                Set
+            </button>
         </div>
     )
 }

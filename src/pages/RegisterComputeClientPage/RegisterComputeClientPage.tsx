@@ -26,7 +26,7 @@ const RegisterComputeClientPage: FunctionComponent<RegisterComputeClientPageProp
         console.info('githubAccessToken: ', githubAccessToken)
         const req: CreateComputeClientRequest = {
             type: 'createComputeClientRequest',
-            serviceName,
+            serviceNames: [serviceName],
             computeClientName,
             userId
         }
@@ -37,7 +37,6 @@ const RegisterComputeClientPage: FunctionComponent<RegisterComputeClientPageProp
         }
         const { computeClientId, computeClientPrivateKey } = resp
         const codeJson = {
-            serviceName,
             computeClientName,
             computeClientId,
             computeClientPrivateKey

@@ -64,7 +64,7 @@ function MainWindow() {
     return <UserPage />
   }
   else if (route.page === 'playground') {
-    return <PlaygroundPage />
+    return <PlaygroundPage width={width} height={height} />
   }
   else {
     return <div>Invalid route</div>

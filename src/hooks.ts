@@ -122,7 +122,7 @@ export const useService = (serviceName: string) => {
             type: 'createComputeClientRequest',
             userId,
             computeClientName,
-            serviceName
+            serviceNames: [serviceName]
         }
         const resp = await apiPostRequest('createComputeClient', req, githubAccessToken)
         if (!isCreateComputeClientResponse(resp)) {
@@ -283,13 +283,14 @@ export const useComputeClient = (computeClientId: string) => {
         setComputeClient(undefined)
     }, [computeClientId, githubAccessToken])
 
-    const setComputeClientInfo = useCallback(async (o: { computeSlots: ComputeClientComputeSlot[] }) => {
+    const setComputeClientInfo = useCallback(async (o: { computeSlots?: ComputeClientComputeSlot[], serviceNames?: string[] }) => {
         if (!githubAccessToken) return
-        const { computeSlots } = o
+        const { computeSlots, serviceNames } = o
         const req: SetComputeClientInfoRequest = {
             type: 'setComputeClientInfoRequest',
             computeClientId,
-            computeSlots
+            computeSlots,
+            serviceNames
         }
         const resp = await apiPostRequest('setComputeClientInfo', req, githubAccessToken)
         if (!isSetComputeClientInfoResponse(resp)) {
@@ -302,7 +303,7 @@ export const useComputeClient = (computeClientId: string) => {
     return { computeClient, deleteComputeClient, refreshComputeClient, setComputeClientInfo }
 }
 
-export const useJobs = (o: { computeClientId?: string, serviceName: string }) => {
+export const useJobs = (o: { computeClientId?: string, serviceName?: string }) => {
     const { computeClientId, serviceName } = o
     const [jobs, setJobs] = useState<PairioJob[] | undefined>(undefined)
     const [refreshCode, setRefreshCode] = useState(0)
@@ -337,7 +338,6 @@ export const useJobs = (o: { computeClientId?: string, serviceName: string }) =>
         const req: DeleteJobsRequest = {
             type: 'deleteJobsRequest',
             userId,
-            serviceName,
             jobIds
         }
         const resp = await apiPostRequest('deleteJobs', req, githubAccessToken)
@@ -346,7 +346,7 @@ export const useJobs = (o: { computeClientId?: string, serviceName: string }) =>
             return
         }
         refreshJobs()
-    }), [userId, githubAccessToken, serviceName, refreshJobs])
+    }), [userId, githubAccessToken, refreshJobs])
 
     return { jobs, refreshJobs, deleteJobs }
 }

@@ -33,14 +33,12 @@ def register_compute_client(*,
     code_json = decode_base64(code_base64)
     code = json.loads(code_json)
 
-    service_name = code['serviceName']
     compute_client_name = code['computeClientName']
     compute_client_id = code['computeClientId']
     compute_client_private_key = code['computeClientPrivateKey']
 
     with open(config_fname, 'w', encoding='utf8') as f:
         yaml.dump({
-            'service_name': service_name,
             'compute_client_name': compute_client_name,
             'compute_client_id': compute_client_id,
             'compute_client_private_key': compute_client_private_key

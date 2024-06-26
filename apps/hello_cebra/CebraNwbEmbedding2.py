@@ -80,6 +80,7 @@ class CebraNwbEmbedding2(ProcessorBase):
         # Model setup
         def init_model():
             return cebra.CEBRA(  # type: ignore
+                max_iterations=max_iterations,
                 model_architecture="offset10-model",
                 batch_size=batch_size,
                 output_dimension=output_dimensions,

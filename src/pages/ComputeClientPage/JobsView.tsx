@@ -6,7 +6,7 @@ import { Delete, Refresh } from "@mui/icons-material"
 import { PairioJobStatus } from "../../types"
 
 type JobsViewProps = {
-    serviceName: string
+    serviceName?: string
     computeClientId?: string
 }
 
@@ -28,9 +28,13 @@ const JobsView: FunctionComponent<JobsViewProps> = ({computeClientId, serviceNam
         if (!jobs) return;
         // make sure we aren't selecting any jobs that no longer exist
         const existingJobsIds = new Set(jobs.map(j => j.jobId))
-        setSelectedJobIds(x => (
-            x.filter(id => (existingJobsIds.has(id))
-        )))
+        setSelectedJobIds(selectedJobIds => (
+            selectedJobIds.some(id => (!existingJobsIds.has(id))) ? (
+                selectedJobIds.filter(id => (existingJobsIds.has(id)))
+            ) : (
+                selectedJobIds
+            )
+        ))
     }, [jobs])
     const filteredJobs = useMemo(() => {
         if (!jobs) return undefined
@@ -60,6 +64,10 @@ const JobsView: FunctionComponent<JobsViewProps> = ({computeClientId, serviceNam
             return {appName: parts[0], processorName: parts[1]}
         })
     }, [jobs])
+    // if the app changed, reset the processor
+    useEffect(() => {
+        setFilter(f => ({...f, processorName: undefined}))
+    }, [])
     if (!filteredJobs) {
         return (
             <div>Loading jobs</div>
@@ -135,10 +143,6 @@ const FilterSelector: FunctionComponent<FilterSelectorProps> = ({filter, setFilt
             return a
         }
     }, [appProcessorPairs, filter.appName])
-    // if the app changed, reset the processor
-    useEffect(() => {
-        setFilter({...filter, processorName: undefined})
-    }, [filter, setFilter])
     return (
         <div style={{display: 'flex', gap: 10}}>
             <div>

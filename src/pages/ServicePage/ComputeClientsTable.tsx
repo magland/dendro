@@ -15,7 +15,7 @@ const ComputeClientsTable: FunctionComponent<ComputeClientsTableProps> = ({ comp
             <thead>
                 <tr>
                     <th>Compute client</th>
-                    <th>Service</th>
+                    <th>Services</th>
                     <th>Owner</th>
                     <th>Last active</th>
                 </tr>
@@ -29,7 +29,7 @@ const ComputeClientsTable: FunctionComponent<ComputeClientsTableProps> = ({ comp
                                 computeClientName={cc.computeClientName}
                             />
                         </td>
-                        <td><ServiceNameComponent serviceName={cc.serviceName} /></td>
+                        <td><ServiceNameComponent serviceName={cc.serviceNames.join(', ')} /></td>
                         <td><UserIdComponent userId={cc.userId} /></td>
                         <td>{
                             cc.timestampLastActiveSec ? timeAgoString(cc.timestampLastActiveSec) : 'never'
