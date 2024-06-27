@@ -6,6 +6,7 @@ const allowCors = (fn: (req: VercelRequest, res: VercelResponse) => Promise<void
     "http://localhost:3000",
     "http://localhost:4200",
     "https://pairio.vercel.app",
+    "https://neurosift.app"
   ];
   const origin = req.headers.origin || "";
   if (allowedOrigins.includes(origin)) {
