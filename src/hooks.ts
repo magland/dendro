@@ -16,11 +16,10 @@ export const useServices = () => {
     useEffect(() => {
         let canceled = false;
         setServices(undefined);
-        if (!userId) return;
         (async () => {
             const req: GetServicesRequest = {
                 type: 'getServicesRequest',
-                userId
+                userId: userId || undefined
             }
             const resp = await apiPostRequest('getServices', req, undefined)
             if (canceled) return

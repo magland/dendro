@@ -63,10 +63,25 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
     if (route.page !== 'playground') {
         throw new Error('Invalid route')
     }
-    const { serviceName, appName, processorName, jobDefinition: jobDefinitionFromRoute } = route
+    const { serviceName, appName, processorName, jobDefinition: jobDefinitionFromRoute, jobId } = route
     const [state, dispatch] = useReducer(playgroundReducer, undefined)
     useLocalStorage(state, dispatch)
     const [job, setJob] = useState<PairioJob | undefined>(undefined)
+    const setJobId = useCallback((jobId: string | undefined) => {
+        setRoute({...route, jobId})
+    }, [route, setRoute])
+
+    useEffect(() => {
+        let cancelled = false
+        if (!jobId) return
+        if ((job) && (job.jobId === jobId)) return
+        setJob(undefined) // loading
+        getJob({jobId}).then(j => {
+            if (cancelled) return
+            setJob(j)
+        })
+        return () => { cancelled = true }
+    }, [jobId, job])
 
     const handleSubmitJob = useCallback(async (o: {noSubmit: boolean}) => {
         try {
@@ -89,6 +104,7 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
                     pairioApiKey,
                     serviceName,
                 })
+                setJobId(j.jobId)
                 setJob(j)
             }
             else {
@@ -96,13 +112,14 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
                     jobDefinition: jobDefinitionFromRoute,
                     serviceName
                 })
+                setJobId(j ? j.jobId : undefined)
                 setJob(j)
             }
         }
         catch (err: any) {
             alert(`Error: ${err.message}`)
         }
-    }, [state?.pairioApiKey, jobDefinitionFromRoute, serviceName, appName, processorName])
+    }, [state?.pairioApiKey, jobDefinitionFromRoute, serviceName, appName, processorName, setJobId])
 
     const handleRefreshJob = useCallback(async () => {
         if (!job) return
@@ -119,13 +136,15 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
         // job does not match job definition, clear the job
         if (!job) return
         if (!jobDefinitionFromRoute) {
+            setJobId(undefined)
             setJob(undefined)
             return
         }
         if (!jobDefinitionsMatch(jobDefinitionFromRoute, job.jobDefinition)) {
+            setJobId(undefined)
             setJob(undefined)
         }
-    }, [job, jobDefinitionFromRoute])
+    }, [job, jobDefinitionFromRoute, setJobId])
 
     if (!state) return <div>Loading...</div>
     return (

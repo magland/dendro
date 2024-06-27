@@ -38,6 +38,7 @@ export type Route = {
     appName?: string
     processorName?: string
     jobDefinition?: any
+    jobId?: string
     title?: string
     notes?: string
 }
@@ -142,6 +143,7 @@ const useRoute = () => {
             const processorName = searchParams.get('processor') || undefined
             const jobDefinitionJson = searchParams.get('job_definition')
             const jobDefinition = jobDefinitionJson ? JSON.parse(decodeURIComponent(jobDefinitionJson)) : undefined
+            const jobId = searchParams.get('job') || undefined
             const titleText = searchParams.get('title') || undefined
             const title = titleText ? decodeURIComponent(titleText) : undefined
             const notesText = searchParams.get('notes') || undefined
@@ -152,6 +154,7 @@ const useRoute = () => {
                 appName,
                 processorName,
                 jobDefinition,
+                jobId,
                 title,
                 notes
             }
@@ -215,6 +218,9 @@ const useRoute = () => {
             }
             if (r.jobDefinition) {
                 qstrs.push(`job_definition=${encodeURIComponent(JSON.stringify(r.jobDefinition))}`)
+            }
+            if (r.jobId) {
+                qstrs.push(`job=${r.jobId}`)
             }
             if (r.title) {
                 qstrs.push(`title=${encodeURIComponent(r.title)}`)

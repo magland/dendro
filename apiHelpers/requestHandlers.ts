@@ -104,11 +104,7 @@ export const getServicesHandler = allowCors(async (req: VercelRequest, res: Verc
             return;
         }
         const { userId } = rr;
-        if (!userId) {
-            res.status(400).json({ error: "userId must be provided" });
-            return;
-        }
-        const services = await fetchServicesForUser(userId);
+        const services = userId ? await fetchServicesForUser(userId) : await fetchAllServices();
         const resp: GetServicesResponse = {
             type: 'getServicesResponse',
             services
@@ -1599,6 +1595,19 @@ const fetchServicesForUser = async (userId: string): Promise<PairioService[]> =>
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.services);
     const services = await collection.find({ userId }).toArray();
+    for (const service of services) {
+        removeMongoId(service);
+        if (!isPairioService(service)) {
+            throw Error('Invalid service in database');
+        }
+    }
+    return services.map((service: any) => service as PairioService);
+}
+
+const fetchAllServices = async (): Promise<PairioService[]> => {
+    const client = await getMongoClient();
+    const collection = client.db(dbName).collection(collectionNames.services);
+    const services = await collection.find({}).toArray();
     for (const service of services) {
         removeMongoId(service);
         if (!isPairioService(service)) {

@@ -39,7 +39,10 @@ class CebraNwbEmbedding4(ProcessorBase):
         url = input.get_url()
         assert url
 
-        f = lindi.LindiH5pyFile.from_hdf5_file(url)
+        if input.file_base_name.endswith('.lindi.json'):
+            f = lindi.LindiH5pyFile.from_lindi_file(url)
+        else:
+            f = lindi.LindiH5pyFile.from_hdf5_file(url)
 
         # Load the spike data
         spike_times: np.ndarray = f[f'{units_path}/spike_times'][()]  # type: ignore
