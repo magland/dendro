@@ -79,6 +79,7 @@ def _run_job_child_process(*, job_id: str, job_private_key: str, processors: Lis
                 raise Exception(f'Input not found: {input.name}')
             x = InputFile(
                 name=input_file.name,
+                file_base_name=input_file.fileBaseName,
                 url=input_file.url,
                 job_id=job_id,
                 job_private_key=job_private_key
@@ -97,6 +98,7 @@ def _run_job_child_process(*, job_id: str, job_private_key: str, processors: Lis
                     break
                 x = InputFile(
                     name=input_file.name,
+                    file_base_name=input_file.fileBaseName,
                     url=input_file.url,
                     job_id=job_id,
                     job_private_key=job_private_key
@@ -112,6 +114,7 @@ def _run_job_child_process(*, job_id: str, job_private_key: str, processors: Lis
             raise Exception(f'Output not found: {output.name}')
         x = OutputFile(
             name=output_file.name,
+            file_base_name=output_file.fileBaseName,
             job_id=job_id,
             job_private_key=job_private_key
         )

@@ -11,6 +11,7 @@ class InputFileDownloadError(Exception):
 class InputFile(BaseModel):
     name: str # the name of the input within the context of the processor
     url: Union[str, None] = None
+    file_base_name: str = '' # the base name of the file (e.g., 'file.txt')
     local_file_name: Union[str, None] = None
     job_id: Union[str, None] = None
     job_private_key: Union[str, None] = None

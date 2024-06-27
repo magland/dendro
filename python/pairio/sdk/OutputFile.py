@@ -10,6 +10,7 @@ class SetOutputFileException(Exception):
 
 class OutputFile(BaseModel):
     name: str  # the name of the output within the context of the processor
+    file_base_name: str = ''  # the base name of the file (e.g., 'file.txt')
     job_id: Union[str, None] = None
     job_private_key: Union[str, None] = None
     was_uploaded: bool = False
