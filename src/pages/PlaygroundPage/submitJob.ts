@@ -1,7 +1,7 @@
-import { CreateJobRequest, FindJobByDefinitionRequest, GetJobRequest, PairioJob, PairioJobDefinition, isCreateJobResponse, isGetJobResponse } from "../../types"
+import { CreateJobRequest, FindJobByDefinitionRequest, GetJobRequest, PairioJob, PairioJobDefinition, PairioJobRequiredResources, isCreateJobResponse, isGetJobResponse } from "../../types"
 
-const submitJob = async (o: {jobDefinition: PairioJobDefinition, pairioApiKey?: string, serviceName: string}): Promise<PairioJob> => {
-    const { jobDefinition, pairioApiKey, serviceName } = o
+const submitJob = async (o: {jobDefinition: PairioJobDefinition, pairioApiKey?: string, serviceName: string, requiredResources: PairioJobRequiredResources}): Promise<PairioJob> => {
+    const { jobDefinition, pairioApiKey, serviceName, requiredResources } = o
     if (!pairioApiKey) {
         throw new Error('pairioApiKey is required')
     }
@@ -13,12 +13,7 @@ const submitJob = async (o: {jobDefinition: PairioJobDefinition, pairioApiKey?: 
         batchId: '',
         tags: [],
         jobDefinition,
-        requiredResources: {
-            numCpus: 4,
-            numGpus: 0,
-            memoryGb: 4,
-            timeSec: 60 * 50
-        },
+        requiredResources,
         secrets: [],
         jobDependencies: [],
         skipCache: false,

@@ -1,7 +1,7 @@
 import { Hyperlink } from "@fi-sci/misc"
 import { FunctionComponent, useCallback, useEffect, useMemo, useReducer, useState } from "react"
 import { useServiceApp, useServiceApps, useServices } from "../../hooks"
-import { PairioAppProcessorOutputFile, PairioJob, PairioJobDefinition, isPairioJobDefinition } from "../../types"
+import { PairioAppProcessorOutputFile, PairioJob, PairioJobDefinition, PairioJobRequiredResources, isPairioJobDefinition, isPairioJobRequiredResources } from "../../types"
 import useRoute from "../../useRoute"
 import EditJobDefinitionWindow from "./EditJobDefinitionWindow/EditJobDefinitionWindow"
 import submitJob, { findJobByDefinition, getJob } from "./submitJob"
@@ -63,7 +63,7 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
     if (route.page !== 'playground') {
         throw new Error('Invalid route')
     }
-    const { serviceName, appName, processorName, jobDefinition: jobDefinitionFromRoute, jobId } = route
+    const { serviceName, appName, processorName, jobDefinition: jobDefinitionFromRoute, requiredResources: requiredResourcesFromRoute, jobId } = route
     const [state, dispatch] = useReducer(playgroundReducer, undefined)
     useLocalStorage(state, dispatch)
     const [job, setJob] = useState<PairioJob | undefined>(undefined)
@@ -82,6 +82,13 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
         })
         return () => { cancelled = true }
     }, [jobId, job])
+
+    const requiredResources = useMemo(() => {
+        if (!isPairioJobRequiredResources(requiredResourcesFromRoute)) {
+            return {numCpus: 1, numGpus: 0, memoryGb: 4, timeSec: 60 * 50}
+        }
+        return requiredResourcesFromRoute
+    }, [requiredResourcesFromRoute])
 
     const handleSubmitJob = useCallback(async (o: {noSubmit: boolean}) => {
         try {
@@ -103,6 +110,7 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
                     jobDefinition: jobDefinitionFromRoute,
                     pairioApiKey,
                     serviceName,
+                    requiredResources
                 })
                 setJobId(j.jobId)
                 setJob(j)
@@ -119,7 +127,7 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
         catch (err: any) {
             alert(`Error: ${err.message}`)
         }
-    }, [state?.pairioApiKey, jobDefinitionFromRoute, serviceName, appName, processorName, setJobId])
+    }, [state?.pairioApiKey, jobDefinitionFromRoute, serviceName, appName, processorName, setJobId, requiredResources])
 
     const handleRefreshJob = useCallback(async () => {
         if (!job) return
@@ -204,6 +212,16 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
                             jobDefinitionFromRoute={jobDefinitionFromRoute}
                             onChange={jobDefinition => {
                                 setRoute({...route, jobDefinition})
+                            }}
+                        />
+                    )
+                }
+                {
+                    serviceName && appName && processorName && (
+                        <RequiredResourcesSelector
+                            requiredResources={requiredResources}
+                            onChange={requiredResources => {
+                                setRoute({...route, requiredResources})
                             }}
                         />
                     )
@@ -518,6 +536,87 @@ const useLocalStorage = (state: PlaygroundState | undefined, dispatch: (action: 
         if (!state) return
         localStorage.setItem('pairio-playground-state', JSON.stringify(state))
     }, [state])
+}
+
+type RequiredResourcesSelectorProps = {
+    requiredResources: PairioJobRequiredResources
+    onChange: (requiredResources: PairioJobRequiredResources) => void
+}
+
+const RequiredResourcesSelector: FunctionComponent<RequiredResourcesSelectorProps> = ({requiredResources, onChange}) => {
+    return (
+        <div>
+            <h3>Required Resources</h3>
+            <table className="table">
+                <tbody>
+                    <tr>
+                        <td>Num. CPUs</td>
+                        <td>
+                            <InputNumber
+                                value={requiredResources.numCpus}
+                                onChange={numCpus => {
+                                    onChange({...requiredResources, numCpus})
+                                }}
+                                choices={[1, 2, 4, 8, 16]}
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Num. GPUs</td>
+                        <td>
+                            <InputNumber
+                                value={requiredResources.numGpus}
+                                onChange={numGpus => {
+                                    onChange({...requiredResources, numGpus})
+                                }}
+                                choices={[0, 1]}
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Memory (GB)</td>
+                        <td>
+                            <InputNumber
+                                value={requiredResources.memoryGb}
+                                onChange={memoryGb => {
+                                    onChange({...requiredResources, memoryGb})
+                                }}
+                                choices={[1, 2, 4, 8, 16, 32, 64, 128]}
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Time (minutes)</td>
+                        <td>
+                            <InputNumber
+                                value={requiredResources.timeSec / 60}
+                                onChange={timeMin => {
+                                    onChange({...requiredResources, timeSec: timeMin * 60})
+                                }}
+                                choices={[5, 10, 30, 60, 120, 240, 480, 960]}
+                            />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    )
+}
+
+type InputNumberProps = {
+    value: number
+    onChange: (value: number) => void
+    choices: number[]
+}
+
+const InputNumber: FunctionComponent<InputNumberProps> = ({value, onChange, choices}) => {
+    return (
+        <select value={value} onChange={evt => onChange(Number(evt.target.value))}>
+            {choices.map(choice => (
+                <option key={choice} value={choice}>{choice}</option>
+            ))}
+        </select>
+    )
 }
 
 type PairioApiKeyInputProps = {

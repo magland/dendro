@@ -750,10 +750,10 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
                 res.status(401).json({ error: `This compute client is not allowed to process jobs for service: ${serviceName}` });
                 return;
             }
-            const query = {
+            const query: { [key: string]: any } = {
                 serviceName: service.serviceName,
                 status: 'pending',
-                isRunnable: true
+                isRunnable: true,
             }
             if (computeClient.processJobsForUsers) {
                 // only process jobs for particular users
