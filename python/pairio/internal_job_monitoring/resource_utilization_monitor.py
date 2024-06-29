@@ -118,7 +118,7 @@ def do_upload(*, all_lines, job_id, job_private_key):
     print(f'Uploading {len(all_lines)} lines of resource utilization data')
     text_to_upload = b'\n'.join(all_lines)
     try:
-        resource_utilization_log_upload_url = get_upload_url(
+        resource_utilization_log_upload_url, _ = get_upload_url(
             job_id=job_id,
             job_private_key=job_private_key,
             upload_type='resourceUtilizationLog',

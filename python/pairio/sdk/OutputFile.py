@@ -20,7 +20,7 @@ class OutputFile(BaseModel):
             raise Exception('Unexpected: job_id is None in OutputFile')
         if self.job_private_key is None:
             raise Exception('Unexpected: job_private_key is None in OutputFile')
-        upload_url = get_upload_url(
+        upload_url, _ = get_upload_url(
             upload_type='output',
             job_id=self.job_id,
             job_private_key=self.job_private_key,

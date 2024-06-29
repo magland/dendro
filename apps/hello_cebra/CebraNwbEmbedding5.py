@@ -1,25 +1,25 @@
-from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile, upload_additional_job_output
 
-class CebraNwbEmbedding4Context(BaseModel):
-    input: InputFile = Field(description='Input NWB file')
-    output: OutputFile = Field(description='Output embedding in .h5 format')
+class CebraNwbEmbedding5Context(BaseModel):
+    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.json')
+    output: OutputFile = Field(description='Output embedding in .lindi.json format')
     units_path: str = Field(description='Path to the units table in the NWB file', default='units')
     max_iterations: int = Field(description='Maximum number of iterations', default=1000)
     batch_size: int = Field(description='Batch size', default=1000)
     bin_size_msec: float = Field(description='Bin size in milliseconds', default=20)
     output_dimensions: int = Field(description='Output dimensions', default=10)
 
-class CebraNwbEmbedding4(ProcessorBase):
-    name = 'cebra_nwb_embedding_4'
+class CebraNwbEmbedding5(ProcessorBase):
+    name = 'cebra_nwb_embedding_5'
     description = 'Create a CEBRA embedding from a units table in an NWB file'
-    label = 'cebra_nwb_embedding_4'
+    label = 'cebra_nwb_embedding_5'
     image = 'magland/pairio-hello-cebra:0.1.0'
     executable = '/app/main.py'
     attributes = {}
 
     @staticmethod
     def run(
-        context: CebraNwbEmbedding4Context
+        context: CebraNwbEmbedding5Context
     ):
         import lindi
         import numpy as np
@@ -120,4 +120,20 @@ class CebraNwbEmbedding4(ProcessorBase):
                 loss = model.state_dict_['loss']
                 hf.create_dataset('loss', data=loss)
 
-        context.output.upload('cebra.h5', delete_local_file=True)
+        upload_h5_as_lindi_output(
+            h5_fname='cebra.h5',
+            output=context.output
+        )
+
+
+def upload_h5_as_lindi_output(
+    h5_fname,
+    output: OutputFile,
+    remote_fname='output.h5'
+):
+    import lindi
+    h5_url = upload_additional_job_output(h5_fname, remote_fname=remote_fname)
+    f = lindi.LindiH5pyFile.from_hdf5_file(h5_url)
+    lindi_fname = h5_fname + '.lindi.json'
+    f.write_lindi_file(lindi_fname)
+    output.upload(lindi_fname)

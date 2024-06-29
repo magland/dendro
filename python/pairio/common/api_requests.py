@@ -177,7 +177,7 @@ def get_upload_url(*,
     output_name: Union[str, None],
     other_name: Union[str, None],
     size: int
-) -> str:
+):
     # // getSignedUploadUrl
     # export type GetSignedUploadUrlRequest = {
     #   type: 'getSignedUploadUrlRequest'
@@ -212,7 +212,7 @@ def get_upload_url(*,
         data=req,
         headers=headers
     )
-    return res['signedUrl']
+    return res['signedUrl'], res['downloadUrl']
 
 
 def create_job(

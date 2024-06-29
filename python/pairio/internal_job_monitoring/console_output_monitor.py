@@ -71,7 +71,7 @@ def do_upload(*, console_out_file, job_id, job_private_key):
             new_lines.append(line.encode('utf-8'))
     text_to_upload = b'\n'.join(new_lines)
     try:
-        console_output_upload_url = get_upload_url(
+        console_output_upload_url, _ = get_upload_url(
             job_id=job_id,
             job_private_key=job_private_key,
             upload_type='consoleOutput',

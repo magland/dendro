@@ -248,6 +248,18 @@ export const isPairioJobOutputFileResult = (x: any): x is PairioJobOutputFileRes
   })
 }
 
+export type PairioJobOtherFileOutput = {
+  name: string
+  url: string
+}
+
+export const isPairioJobOtherFileOutput = (x: any): x is PairioJobOtherFileOutput => {
+  return validateObject(x, {
+    name: isString,
+    url: isString
+  })
+}
+
 // PairioJob
 export type PairioJob = {
   jobId: string
@@ -264,6 +276,7 @@ export type PairioJob = {
   inputFileUrlList: string[]
   outputFileUrlList: string[]
   outputFileResults: PairioJobOutputFileResult[]
+  otherFileOutputs?: PairioJobOtherFileOutput[]
   consoleOutputUrl: string
   resourceUtilizationLogUrl: string
   timestampCreatedSec: number
@@ -296,6 +309,7 @@ export const isPairioJob = (x: any): x is PairioJob => {
     inputFileUrlList: isArrayOf(isString),
     outputFileUrlList: isArrayOf(isString),
     outputFileResults: isArrayOf(isPairioJobOutputFileResult),
+    otherFileOutputs: optional(isArrayOf(isPairioJobOtherFileOutput)),
     consoleOutputUrl: isString,
     resourceUtilizationLogUrl: isString,
     timestampCreatedSec: isNumber,
@@ -888,12 +902,14 @@ export const isGetSignedUploadUrlRequest = (x: any): x is GetSignedUploadUrlRequ
 export type GetSignedUploadUrlResponse = {
   type: 'getSignedUploadUrlResponse'
   signedUrl: string
+  downloadUrl: string
 }
 
 export const isGetSignedUploadUrlResponse = (x: any): x is GetSignedUploadUrlResponse => {
   return validateObject(x, {
     type: isEqualTo('getSignedUploadUrlResponse'),
-    signedUrl: isString
+    signedUrl: isString,
+    downloadUrl: isString
   })
 }
 

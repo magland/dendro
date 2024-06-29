@@ -1030,6 +1030,17 @@ export const setJobStatusHandler = allowCors(async (req: VercelRequest, res: Ver
                     }
                 }
             }
+            if (rr.status === 'completed') {
+                // set the outputFileUrlList
+                const uploadFileUrlList: string[] = [];
+                for (const oo of job.outputFileResults) {
+                    uploadFileUrlList.push(oo.url);
+                }
+                for (const oo of job.otherFileOutputs || []) {
+                    uploadFileUrlList.push(oo.url);
+                }
+                await updateJob(rr.jobId, { outputFileUrlList: uploadFileUrlList });
+            }
         }
         else {
             res.status(400).json({ error: "Invalid status" });
@@ -1111,9 +1122,26 @@ export const getSignedUploadUrlHandler = allowCors(async (req: VercelRequest, re
             url = job.resourceUtilizationLogUrl
         }
         else if (rr.uploadType === 'other') {
-            // not implemented
-            res.status(400).json({ error: "Not implemented: uploadType=other" });
-            return;
+            if (!rr.otherName) {
+                res.status(400).json({ error: "Must specify otherName" });
+                return;
+            }
+            if (!isValidOtherName(rr.otherName)) {
+                res.status(400).json({ error: "Invalid otherName" });
+                return;
+            }
+            if (rr.size > 1024 * 1024 * 1024 + 10) {
+                res.status(400).json({ error: "File size too large" });
+                return;
+            }
+            const oo = (job.otherFileOutputs || []).find(o => (o.name === rr.otherName))
+            if (oo) {
+                res.status(400).json({ error: "Other file already exists" });
+            }
+            const otherFileUrl = await createOtherFileUrl({ serviceName: job.serviceName, appName: job.jobDefinition.appName, processorName: job.jobDefinition.processorName, jobId: job.jobId, otherName: rr.otherName });
+            job.otherFileOutputs = [...(job.otherFileOutputs || []), { name: rr.otherName, url: otherFileUrl }];
+            await updateJob(rr.jobId, { otherFileOutputs: job.otherFileOutputs });
+            url = otherFileUrl;
         }
         else {
             res.status(400).json({ error: "Invalid uploadType" });
@@ -1122,7 +1150,8 @@ export const getSignedUploadUrlHandler = allowCors(async (req: VercelRequest, re
         const signedUrl = await createSignedUploadUrl({ url, size: rr.size, userId: job.userId });
         const resp: GetSignedUploadUrlResponse = {
             type: 'getSignedUploadUrlResponse',
-            signedUrl
+            signedUrl,
+            downloadUrl: url
         };
         res.status(200).json(resp);
     }
@@ -2151,6 +2180,11 @@ const createOutputFileUrl = async (a: { serviceName: string, appName: string, pr
     return `https://tempory.net/f/pairio/f/${serviceName}/${appName}/${processorName}/${jobId}/${outputName}/${outputFileBaseName}`;
 }
 
+const createOtherFileUrl = async (a: { serviceName: string, appName: string, processorName: string, jobId: string, otherName: string }) => {
+    const { serviceName, appName, processorName, jobId, otherName } = a;
+    return `https://tempory.net/f/pairio/f/${serviceName}/${appName}/${processorName}/${jobId}/other/${otherName}`;
+}
+
 // Thanks: https://stackoverflow.com/questions/16167581/sort-object-properties-and-json-stringify
 export const JSONStringifyDeterministic = ( obj: any, space: string | number | undefined =undefined ) => {
     const allKeys: string[] = [];
@@ -2183,4 +2217,17 @@ const normalizeJobDefinitionForHash = (jobDefinition: PairioJobDefinition) => {
 
 const orderByName = (arr: any[]) => {
     return arr.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+const isValidOtherName = (name: string) => {
+    const parts = name.split('/');
+    if (parts.length === 0) return false;
+    if (parts.length > 6) return false;
+    for (const part of parts) {
+        if (part.length === 0) return false;
+        if (part.length > 64) return false;
+        if (!part.match(/^[a-zA-Z0-9_]+$/)) return false;
+        if (part.includes('.')) return false;
+    }
+    return true;
 }

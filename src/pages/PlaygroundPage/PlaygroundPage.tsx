@@ -557,6 +557,12 @@ const determineDefaultFileBaseName = (oo: PairioAppProcessorOutputFile) => {
     if (words.includes('.h5')) {
         return `${oo.name}.h5`
     }
+    else if (words.includes('.nwb.lindi.json')) {
+        return `${oo.name}.nwb.lindi.json`
+    }
+    else if (words.includes('.lindi.json')) {
+        return `${oo.name}.lindi.json`
+    }
     else if (words.includes('.json')) {
         return `${oo.name}.json`
     }
