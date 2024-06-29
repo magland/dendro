@@ -4,7 +4,9 @@ from .ComputeClientDaemon import ComputeClientDaemon
 
 
 def start_compute_client(
-    dir: str
+    *,
+    dir: str,
+    exit_when_idle: bool
 ):
     config_fname = os.path.join(dir, 'pairio-compute-client.yaml')
     if not os.path.exists(config_fname):
@@ -21,6 +23,7 @@ def start_compute_client(
         dir=dir,
         compute_client_id=compute_client_id,
         compute_client_private_key=compute_client_private_key,
-        compute_client_name=compute_client_name
+        compute_client_name=compute_client_name,
+        exit_when_idle=exit_when_idle
     )
     daemon.start()

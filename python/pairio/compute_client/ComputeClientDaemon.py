@@ -15,12 +15,16 @@ class ComputeClientDaemon:
         dir: str,
         compute_client_id: str,
         compute_client_private_key: str,
-        compute_client_name: str
+        compute_client_name: str,
+        exit_when_idle: bool
     ) -> None:
         self._dir = dir
         self._compute_client_id = compute_client_id
         self._compute_client_private_key = compute_client_private_key
         self._compute_client_name = compute_client_name
+        self._exit_when_idle = exit_when_idle
+
+        self._is_idle = False  # this is relevant only if exit_when_idle is True
 
         self._job_manager = JobManager(
             compute_client_id=compute_client_id,
@@ -59,14 +63,18 @@ class ComputeClientDaemon:
         else:
             cleanup_old_jobs_process = None
 
+        time_interval_to_check_for_new_jobs = 60 * 10
+        if self._exit_when_idle:
+            time_interval_to_check_for_new_jobs = 60 * 2
+
         try:
             print('Starting compute client')
             last_report_that_compute_client_is_running = 0
             overall_timer = time.time()
             while True:
                 elapsed_handle_jobs = time.time() - timer_handle_jobs
-                # normally we will get pubsub messages for updates, but if we don't, we should check every 10 minutes
-                time_to_handle_jobs = elapsed_handle_jobs > 60 * 10
+                # normally we will get pubsub messages for updates, but if we don't, we should check every so often
+                is_time_to_handle_jobs = elapsed_handle_jobs > time_interval_to_check_for_new_jobs
                 try:
                     messages = pubsub_client.take_messages() if pubsub_client is not None else []
                 except Exception as e:
@@ -85,13 +93,17 @@ class ComputeClientDaemon:
                         jobs_have_changed = True
                         # will trigger a check for new jobs which will update the last active timestamp
 
-                if time_to_handle_jobs or jobs_have_changed:
+                if is_time_to_handle_jobs or jobs_have_changed:
                     timer_handle_jobs = time.time()
                     try:
                         self._handle_jobs()
                     except Exception as e:
                         traceback.print_exc()
-                        print(f'Error handling jobs: {e}')
+                        print(f'Unexpected error handling jobs: {e}')
+
+                if self._exit_when_idle and not self._is_idle:
+                    print('No more jobs to run. Exiting because --exit-when-idle is set.')
+                    return
 
                 try:
                     self._job_manager.do_work()
@@ -122,12 +134,14 @@ class ComputeClientDaemon:
 
     def _handle_jobs(self):
         print('Checking for new jobs')
-        runnable_jobs, _ = get_runnable_jobs_for_compute_client(
+        runnable_jobs, running_jobs = get_runnable_jobs_for_compute_client(
             compute_client_id=self._compute_client_id,
             compute_client_private_key=self._compute_client_private_key
         )
         if len(runnable_jobs) > 0:
             self._job_manager.handle_jobs(runnable_jobs)
+        if len(running_jobs) == 0 and len(runnable_jobs) == 0:
+            self._is_idle = True
 
 
 def _cleanup_old_job_working_directories(dir: str):
