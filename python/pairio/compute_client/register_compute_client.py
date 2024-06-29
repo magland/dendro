@@ -45,7 +45,12 @@ def register_compute_client(*,
         }, f)
 
     print('')
-    print('The compute client has been registered. You can start it by running "pairio start-compute-client" in this directory')
+    print('The compute client has been registered.')
+    config_url = f'https://pairio.vercel.app/compute_client/{compute_client_id}'
+    print('')
+    print(f'You can configure it here: {config_url}')
+    print('')
+    print('Then you can start it by running "pairio start-compute-client" in this directory')
 
 
 def decode_base64(data):

@@ -750,8 +750,17 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
                 res.status(401).json({ error: `This compute client is not allowed to process jobs for service: ${serviceName}` });
                 return;
             }
+            const query = {
+                serviceName: service.serviceName,
+                status: 'pending',
+                isRunnable: true
+            }
+            if (computeClient.processJobsForUsers) {
+                // only process jobs for particular users
+                query['userId'] = { $in: service.users }
+            }
             const pipeline = [
-                { $match: { serviceName: service.serviceName, status: 'pending', isRunnable: true } },
+                { $match: query },
                 { $sample: { size: 200 } }, // thinking of the case of many pending jobs, but we don't want to always get the same ones (but there is a potential problem here)
                 { $sort: { timestampCreatedSec: 1 } } // handle earliest jobs first
             ]
@@ -2226,8 +2235,9 @@ const isValidOtherName = (name: string) => {
     for (const part of parts) {
         if (part.length === 0) return false;
         if (part.length > 64) return false;
-        if (!part.match(/^[a-zA-Z0-9_]+$/)) return false;
-        if (part.includes('.')) return false;
+        // Regex to allow alphanumeric, underscore, dash, and dot (but not start or end with dot)
+        const regex = /^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*$/;
+        if (!regex.test(part)) return false;
     }
     return true;
-}
+};
