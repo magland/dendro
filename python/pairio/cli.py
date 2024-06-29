@@ -26,7 +26,7 @@ def register_compute_client(
     )
 
 @click.command(help='Start a compute client in the current directory')
-@click.command('--exit-when-idle', is_flag=True, help='Exit when there are no more jobs to run')
+@click.option('--exit-when-idle', is_flag=True, help='Exit when idle')
 def start_compute_client(exit_when_idle: bool):
     start_compute_client_function(
         dir='.',

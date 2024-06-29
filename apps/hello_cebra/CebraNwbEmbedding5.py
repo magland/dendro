@@ -91,7 +91,8 @@ class CebraNwbEmbedding5(ProcessorBase):
                 output_dimension=output_dimensions,
                 temperature=1.0,
                 distance='cosine',
-                verbose=True
+                verbose=True,
+                device='cuda_if_available'
                 # There are many more parameters to explore. Head to
                 # https://cebra.ai/docs/api/sklearn/cebra.html to explore them.
             )
@@ -102,7 +103,8 @@ class CebraNwbEmbedding5(ProcessorBase):
             spike_counts,
             t
         )
-        model = model.to(torch.device('cpu'))
+        if not torch.cuda.is_available():
+            model = model.to(torch.device('cpu'))
 
         embedding = model.transform(spike_counts)
 
