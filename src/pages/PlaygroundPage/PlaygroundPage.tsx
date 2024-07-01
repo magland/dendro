@@ -1,14 +1,12 @@
 import { Hyperlink } from "@fi-sci/misc"
+import { Splitter } from "@fi-sci/splitter"
 import { FunctionComponent, useCallback, useEffect, useMemo, useReducer, useState } from "react"
 import { useServiceApp, useServiceApps, useServices } from "../../hooks"
 import { PairioAppProcessorOutputFile, PairioJob, PairioJobDefinition, PairioJobRequiredResources, isPairioJobDefinition } from "../../types"
 import useRoute from "../../useRoute"
+import { JobView } from "../JobPage/JobPage"
 import EditJobDefinitionWindow from "./EditJobDefinitionWindow/EditJobDefinitionWindow"
 import submitJob, { findJobByDefinition, getJob } from "./submitJob"
-import { JobView } from "../JobPage/JobPage"
-import { ExpandableSection } from "./ExpandableSection"
-import SpecialCebraResultsView from "./SpecialCebraResultsView/SpecialCebraResultsView"
-import { Splitter } from "@fi-sci/splitter"
 
 type PlaygroundPageProps = {
     width: number
@@ -250,16 +248,6 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
                     )
                 }
                 <hr />
-                {
-                    job && job.jobDefinition.processorName.startsWith('cebra_nwb_embedding_') && job.status === 'completed' && (
-                        <>
-                            <ExpandableSection title="Special CEBRA results view">
-                                <SpecialCebraResultsView job={job} />
-                            </ExpandableSection>
-                            <hr />
-                        </>
-                    )
-                }
                 {
                     (serviceName && appName && processorName && job) && (
                         <JobView
