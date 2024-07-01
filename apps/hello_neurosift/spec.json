@@ -1,0 +1,46 @@
+{
+    "name": "hello_neurosift",
+    "description": "Neurosift processors",
+    "processors": [
+        {
+            "name": "units_summary_1",
+            "description": "Compute autocorrelograms for a units table in an NWB file",
+            "label": "units_summary_1",
+            "image": "magland/pairio-hello-neurosift:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [
+                {
+                    "name": "input",
+                    "description": "Input NWB file in .nwb or .nwb.lindi.json format"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": "Output data in .lindi.json format"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "units_path",
+                    "type": "str",
+                    "description": "Path to the units table in the NWB file",
+                    "defaultValue": "units"
+                },
+                {
+                    "name": "correlogram_window_size_msec",
+                    "type": "float",
+                    "description": "Correlogram window size in milliseconds",
+                    "defaultValue": 100
+                },
+                {
+                    "name": "correlogram_bin_size_msec",
+                    "type": "float",
+                    "description": "Correlogram bin size in milliseconds",
+                    "defaultValue": 1
+                }
+            ],
+            "attributes": []
+        }
+    ]
+}
