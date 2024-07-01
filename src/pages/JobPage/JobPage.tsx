@@ -115,6 +115,14 @@ export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob }) =>
                             job.jobDependencies.join(', ')
                         }</td>
                     </tr>
+                    <tr>
+                        <td>Required resources</td>
+                        <td>
+                            <pre>
+                                {JSON.stringify(job.requiredResources)}
+                            </pre>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
             <hr />

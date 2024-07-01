@@ -1,7 +1,7 @@
 import { Hyperlink } from "@fi-sci/misc"
 import { FunctionComponent, useCallback, useEffect, useMemo, useReducer, useState } from "react"
 import { useServiceApp, useServiceApps, useServices } from "../../hooks"
-import { PairioAppProcessorOutputFile, PairioJob, PairioJobDefinition, PairioJobRequiredResources, isPairioJobDefinition, isPairioJobRequiredResources } from "../../types"
+import { PairioAppProcessorOutputFile, PairioJob, PairioJobDefinition, PairioJobRequiredResources, isPairioJobDefinition } from "../../types"
 import useRoute from "../../useRoute"
 import EditJobDefinitionWindow from "./EditJobDefinitionWindow/EditJobDefinitionWindow"
 import submitJob, { findJobByDefinition, getJob } from "./submitJob"
@@ -38,6 +38,13 @@ const playgroundReducer = (state: PlaygroundState | undefined, action: Playgroun
     }
 }
 
+const defaultRequiredResources: PairioJobRequiredResources = {
+    numCpus: 1,
+    numGpus: 0,
+    memoryGb: 4,
+    timeSec: 60 * 30
+}
+
 const PlaygroundPage: FunctionComponent<PlaygroundPageProps> = ({ width, height }) => {
     return (
         <Splitter
@@ -63,7 +70,7 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
     if (route.page !== 'playground') {
         throw new Error('Invalid route')
     }
-    const { serviceName, appName, processorName, jobDefinition: jobDefinitionFromRoute, requiredResources: requiredResourcesFromRoute, jobId } = route
+    const { serviceName, appName, processorName, jobDefinition: jobDefinitionFromRoute, jobId } = route
     const [state, dispatch] = useReducer(playgroundReducer, undefined)
     useLocalStorage(state, dispatch)
     const [job, setJob] = useState<PairioJob | undefined>(undefined)
@@ -83,12 +90,8 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
         return () => { cancelled = true }
     }, [jobId, job])
 
-    const requiredResources = useMemo(() => {
-        if (!isPairioJobRequiredResources(requiredResourcesFromRoute)) {
-            return {numCpus: 1, numGpus: 0, memoryGb: 4, timeSec: 60 * 50}
-        }
-        return requiredResourcesFromRoute
-    }, [requiredResourcesFromRoute])
+    const [requiredResources, setRequiredResources] = useState<PairioJobRequiredResources>(defaultRequiredResources)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const handleSubmitJob = useCallback(async (o: {noSubmit: boolean}) => {
         try {
@@ -126,6 +129,9 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
         }
         catch (err: any) {
             alert(`Error: ${err.message}`)
+        }
+        finally {
+            setIsSubmitting(false)
         }
     }, [state?.pairioApiKey, jobDefinitionFromRoute, serviceName, appName, processorName, setJobId, requiredResources])
 
@@ -217,19 +223,9 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
                     )
                 }
                 {
-                    serviceName && appName && processorName && (
-                        <RequiredResourcesSelector
-                            requiredResources={requiredResources}
-                            onChange={requiredResources => {
-                                setRoute({...route, requiredResources})
-                            }}
-                        />
-                    )
-                }
-                {
                     (serviceName && appName && processorName && jobDefinitionFromRoute) && (
                         <div>
-                            <button onClick={() => handleSubmitJob({noSubmit: false})}>
+                            <button onClick={() => setIsSubmitting(true)}>
                                 SUBMIT JOB
                             </button>
                             &nbsp;
@@ -237,6 +233,20 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
                                 FIND JOB
                             </button>
                         </div>
+                    )
+                }
+                {
+                    serviceName && appName && processorName && isSubmitting && (
+                        <RequiredResourcesSelector
+                            requiredResources={requiredResources}
+                            onChange={requiredResources => {
+                                setRequiredResources(requiredResources)
+                            }}
+                            onOkay={() => {
+                                handleSubmitJob({noSubmit: false})
+                            }}
+                            onCancel={() => setIsSubmitting(false)}
+                        />
                     )
                 }
                 <hr />
@@ -541,12 +551,14 @@ const useLocalStorage = (state: PlaygroundState | undefined, dispatch: (action: 
 type RequiredResourcesSelectorProps = {
     requiredResources: PairioJobRequiredResources
     onChange: (requiredResources: PairioJobRequiredResources) => void
+    onOkay: () => void
+    onCancel: () => void
 }
 
-const RequiredResourcesSelector: FunctionComponent<RequiredResourcesSelectorProps> = ({requiredResources, onChange}) => {
+const RequiredResourcesSelector: FunctionComponent<RequiredResourcesSelectorProps> = ({requiredResources, onChange, onOkay, onCancel}) => {
     return (
         <div>
-            <h3>Required Resources</h3>
+            <h3>Select required Resources</h3>
             <table className="table">
                 <tbody>
                     <tr>
@@ -599,6 +611,15 @@ const RequiredResourcesSelector: FunctionComponent<RequiredResourcesSelectorProp
                     </tr>
                 </tbody>
             </table>
+            <div>
+                <button onClick={onOkay}>
+                    OK
+                </button>
+                &nbsp;
+                <button onClick={onCancel}>
+                    Cancel
+                </button>
+            </div>
         </div>
     )
 }
