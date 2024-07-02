@@ -51,6 +51,7 @@ class UnitsSummary1(ProcessorBase):
             spike_trains.append(st)
             offset = int(spike_times_index[i])
         num_units = len(spike_trains)
+        unit_ids = f[f'{units_path}/id'][()]  # type: ignore
 
         # Compute autocorrelograms for all the units
         print('Computing autocorrelograms')
@@ -86,11 +87,13 @@ class UnitsSummary1(ProcessorBase):
 
         with open('units_summary.h5', 'wb') as f:
             with h5py.File(f, 'w') as hf:
-                hf.create_dataset('autocorrelograms', data=autocorrelograms_array)
+                x = hf.create_dataset('autocorrelograms', data=autocorrelograms_array)
+                x.attrs['bin_edges_sec'] = auto_correlograms[0]['bin_edges_sec']
                 hf.attrs['correlogram_window_size_msec'] = correlogram_window_size_msec
                 hf.attrs['correlogram_bin_size_msec'] = correlogram_bin_size_msec
                 hf.attrs['correlogram_num_bins'] = num_bins
                 hf.attrs['num_units'] = num_units
+                hf.create_dataset('unit_ids', data=unit_ids)
 
         upload_h5_as_lindi_output(
             h5_fname='units_summary.h5',
