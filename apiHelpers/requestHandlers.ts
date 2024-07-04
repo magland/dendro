@@ -666,6 +666,9 @@ export const findJobsHandler = allowCors(async (req: VercelRequest, res: VercelR
         else if (rr.batchId) {
             okayToProceed = true;
         }
+        else if (rr.tags) {
+            okayToProceed = true;
+        }
         if (!okayToProceed) {
             res.status(400).json({ error: "Not enough info provided in request for query for jobs" });
             return;
@@ -686,8 +689,9 @@ export const findJobsHandler = allowCors(async (req: VercelRequest, res: VercelR
             { $match: query },
             { $sort: { timestampCreatedSec: -1 } }
         ]
+        const limit = rr.limit === undefined ? 1000 : rr.limit;
         if (rr.limit) {
-            pipeline.push({ $limit: rr.limit });
+            pipeline.push({ $limit: limit });
         }
         const jobs = await fetchJobs(pipeline);
         // hide the private keys and secrets for the jobs
