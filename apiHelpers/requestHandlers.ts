@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import allowCors from "./allowCors"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient"; // remove .js for local dev
 import publishPubsubMessage from "./publicPubsubMessage"; // remove .js for local dev
-import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, ComputeUserStatsResponse, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, FindJobByDefinitionResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, GetJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioJobOutputFileResult, PairioService, PairioServiceApp, PairioUser, PingComputeClientsResponse, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, UserStats, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isComputeUserStatsRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isFindJobByDefinitionRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isGetJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isPingComputeClientsRequest, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types"; // remove .js for local dev
+import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, ComputeUserStatsResponse, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, FindJobByDefinitionResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, FindJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioJobOutputFileResult, PairioService, PairioServiceApp, PairioUser, PingComputeClientsResponse, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, UserStats, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isComputeUserStatsRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isFindJobByDefinitionRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isFindJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isPingComputeClientsRequest, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types"; // remove .js for local dev
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -629,14 +629,14 @@ export const deleteJobsHandler = allowCors(async (req: VercelRequest, res: Verce
     }
 });
 
-// getJobs handler
-export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
+// findJobs handler
+export const findJobsHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
     if (req.method !== "POST") {
         res.status(405).json({ error: "Method not allowed" });
         return;
     }
     const rr = req.body;
-    if (!isGetJobsRequest(rr)) {
+    if (!isFindJobsRequest(rr)) {
         res.status(400).json({ error: "Invalid request" });
         return;
     }
@@ -676,7 +676,7 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
         if (rr.processorName) query['jobDefinition.processorName'] = rr.processorName;
         if (rr.computeClientId) query['computeClientId'] = rr.computeClientId;
         if (rr.batchId) query['batchId'] = rr.batchId;
-        if (rr.tag) query['tags'] = rr.tag;
+        if (rr.tags) query['tags'] = rr.tags;
         if (rr.serviceName) query['serviceName'] = rr.serviceName;
         if (rr.appName) query['jobDefinition.appName'] = rr.appName;
         if (rr.inputFileUrl) query['inputFileUrlList'] = rr.inputFileUrl;
@@ -695,8 +695,8 @@ export const getJobsHandler = allowCors(async (req: VercelRequest, res: VercelRe
             job.jobPrivateKey = null;
             job.secrets = null;
         }
-        const resp: GetJobsResponse = {
-            type: 'getJobsResponse',
+        const resp: FindJobsResponse = {
+            type: 'findJobsResponse',
             jobs
         };
         res.status(200).json(resp);

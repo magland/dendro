@@ -724,15 +724,15 @@ export const isDeleteJobsResponse = (x: any): x is DeleteJobsResponse => {
   })
 }
 
-// getJobs
-export type GetJobsRequest = {
-  type: 'getJobsRequest'
+// findJobs
+export type FindJobsRequest = {
+  type: 'findJobsRequest'
   userId?: string
   jobId?: string
   processorName?: string
   computeClientId?: string
   batchId?: string
-  tag?: string
+  tags?: any
   serviceName?: string
   appName?: string
   inputFileUrl?: string
@@ -741,15 +741,15 @@ export type GetJobsRequest = {
   limit?: number
 }
 
-export const isGetJobsRequest = (x: any): x is GetJobsRequest => {
+export const isFindJobsRequest = (x: any): x is FindJobsRequest => {
   return validateObject(x, {
-    type: isEqualTo('getJobsRequest'),
+    type: isEqualTo('findJobsRequest'),
     userId: optional(isString),
     jobId: optional(isString),
     processorName: optional(isString),
     computeClientId: optional(isString),
     batchId: optional(isString),
-    tag: optional(isString),
+    tags: optional(() => true),
     serviceName: optional(isString),
     appName: optional(isString),
     inputFileUrl: optional(isString),
@@ -759,14 +759,14 @@ export const isGetJobsRequest = (x: any): x is GetJobsRequest => {
   })
 }
 
-export type GetJobsResponse = {
-  type: 'getJobsResponse'
+export type FindJobsResponse = {
+  type: 'findJobsResponse'
   jobs: PairioJob[]
 }
 
-export const isGetJobsResponse = (x: any): x is GetJobsResponse => {
+export const isFindJobsResponse = (x: any): x is FindJobsResponse => {
   return validateObject(x, {
-    type: isEqualTo('getJobsResponse'),
+    type: isEqualTo('findJobsResponse'),
     jobs: isArrayOf(isPairioJob)
   })
 }

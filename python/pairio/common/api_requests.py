@@ -75,29 +75,6 @@ def set_job_status(
         raise Exception('Unexpected response for setJobStatusRequest')
 
 
-def get_jobs(
-    *,
-    compute_client_id: str,
-    compute_client_private_key: str
-):
-    url_path = '/api/getJobsForComputeClient'
-    req = {
-        'type': 'getJobsForComputeClientRequest',
-        'computeClientId': compute_client_id
-    }
-    headers = {
-        'Authorization': f'Bearer {compute_client_private_key}'
-    }
-    resp = _post_api_request(
-        url_path=url_path,
-        data=req,
-        headers=headers
-    )
-    jobs = resp['jobs']
-    jobs = [PairioJob(**job) for job in jobs]
-    return jobs
-
-
 def get_runnable_jobs_for_compute_client(
     *,
     compute_client_id: str,
