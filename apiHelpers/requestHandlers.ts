@@ -416,14 +416,15 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
                 }
                 else {
                     let allTagsWereAlreadyPresentOnJob = true;
+                    const newTags = [...job.tags];
                     for (const tag of rr.tags) {
                         if (!job.tags.includes(tag)) {
-                            job.tags.push(tag);
+                            newTags.push(tag);
                             allTagsWereAlreadyPresentOnJob = false;
                         }
                     }
                     if (!allTagsWereAlreadyPresentOnJob) {
-                        await updateJob(job.jobId, { tags: job.tags });
+                        await updateJob(job.jobId, { tags: newTags });
                     }
                     // notify the compute clients as though the status has changed
                     await publishPubsubMessage(
