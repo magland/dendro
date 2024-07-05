@@ -85,6 +85,7 @@ def subsample_timeseries(
     timeseries_group = f[timeseries_path]
 
     data = timeseries_group['data'][()]  # type: ignore
+    assert isinstance(data, np.ndarray)
     if data.ndim == 1:
         data = data[:, np.newaxis]
 
