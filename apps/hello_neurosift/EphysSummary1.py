@@ -66,7 +66,7 @@ class EphysSummary1(ProcessorBase):
         print('Saving output')
         with open('ephys_summary.h5', 'wb') as f:
             with h5py.File(f, 'w') as hf:
-                hf.create_dataset('channel_ids', data=channel_ids)
+                hf.attrs['channel_ids'] = [str(ch) for ch in channel_ids]
                 hf.create_dataset('estimated_channel_firing_rates', data=estimated_channel_firing_rates)
 
         print('Uploading output')
@@ -80,17 +80,17 @@ def compute_estimated_channel_firing_rates(recording):
     import spikeinterface as si
     timestamp_last_print = time.time()
     R: si.BaseRecording = recording
-    bin_duration_sec = 5
-    num_bins = int(R.get_num_frames() / R.get_sampling_frequency() / bin_duration_sec)
-    X = np.zeros((num_bins, R.get_num_channels()))
-    for ss in range(num_bins):
+    chunk_duration_sec = 5
+    num_chunks = int(R.get_num_frames() / R.get_sampling_frequency() / chunk_duration_sec)
+    X = np.zeros((num_chunks, R.get_num_channels()))
+    for ss in range(num_chunks):
         elapsed_since_last_print = time.time() - timestamp_last_print
         if elapsed_since_last_print > 10:
-            print(f'Computing estimated channel firing rates: {ss} of {num_bins} bins')
+            print(f'Computing estimated channel firing rates: {ss} of {num_chunks} time chunks')
             timestamp_last_print = time.time()
-        traces = R.get_traces(start_frame=int(ss * bin_duration_sec * R.get_sampling_frequency()), end_frame=int((ss + 1) * bin_duration_sec * R.get_sampling_frequency()))
+        traces = R.get_traces(start_frame=int(ss * chunk_duration_sec * R.get_sampling_frequency()), end_frame=int((ss + 1) * chunk_duration_sec * R.get_sampling_frequency()))
         for m in range(R.get_num_channels()):
-            X[ss, m] = estimate_num_spikes(traces[:, m]) / bin_duration_sec
+            X[ss, m] = estimate_num_spikes(traces[:, m]) / chunk_duration_sec
     return np.mean(X, axis=0)
 
 def estimate_num_spikes(trace):

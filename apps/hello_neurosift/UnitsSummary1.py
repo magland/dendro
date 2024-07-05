@@ -93,7 +93,7 @@ class UnitsSummary1(ProcessorBase):
                 hf.attrs['correlogram_bin_size_msec'] = correlogram_bin_size_msec
                 hf.attrs['correlogram_num_bins'] = num_bins
                 hf.attrs['num_units'] = num_units
-                hf.create_dataset('unit_ids', data=unit_ids)
+                hf.attrs['unit_ids'] = [str(uid) for uid in unit_ids]
 
         upload_h5_as_lindi_output(
             h5_fname='units_summary.h5',
