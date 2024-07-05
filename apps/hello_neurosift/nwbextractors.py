@@ -498,8 +498,8 @@ class NwbRecordingExtractor(BaseRecording):
         electrical_series_path: str | None = None,
         load_channel_properties: bool = True,
         *,
-        file: BinaryIO | None = None,  # file-like - provide either this or file_path
-        h5py_file: h5py.File | None = None,
+        file: BinaryIO | None = None,  # file-like - provide either this or file_path or h5py_file
+        h5py_file: h5py.File | None = None,  # provide either this or file_path or file
         cache: bool = False,
         storage_options: dict | None = None,
         use_pynwb: bool = False,
@@ -514,7 +514,7 @@ class NwbRecordingExtractor(BaseRecording):
 
         if file_path is not None and file is not None:
             raise ValueError("Provide either file_path or file, not both")
-        if file_path is None and h5py_file is not None:
+        if file_path is not None and h5py_file is not None:
             raise ValueError("Provide either h5py_file or file_path, not both")
         if file is not None and h5py_file is not None:
             raise ValueError("Provide either h5py_file or file, not both")

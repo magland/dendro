@@ -51,7 +51,7 @@ class EphysSummary1(ProcessorBase):
         recording = NwbRecordingExtractor(h5py_file=f, electrical_series_path=electrical_series_path)
 
         print('Extracting segment to analyze')
-        recording = recording.time_slice(start_time=start_time_sec, end_time=start_time_sec + duration_sec)
+        recording = recording.frame_slice(start_frame=int(start_time_sec * recording.get_sampling_frequency()), end_frame=int((start_time_sec + duration_sec) * recording.get_sampling_frequency()))
 
         print('Filtering recording')
         recording = spre.bandpass_filter(recording, freq_min=300, freq_max=6000)
