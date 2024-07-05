@@ -11,6 +11,8 @@ RUN git clone https://github.com/magland/pairio \
 
 # Install spikeinterface
 RUN pip install spikeinterface==0.100.8
+# don't install all the SI dependencies... instead manually specify the ones we need
+RUN pip install scipy pynwb
 
 # Install lindi
 RUN pip install lindi==0.3.9

@@ -1,3 +1,4 @@
+import time
 from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile, upload_additional_job_output
 
 class EphysSummary1Context(BaseModel):
@@ -56,15 +57,19 @@ class EphysSummary1(ProcessorBase):
         print('Filtering recording')
         recording = spre.bandpass_filter(recording, freq_min=300, freq_max=6000)
 
+        print('Getting channel ids')
         channel_ids = recording.get_channel_ids()
 
+        print('Estimating channel firing rates')
         estimated_channel_firing_rates = compute_estimated_channel_firing_rates(recording)
 
+        print('Saving output')
         with open('ephys_summary.h5', 'wb') as f:
             with h5py.File(f, 'w') as hf:
                 hf.create_dataset('channel_ids', data=channel_ids)
                 hf.create_dataset('estimated_channel_firing_rates', data=estimated_channel_firing_rates)
 
+        print('Uploading output')
         upload_h5_as_lindi_output(
             h5_fname='ephys_summary.h5',
             output=context.output
@@ -73,11 +78,16 @@ class EphysSummary1(ProcessorBase):
 def compute_estimated_channel_firing_rates(recording):
     import numpy as np
     import spikeinterface as si
+    timestamp_last_print = time.time()
     R: si.BaseRecording = recording
     bin_duration_sec = 5
     num_bins = int(R.get_num_frames() / R.get_sampling_frequency() / bin_duration_sec)
     X = np.zeros((num_bins, R.get_num_channels()))
     for ss in range(num_bins):
+        elapsed_since_last_print = time.time() - timestamp_last_print
+        if elapsed_since_last_print > 10:
+            print(f'Computing estimated channel firing rates: {ss} of {num_bins} bins')
+            timestamp_last_print = time.time()
         traces = R.get_traces(start_frame=int(ss * bin_duration_sec * R.get_sampling_frequency()), end_frame=int((ss + 1) * bin_duration_sec * R.get_sampling_frequency()))
         for m in range(R.get_num_channels()):
             X[ss, m] = estimate_num_spikes(traces[:, m]) / bin_duration_sec

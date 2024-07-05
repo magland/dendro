@@ -20,7 +20,14 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
         throw new Error('Invalid route')
     }
     const jobId = route.jobId
-    const { job, refreshJob } = useJob(jobId)
+    const { job, refreshJob, deleteJob } = useJob(jobId)
+    const handleDeleteJob = useCallback(() => {
+        const okay = window.confirm('Are you sure you want to delete this job?')
+        if (!okay) return
+        deleteJob().then(() => {
+            setRoute({page: 'service', serviceName: job.serviceName})
+        })
+    }, [job, setRoute, deleteJob])
     if (!job) {
         return (
             <div style={{padding: 20}}>
@@ -38,7 +45,7 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
                 </Hyperlink>
             </div>
             <hr />
-            <JobView job={job} refreshJob={refreshJob} />
+            <JobView job={job} refreshJob={refreshJob} deleteJob={handleDeleteJob} />
         </div>
     )
 }
@@ -46,9 +53,10 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
 type JobViewProps = {
     job: PairioJob
     refreshJob: () => void
+    deleteJob: () => void
 }
 
-export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob }) => {
+export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob, deleteJob }) => {
     return (
         <div>
             <div>
@@ -129,6 +137,12 @@ export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob }) =>
             <InputsOutputsParametersView job={job} />
             <hr />
             <ConsoleOutputView job={job} />
+            <hr />
+            <button
+                onClick={deleteJob}
+            >
+                Delete job
+            </button>
         </div>
     )
 }

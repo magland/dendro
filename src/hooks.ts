@@ -407,6 +407,7 @@ export const useServiceApp = (serviceName: string, appName: string) => {
 export const useJob = (jobId: string) => {
     const [job, setJob] = useState<PairioJob | undefined>(undefined)
     const [refreshCode, setRefreshCode] = useState(0)
+    const {githubAccessToken, userId} = useLogin()
     const refreshJob = useCallback(() => {
         setRefreshCode(c => c + 1)
     }, [])
@@ -430,7 +431,25 @@ export const useJob = (jobId: string) => {
         return () => { canceled = true }
     }, [jobId, refreshCode])
 
-    return { job, refreshJob }
+    const deleteJob = useMemo(() => (async () => {
+        if (!githubAccessToken) {
+            throw Error('Not logged in')
+        }
+        if (!userId) {
+            throw Error('Not logged in')
+        }
+        const req: DeleteJobsRequest = {
+            type: 'deleteJobsRequest',
+            userId,
+            jobIds: [jobId]
+        }
+        const resp = await apiPostRequest('deleteJobs', req, githubAccessToken)
+        if (!isDeleteJobsResponse(resp)) {
+            throw Error('Error deleting job. Invalid response')
+        }
+    }), [githubAccessToken, userId, jobId])
+
+    return { job, refreshJob, deleteJob }
 }
 
 export const useUserStats = (userId: string) => {
