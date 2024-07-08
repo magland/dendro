@@ -63,11 +63,17 @@ class EphysSummary1(ProcessorBase):
         print('Estimating channel firing rates')
         estimated_channel_firing_rates = compute_estimated_channel_firing_rates(recording)
 
+        print('Computing channel power spectra')
+        ps_freq, ps = compute_channel_power_spectra(recording)
+
         print('Saving output')
         with open('ephys_summary.h5', 'wb') as f:
             with h5py.File(f, 'w') as hf:
                 hf.attrs['channel_ids'] = [str(ch) for ch in channel_ids]
                 hf.create_dataset('estimated_channel_firing_rates', data=estimated_channel_firing_rates)
+                ps_group = hf.create_group('channel_power_spectra')
+                ps_group.create_dataset('freq', data=ps_freq)
+                ps_group.create_dataset('ps', data=ps)
 
         print('Uploading output')
         upload_h5_as_lindi_output(
@@ -81,17 +87,45 @@ def compute_estimated_channel_firing_rates(recording):
     timestamp_last_print = time.time()
     R: si.BaseRecording = recording
     chunk_duration_sec = 5
-    num_chunks = int(R.get_num_frames() / R.get_sampling_frequency() / chunk_duration_sec)
+    chunk_duration_frames = int(chunk_duration_sec * R.get_sampling_frequency())
+    num_chunks = int(R.get_num_frames() / chunk_duration_frames)
     X = np.zeros((num_chunks, R.get_num_channels()))
     for ss in range(num_chunks):
         elapsed_since_last_print = time.time() - timestamp_last_print
         if elapsed_since_last_print > 10:
             print(f'Computing estimated channel firing rates: {ss} of {num_chunks} time chunks')
             timestamp_last_print = time.time()
-        traces = R.get_traces(start_frame=int(ss * chunk_duration_sec * R.get_sampling_frequency()), end_frame=int((ss + 1) * chunk_duration_sec * R.get_sampling_frequency()))
+        traces = R.get_traces(start_frame=int(ss * chunk_duration_frames), end_frame=int((ss + 1) * chunk_duration_frames))
         for m in range(R.get_num_channels()):
             X[ss, m] = estimate_num_spikes(traces[:, m]) / chunk_duration_sec
     return np.mean(X, axis=0)
+
+
+def compute_channel_power_spectra(recording):
+    import numpy as np
+    import spikeinterface as si
+    timestamp_last_print = time.time()
+    R: si.BaseRecording = recording
+    chunk_duration_sec = 5
+    chunk_duration_frames = int(chunk_duration_sec * R.get_sampling_frequency())
+    num_chunks = int(R.get_num_frames() / chunk_duration_frames)
+    freqs = np.fft.fftfreq(chunk_duration_frames, 1 / R.get_sampling_frequency())
+    freqs = freqs[:int(chunk_duration_frames / 2)]
+    X = np.zeros((num_chunks, R.get_num_channels(), len(freqs)))
+    for ss in range(num_chunks):
+        elapsed_since_last_print = time.time() - timestamp_last_print
+        if elapsed_since_last_print > 10:
+            print(f'Computing channel power spectra: {ss} of {num_chunks} time chunks')
+            timestamp_last_print = time.time()
+        traces = R.get_traces(start_frame=int(ss * chunk_duration_frames), end_frame=int((ss + 1) * chunk_duration_frames))
+        for m in range(R.get_num_channels()):
+            X[ss, m, :] = np.abs(np.fft.fft(traces[:, m]))[:int(chunk_duration_frames / 2)] ** 2
+    X_mean = np.mean(X, axis=0)
+    # subsample to 1000 points
+    X_mean = X_mean[:, ::int(len(freqs) / 1000)]
+    freqs = freqs[::int(len(freqs) / 1000)]
+    return freqs, X_mean
+
 
 def estimate_num_spikes(trace):
     import numpy as np
