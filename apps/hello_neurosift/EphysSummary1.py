@@ -55,7 +55,10 @@ class EphysSummary1(ProcessorBase):
         recording = recording.frame_slice(start_frame=int(start_time_sec * recording.get_sampling_frequency()), end_frame=int((start_time_sec + duration_sec) * recording.get_sampling_frequency()))
 
         print('Filtering recording')
-        recording = spre.bandpass_filter(recording, freq_min=300, freq_max=6000)
+        freq_max = min(6000, recording.get_sampling_frequency() / 2)
+        if freq_max < 6000:
+            print(f'Warning: setting freq_max to {freq_max} Hz')
+        recording = spre.bandpass_filter(recording, freq_min=300, freq_max=freq_max)
 
         print('Getting channel ids')
         channel_ids = recording.get_channel_ids()
