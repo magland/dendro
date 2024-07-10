@@ -22,6 +22,7 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
     const jobId = route.jobId
     const { job, refreshJob, deleteJob } = useJob(jobId)
     const handleDeleteJob = useCallback(() => {
+        if (!job) return;
         const okay = window.confirm('Are you sure you want to delete this job?')
         if (!okay) return
         deleteJob().then(() => {
@@ -53,7 +54,7 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
 type JobViewProps = {
     job: PairioJob
     refreshJob: () => void
-    deleteJob: () => void
+    deleteJob?: () => void
 }
 
 export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob, deleteJob }) => {
@@ -138,11 +139,11 @@ export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob, dele
             <hr />
             <ConsoleOutputView job={job} />
             <hr />
-            <button
+            {deleteJob && (<button
                 onClick={deleteJob}
             >
                 Delete job
-            </button>
+            </button>)}
         </div>
     )
 }

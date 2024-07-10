@@ -253,6 +253,7 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({ width, height }) =>
                         <JobView
                             job={job}
                             refreshJob={handleRefreshJob}
+                            deleteJob={undefined}
                         />
                     )
                 }
