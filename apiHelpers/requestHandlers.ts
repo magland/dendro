@@ -762,7 +762,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
             }
             if (computeClient.processJobsForUsers) {
                 // only process jobs for particular users
-                query['userId'] = { $in: service.users }
+                query['userId'] = { $in: computeClient.processJobsForUsers }
             }
             const pipeline = [
                 { $match: query },
@@ -1361,6 +1361,14 @@ export const setComputeClientInfoHandler = allowCors(async (req: VercelRequest, 
             }
             update['serviceNames'] = rr.serviceNames;
         }
+        if (rr.processJobsForUsers !== undefined) {
+            if (rr.processJobsForUsers === null) {
+                update['processJobsForUsers'] = null;
+            }
+            else {
+                update['processJobsForUsers'] = rr.processJobsForUsers;
+            }
+        }
         // check if there is something to update
         if (Object.keys(update).length === 0) {
             res.status(400).json({ error: "Nothing to update" });
@@ -1675,8 +1683,19 @@ const deleteService = async (serviceName: string) => {
 const updateService = async (serviceName: string, update: any) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.services);
+    // we want undefined values to be unset
+    const updateSet: { [key: string]: any } = {};
+    const updateUnset: { [key: string]: any } = {};
+    for (const key in update) {
+        if (update[key] === undefined) {
+            updateUnset[key] = ''; // just need to set it to something
+        }
+        else {
+            updateSet[key] = update[key];
+        }
+    }
     await collection
-        .updateOne({ serviceName }, { $set: update });
+        .updateOne({ serviceName }, { $set: updateSet, $unset: updateUnset });
 }
 
 const fetchUser = async (userId: string) => {
@@ -1713,8 +1732,19 @@ const insertUser = async (user: PairioUser) => {
 const updateUser = async (userId: string, update: any) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.users);
+    // we want undefined values to be unset
+    const updateSet: { [key: string]: any } = {};
+    const updateUnset: { [key: string]: any } = {};
+    for (const key in update) {
+        if (update[key] === undefined) {
+            updateUnset[key] = ''; // just need to set it to something
+        }
+        else {
+            updateSet[key] = update[key];
+        }
+    }
     await collection
-        .updateOne({ userId }, { $set: update });
+        .updateOne({ userId }, { $set: updateSet, $unset: updateUnset });
 }
 
 const insertServiceApp = async (app: PairioServiceApp) => {
@@ -1766,8 +1796,19 @@ const fetchServiceAppsForServiceName = async (serviceName: string) => {
 const updateServiceApp = async (serviceName: string, appName: string, update: any) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.serviceApps);
+    // we want undefined values to be unset
+    const updateSet: { [key: string]: any } = {};
+    const updateUnset: { [key: string]: any } = {};
+    for (const key in update) {
+        if (update[key] === undefined) {
+            updateUnset[key] = ''; // just need to set it to something
+        }
+        else {
+            updateSet[key] = update[key];
+        }
+    }
     await collection
-        .updateOne({ serviceName, appName }, { $set: update });
+        .updateOne({ serviceName, appName }, { $set: updateSet, $unset: updateUnset });
 }
 
 const deleteServiceApp = async (serviceName: string, appName: string) => {
@@ -1841,23 +1882,47 @@ const fetchOneJobByJobId = async (jobId: string): Promise<PairioJob | null> => {
 const updateJob = async (jobId: string, update: any) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.jobs);
+    // we want undefined values to be unset
+    const updateSet: { [key: string]: any } = {};
+    const updateUnset: { [key: string]: any } = {};
+    for (const key in update) {
+        if (update[key] === undefined) {
+            updateUnset[key] = ''; // just need to set it to something
+        }
+        else {
+            updateSet[key] = update[key];
+        }
+    }
     await collection.updateOne({
         jobId
     }, {
-        $set: update
+        $set: updateSet,
+        $unset: updateUnset
     });
 }
 
 const atomicUpdateJob = async (jobId: string, oldStatus: string, update: any) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.jobs);
+    // we want undefined values to be unset
+    const updateSet: { [key: string]: any } = {};
+    const updateUnset: { [key: string]: any } = {};
+    for (const key in update) {
+        if (update[key] === undefined) {
+            updateUnset[key] = ''; // just need to set it to something
+        }
+        else {
+            updateSet[key] = update[key];
+        }
+    }
     // QUESTION: is this going to be atomic?
     // Like if two requests come in at the same time, will one of them fail?
     const result = await collection.updateOne({
         jobId,
         status: oldStatus
     }, {
-        $set: update
+        $set: updateSet,
+        $unset: updateUnset
     });
     if (result.modifiedCount !== 1) {
         throw Error('Failed to update job');
@@ -1930,8 +1995,19 @@ const deleteComputeClient = async (computeClientId: string) => {
 const updateComputeClient = async (computeClientId: string, update: any) => {
     const client = await getMongoClient();
     const collection = client.db(dbName).collection(collectionNames.computeClients);
+    // we want undefined values to be unset
+    const updateSet: { [key: string]: any } = {};
+    const updateUnset: { [key: string]: any } = {};
+    for (const key in update) {
+        if (update[key] === undefined) {
+            updateUnset[key] = ''; // any value works, it just needs the key present
+        }
+        else {
+            updateSet[key] = update[key];
+        }
+    }
     await collection
-        .updateOne({ computeClientId }, { $set: update });
+        .updateOne({ computeClientId }, { $set: updateSet, $unset: updateUnset });
 }
 
 const authenticateComputeClient = async (computeClientId: string, authorizationToken: string | undefined): Promise<boolean> => {

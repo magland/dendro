@@ -282,14 +282,15 @@ export const useComputeClient = (computeClientId: string) => {
         setComputeClient(undefined)
     }, [computeClientId, githubAccessToken])
 
-    const setComputeClientInfo = useCallback(async (o: { computeSlots?: ComputeClientComputeSlot[], serviceNames?: string[] }) => {
+    const setComputeClientInfo = useCallback(async (o: { computeSlots?: ComputeClientComputeSlot[], serviceNames?: string[], processJobsForUsers?: string[] | null }) => {
         if (!githubAccessToken) return
-        const { computeSlots, serviceNames } = o
+        const { computeSlots, serviceNames, processJobsForUsers } = o
         const req: SetComputeClientInfoRequest = {
             type: 'setComputeClientInfoRequest',
             computeClientId,
             computeSlots,
-            serviceNames
+            serviceNames,
+            processJobsForUsers
         }
         const resp = await apiPostRequest('setComputeClientInfo', req, githubAccessToken)
         if (!isSetComputeClientInfoResponse(resp)) {

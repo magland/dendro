@@ -99,6 +99,17 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                         <td />
                     </tr>
                     <tr>
+                        <td>Process jobs for users</td>
+                        <td>
+                            <ProcessJobsForUsersView
+                                processJobsForUsers={computeClient.processJobsForUsers} editable={true}
+                                onSetProcessJobsForUsers={(processJobsForUsers) => {
+                                    setComputeClientInfo({processJobsForUsers})
+                                }}
+                            />
+                        </td>
+                    </tr>
+                    <tr>
                         <td>Last active</td>
                         <td>{timeAgoString(computeClient.timestampLastActiveSec)}</td>
                     </tr>
@@ -202,6 +213,98 @@ const ComputeSlotsView: FunctionComponent<ComputeSlotsViewProps> = ({ computeSlo
         )
     }
 }
+
+type ProcessJobsForUsersViewProps = {
+    processJobsForUsers: string[] | undefined | null
+    editable: boolean
+    onSetProcessJobsForUsers: (processJobsForUsers: string[] | null) => void
+}
+
+const ProcessJobsForUsersView: FunctionComponent<ProcessJobsForUsersViewProps> = ({ processJobsForUsers, editable, onSetProcessJobsForUsers }) => {
+    const [editing, setEditing] = useState<boolean>(false)
+    // editedText is \n-separated list of user IDs. Empty means process for all users. "*none*" means for no users
+    const [editedText, setEditedText] = useState<string>('')
+    useEffect(() => {
+        if (!editable) {
+            setEditing(false)
+        }
+    }, [editable])
+    const text = useMemo(() => {
+        if ((processJobsForUsers === undefined) || (processJobsForUsers === null)) {
+            return ''
+        }
+        else if (processJobsForUsers.length === 0) {
+            return '*none*'
+        }
+        else {
+            return processJobsForUsers.join('\n')
+        }
+    }, [processJobsForUsers])
+    useEffect(() => {
+        setEditedText(text)
+    }, [text])
+    if (editing) {
+        return (
+            <div>
+                <div>
+                    <SmallIconButton
+                        icon={<Save />}
+                        title="Save process jobs for users"
+                        onClick={() => {
+                            const lines = editedText.split('\n').map(x => (x.trim())).filter(x => !!x)
+                            if (lines.length === 1 && lines[0] === '*none*') {
+                                onSetProcessJobsForUsers([])
+                            }
+                            else if (lines.length > 0) {
+                                onSetProcessJobsForUsers(lines)
+                            }
+                            else {
+                                onSetProcessJobsForUsers(null)
+                            }
+                            setEditing(false)
+                        }}
+                    />
+                </div>
+                <div>
+                    <textarea
+                        value={editedText}
+                        onChange={evt => {
+                            setEditedText(evt.target.value)
+                        }}
+                        style={{width: '100%', height: 200}}
+                    />
+                </div>
+            </div>
+        )
+    }
+    else {
+        return (
+            <div>
+                {editable && <div>
+                    {!editing && (
+                        <SmallIconButton
+                            icon={<Edit />}
+                            title="Edit process jobs for users"
+                            onClick={() => {
+                                setEditing(true)
+                            }}
+                        />
+                    )}
+                </div>}
+                <div>
+                    {processJobsForUsers === undefined || processJobsForUsers === null ? (
+                        <span>All users</span>
+                    ) : processJobsForUsers.length === 0 ? (
+                        <span>No users</span>
+                    ) : (
+                        processJobsForUsers.join(', ')
+                    )}
+                </div>
+            </div>
+        )
+    }
+}
+
 
 const jsonToYaml = (x: any) => {
     return yaml.dump(x)

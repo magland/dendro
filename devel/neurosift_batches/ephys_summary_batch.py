@@ -6,8 +6,7 @@ import h5py
 import lindi
 from pairio.client import submit_job, PairioJobDefinition, PairioJobRequiredResources, PairioJobParameter, PairioJobInputFile, PairioJobOutputFile
 
-def ephys_summary_batch():
-    dandiset_id = '000957'
+def ephys_summary_batch(dandiset_id: str):
     parsed_url = da.parse_dandi_url(f"https://dandiarchive.org/dandiset/{dandiset_id}")
     num_consecutive_not_nwb = 0
     num_consecutive_not_found = 0
@@ -43,7 +42,7 @@ def ephys_summary_batch():
                 s = process_asset(lindi_json_url)
                 statuses.extend(s)
                 num_assets_processed += 1
-                if num_assets_processed >= 20:
+                if num_assets_processed >= 30:
                     print(f'Stopping because {num_assets_processed} assets processed.')
                     break
     num_pending = len([s for s in statuses if s == 'pending'])
@@ -167,4 +166,6 @@ def _remote_file_exists(url: str) -> bool:
 
 
 if __name__ == '__main__':
-    ephys_summary_batch()
+    dandiset_ids = ['000957', '000732']
+    for dandiset_id in dandiset_ids:
+        ephys_summary_batch(dandiset_id)

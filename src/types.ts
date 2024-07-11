@@ -59,7 +59,7 @@ export type PairioComputeClient = {
   computeClientPrivateKey: string | null
   computeClientName: string // unique for service
   userId: string
-  processJobsForUsers?: string[] // if provided, only process jobs for these users
+  processJobsForUsers?: string[] | null // if provided and not null, only process jobs for these users
   description: string
   computeSlots: ComputeClientComputeSlot[]
   timestampLastActiveSec?: number
@@ -72,7 +72,7 @@ export const isPairioComputeClient = (x: any): x is PairioComputeClient => {
     computeClientPrivateKey: isOneOf([isString, isNull]),
     computeClientName: isString,
     userId: isString,
-    processJobsForUsers: optional(isArrayOf(isString)),
+    processJobsForUsers: optional(isOneOf([isArrayOf(isString), isNull])),
     description: isString,
     computeSlots: isArrayOf(isComputeClientComputeSlot),
     timestampLastActiveSec: optional(isNumber),
@@ -1027,6 +1027,7 @@ export type SetComputeClientInfoRequest = {
   computeClientName?: string
   description?: string
   computeSlots?: ComputeClientComputeSlot[]
+  processJobsForUsers?: string[] | null
 }
 
 export const isSetComputeClientInfoRequest = (x: any): x is SetComputeClientInfoRequest => {
@@ -1036,7 +1037,8 @@ export const isSetComputeClientInfoRequest = (x: any): x is SetComputeClientInfo
     serviceNames: optional(isArrayOf(isString)),
     computeClientName: optional(isString),
     description: optional(isString),
-    computeSlots: optional(isArrayOf(isComputeClientComputeSlot))
+    computeSlots: optional(isArrayOf(isComputeClientComputeSlot)),
+    processJobsForUsers: optional(isOneOf([isArrayOf(isString), isNull]))
   })
 }
 
