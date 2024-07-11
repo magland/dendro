@@ -23,7 +23,7 @@ def nwb_cebra(
     service_name = os.getenv('PAIRIO_SERVICE_NAME', 'hello_world_service')
     job_def = PairioJobDefinition(
         appName='hello_cebra',
-        processorName='cebra_nwb_embedding_1',
+        processorName='cebra_nwb_embedding_5',
         inputFiles=[
             PairioJobInputFile(
                 name='input',
