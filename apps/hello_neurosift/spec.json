@@ -78,6 +78,34 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "name": "avi_to_mp4",
+            "description": "Convert an .avi file to an .mp4 file",
+            "label": "avi_to_mp4",
+            "image": "magland/pairio-hello-neurosift:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [
+                {
+                    "name": "input",
+                    "description": "Input .avi file"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": "Output .mp4 file"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "duration_sec",
+                    "type": "str",
+                    "description": "The duration of the output video in seconds",
+                    "defaultValue": 10
+                }
+            ],
+            "attributes": []
         }
     ]
 }
