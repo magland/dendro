@@ -3,6 +3,9 @@ FROM python:3.9
 # Install ffmpeg
 RUN apt-get update && apt-get install -y ffmpeg
 
+# Install opencv
+RUN pip install opencv-python
+
 # Install pairio from github
 RUN mkdir -p /src
 WORKDIR /src

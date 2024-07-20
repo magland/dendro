@@ -288,7 +288,7 @@ export type PairioJob = {
   canceled: boolean
   status: PairioJobStatus
   isRunnable: boolean
-  error: string | null
+  error?: string | null
   computeClientId: string | null
   computeClientName: string | null
   computeClientUserId: string | null
@@ -321,7 +321,7 @@ export const isPairioJob = (x: any): x is PairioJob => {
     canceled: isBoolean,
     status: isPairioJobStatus,
     isRunnable: isBoolean,
-    error: isOneOf([isString, isNull]),
+    error: optional(isOneOf([isString, isNull])),
     computeClientId: isOneOf([isString, isNull]),
     computeClientName: isOneOf([isString, isNull]),
     computeClientUserId: isOneOf([isString, isNull]),

@@ -95,6 +95,10 @@
                 {
                     "name": "output",
                     "description": "Output .mp4 file"
+                },
+                {
+                    "name": "info",
+                    "description": "Output .json info file"
                 }
             ],
             "parameters": [
