@@ -10,7 +10,7 @@ const LoginButton: React.FC = () => {
   const { githubAccessToken, clearGithubAccessToken, userId } = useLogin();
 
   if (!githubAccessToken) {
-    return <a href={loginUrl}>Login with GitHub</a>
+    return <a href={loginUrl}>Log in with GitHub</a>
   }
   else {
     return (
