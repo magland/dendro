@@ -34,10 +34,18 @@ class MountainSort5_1(ProcessorBase):
 
     @staticmethod
     def run(context: MountainSort5_1Context):
+        import numpy as np
         import lindi
         import h5py
         from nwbextractors import NwbRecordingExtractor
         import spikeinterface.preprocessing as spre
+        import spikeinterface as si
+        from helpers.make_float32_recording import make_float32_recording
+        from helpers._scale_recording_if_float_type import (
+            _scale_recording_if_float_type,
+        )
+        from helpers.create_sorting_out_nwb_file import create_sorting_out_nwb_file
+        import mountainsort5 as ms5
 
         electrical_series_path = context.electrical_series_path
         start_time_sec = context.segment_start_time_sec
@@ -82,22 +90,65 @@ class MountainSort5_1(ProcessorBase):
             ),
         )
 
+        # bandpass filter
         print("Filtering recording")
-        freq_max = min(6000, recording.get_sampling_frequency() / 2)
-        if freq_max < 6000:
-            print(f"Warning: setting freq_max to {freq_max} Hz")
-        recording = spre.bandpass_filter(recording, freq_min=300, freq_max=freq_max)
+        freq_min = 300
+        freq_max = 6000
+        recording_filtered = spre.bandpass_filter(
+            recording, freq_min=freq_min, freq_max=freq_max, dtype=np.float32
+        )  # important to specify dtype here
 
-        print("Getting channel ids")
-        channel_ids = recording.get_channel_ids()
+        print("Creating binary recording")
+        recording_binary = make_float32_recording(
+            recording_filtered, dirname="float32_recording"
+        )
+
+        print("Whitening")
+        # see comment in _scale_recording_if_float_type
+        recording_scaled = _scale_recording_if_float_type(recording_binary)
+        recording_preprocessed: si.BaseRecording = spre.whiten(
+            recording_scaled,
+            dtype="float32",
+            num_chunks_per_segment=1,  # by default this is 20 which takes a long time to load depending on the chunking
+            chunk_size=int(1e5),
+        )
+
+        print("Setting up sorting parameters")
+        detect_threshold = 6
+        scheme1_detect_channel_radius = None
+        detect_time_radius_msec = 0.5
+        detect_sign = -1
+        snippet_T1 = 20
+        snippet_T2 = 50
+        snippet_mask_radius = None
+        npca_per_channel = 3
+        npca_per_subdivision = 10
+        scheme1_sorting_parameters = ms5.Scheme1SortingParameters(
+            detect_threshold=detect_threshold,
+            detect_channel_radius=scheme1_detect_channel_radius,
+            detect_time_radius_msec=detect_time_radius_msec,
+            detect_sign=detect_sign,
+            snippet_T1=snippet_T1,
+            snippet_T2=snippet_T2,
+            snippet_mask_radius=snippet_mask_radius,
+            npca_per_channel=npca_per_channel,
+            npca_per_subdivision=npca_per_subdivision,
+        )
+
+        print("Sorting scheme 1")
+        sorting = ms5.sorting_scheme1(
+            recording=recording_preprocessed,
+            sorting_parameters=scheme1_sorting_parameters,
+        )
 
         print("Saving output")
-        with open("units.h5", "wb") as f:
-            with h5py.File(f, "w") as hf:
-                hf.attrs["channel_ids"] = [str(ch) for ch in channel_ids]
+        output_fname = "units.nwb"
+        create_sorting_out_nwb_file(
+            nwbfile_rec=f, sorting=sorting, sorting_out_fname=output_fname
+        )
 
         print("Uploading output")
-        upload_h5_as_lindi_output(h5_fname="units.h5", output=context.output)
+        upload_h5_as_lindi_output(h5_fname=output_fname, output=context.output)
 
 
 def upload_h5_as_lindi_output(h5_fname, output: OutputFile, remote_fname="output.h5"):

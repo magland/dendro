@@ -16,6 +16,7 @@ RUN pip install lindi==0.3.11
 
 # Copy files into the container
 COPY *.py /app/
+COPY helpers/*.py /app/helpers/
 
 # Set the working directory
 WORKDIR /app
