@@ -370,7 +370,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
         }
         const service = await fetchService(rr.serviceName);
         if (!service) {
-            res.status(404).json({ error: "Service not found" });
+            res.status(400).json({ error: "Service not found" });
             return;
         }
         if (!userIsAllowedToCreateJobsForService(service, rr.userId)) {
@@ -379,7 +379,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
         }
         const app = await fetchServiceApp(rr.serviceName, rr.jobDefinition.appName)
         if (!app) {
-            res.status(404).json({ error: `Service app not found: ${rr.jobDefinition.appName}` });
+            res.status(400).json({ error: `Service app not found: ${rr.jobDefinition.appName}` });
             return;
         }
         try {
