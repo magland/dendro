@@ -37,6 +37,7 @@ class MountainSort5_1(ProcessorBase):
         import numpy as np
         import lindi
         import h5py
+        import pynwb
         from nwbextractors import NwbRecordingExtractor
         import spikeinterface.preprocessing as spre
         import spikeinterface as si
@@ -142,10 +143,12 @@ class MountainSort5_1(ProcessorBase):
         )
 
         print("Saving output")
-        output_fname = "units.nwb"
-        create_sorting_out_nwb_file(
-            nwbfile_rec=f, sorting=sorting, sorting_out_fname=output_fname
-        )
+        with pynwb.NWBHDF5IO(file=f, mode="r") as f_io:
+            f_nwbfile = f_io.read()
+            output_fname = "units.nwb"
+            create_sorting_out_nwb_file(
+                nwbfile_rec=f_nwbfile, sorting=sorting, sorting_out_fname=output_fname
+            )
 
         print("Uploading output")
         upload_h5_as_lindi_output(h5_fname=output_fname, output=context.output)
