@@ -787,6 +787,17 @@ class NwbRecordingExtractor(BaseRecording):
                 if "rel_z" in electrodes_table:
                     locations[:, 2] = electrodes_table["rel_z"][electrodes_indices]
 
+        # allow x, y, z instead of rel_x, rel_y, rel_z
+        if locations is None:
+            if "x" in electrodes_table:
+                if "y" in electrodes_table:
+                    ndim = 3 if "z" in electrodes_table else 2
+                    locations = np.zeros((self.get_num_channels(), ndim), dtype=float)
+                    locations[:, 0] = electrodes_table["x"][electrodes_indices]
+                    locations[:, 1] = electrodes_table["y"][electrodes_indices]
+                    if "z" in electrodes_table:
+                        locations[:, 2] = electrodes_table["z"][electrodes_indices]
+
         # Channel groups
         groups = None
         if "group_name" in electrodes_table:
