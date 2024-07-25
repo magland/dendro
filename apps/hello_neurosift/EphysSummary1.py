@@ -41,7 +41,7 @@ class EphysSummary1(ProcessorBase):
 
             input_fname = 'input.nwb.lindi.json'
             input.download(input_fname)
-            _process_lindi_file(input_fname)
+            # _process_lindi_file(input_fname)
             f = lindi.LindiH5pyFile.from_lindi_file(input_fname, local_cache=local_cache)
         else:
             f = lindi.LindiH5pyFile.from_hdf5_file(url, local_cache=local_cache)
@@ -166,43 +166,43 @@ def upload_h5_as_lindi_output(
     output.upload(lindi_fname)
 
 
-def _process_lindi_file(fname: str):
-    import numpy as np
-    from lindi.LindiH5pyFile.LindiReferenceFileSystemStore import LindiReferenceFileSystemStore
-    import json
+# def _process_lindi_file(fname: str):
+#     import numpy as np
+#     from lindi.LindiH5pyFile.LindiReferenceFileSystemStore import LindiReferenceFileSystemStore
+#     import json
 
-    with open(fname, 'r') as f:
-        rfs = json.load(f)
+#     with open(fname, 'r') as f:
+#         rfs = json.load(f)
 
-    store = LindiReferenceFileSystemStore(rfs)
+#     store = LindiReferenceFileSystemStore(rfs)
 
-    refs = rfs['refs']
-    for k in refs.keys():
-        zarray_key = f'{k}/.zarray'
-        if zarray_key in refs:
-            v = store.get(zarray_key)
-            assert v
-            zarray = json.loads(v)
-            chunk_shape = zarray.get('chunks')
-            shape = zarray.get('shape')
-            should_be_split = False
-            if not zarray.get('compressor') and not zarray.get('filters'):
-                if chunk_shape == shape:
-                    if np.prod(shape) > 1000 * 1000 * 20:
-                        should_be_split = True
-            if should_be_split:
-                print(f'Splitting {k}')
-                zeros = ['0' for _ in range(len(shape))]
-                chunk_key = f"{k}/{zeros.join('.')}"
-                chunk_val = refs[chunk_key]
-                url0 = chunk_val[0]
-                offset0 = chunk_val[1]
-                size0 = chunk_val[2]
-                del refs[chunk_key]
-                nn = ...
-                num_chunks = shape[0] // nn
-                zarray['chunks'] = [nn] + shape[1:]
-                for i in range(0, int(shape[0]), size0):
-                    zeros = ['0' for _ in range(len(shape) - 1)]
-                    chunk_key = f"{k}/{i}.{zeros.join('.')}"
-                    refs[chunk_key] = [url0, offset0 + i * size0, size0]
+#     refs = rfs['refs']
+#     for k in refs.keys():
+#         zarray_key = f'{k}/.zarray'
+#         if zarray_key in refs:
+#             v = store.get(zarray_key)
+#             assert v
+#             zarray = json.loads(v)
+#             chunk_shape = zarray.get('chunks')
+#             shape = zarray.get('shape')
+#             should_be_split = False
+#             if not zarray.get('compressor') and not zarray.get('filters'):
+#                 if chunk_shape == shape:
+#                     if np.prod(shape) > 1000 * 1000 * 20:
+#                         should_be_split = True
+#             if should_be_split:
+#                 print(f'Splitting {k}')
+#                 zeros = ['0' for _ in range(len(shape))]
+#                 chunk_key = f"{k}/{zeros.join('.')}"
+#                 chunk_val = refs[chunk_key]
+#                 url0 = chunk_val[0]
+#                 offset0 = chunk_val[1]
+#                 size0 = chunk_val[2]
+#                 del refs[chunk_key]
+#                 nn = ...
+#                 num_chunks = shape[0] // nn
+#                 zarray['chunks'] = [nn] + shape[1:]
+#                 for i in range(0, int(shape[0]), size0):
+#                     zeros = ['0' for _ in range(len(shape) - 1)]
+#                     chunk_key = f"{k}/{i}.{zeros.join('.')}"
+#                     refs[chunk_key] = [url0, offset0 + i * size0, size0]

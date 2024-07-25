@@ -1,0 +1,43 @@
+{
+    "name": "hello_mountainsort5",
+    "description": "Hello MountainSort5",
+    "processors": [
+        {
+            "name": "mountainsort5_1",
+            "description": "Run MountainSort5 on an electrophysiology dataset",
+            "label": "mountainsort5_1",
+            "image": "magland/pairio-hello-mountainsort5:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [
+                {
+                    "name": "input",
+                    "description": "Input NWB file in .nwb or .nwb.lindi.json format"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": "Output data in .lindi.json format"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "electrical_series_path",
+                    "type": "str",
+                    "description": "Path to the electrical series object in the NWB file"
+                },
+                {
+                    "name": "segment_start_time_sec",
+                    "type": "float",
+                    "description": "Start time of segment to analyze in seconds"
+                },
+                {
+                    "name": "segment_duration_sec",
+                    "type": "float",
+                    "description": "Duration of segment to analyze in seconds"
+                }
+            ],
+            "attributes": []
+        }
+    ]
+}
