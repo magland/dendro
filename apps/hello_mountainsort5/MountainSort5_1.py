@@ -84,11 +84,12 @@ class MountainSort5_1(ProcessorBase):
         )
 
         print("Extracting segment to analyze")
+        num_frames = recording.get_num_frames()
+        start_frame = int(start_time_sec * recording.get_sampling_frequency())
+        end_frame = int(np.minimum(num_frames, (start_time_sec + duration_sec) * recording.get_sampling_frequency()))
         recording = recording.frame_slice(
-            start_frame=int(start_time_sec * recording.get_sampling_frequency()),
-            end_frame=int(
-                (start_time_sec + duration_sec) * recording.get_sampling_frequency()
-            ),
+            start_frame=start_frame,
+            end_frame=end_frame
         )
 
         # bandpass filter

@@ -21,6 +21,7 @@ class EphysSummary1(ProcessorBase):
     def run(
         context: EphysSummary1Context
     ):
+        import numpy as np
         import lindi
         import h5py
         from nwbextractors import NwbRecordingExtractor
@@ -57,7 +58,13 @@ class EphysSummary1(ProcessorBase):
         recording = NwbRecordingExtractor(h5py_file=f, electrical_series_path=electrical_series_path)
 
         print('Extracting segment to analyze')
-        recording = recording.frame_slice(start_frame=int(start_time_sec * recording.get_sampling_frequency()), end_frame=int((start_time_sec + duration_sec) * recording.get_sampling_frequency()))
+        num_frames = recording.get_num_frames()
+        start_frame = int(start_time_sec * recording.get_sampling_frequency())
+        end_frame = int(np.minimum(num_frames, (start_time_sec + duration_sec) * recording.get_sampling_frequency()))
+        recording = recording.frame_slice(
+            start_frame=start_frame,
+            end_frame=end_frame
+        )
 
         print('Filtering recording')
         freq_max = min(6000, recording.get_sampling_frequency() / 2)
