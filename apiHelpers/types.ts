@@ -274,6 +274,7 @@ export type PairioJob = {
   jobDefinitionHash: string
   jobDependencies: string[]
   requiredResources: PairioJobRequiredResources
+  targetComputeClientIds?: string[] | null
   secrets: PairioJobSecret[] | null
   inputFileUrlList: string[]
   outputFileUrlList: string[]
@@ -307,6 +308,7 @@ export const isPairioJob = (x: any): x is PairioJob => {
     jobDefinitionHash: isString,
     jobDependencies: isArrayOf(isString),
     requiredResources: isPairioJobRequiredResources,
+    targetComputeClientIds: optional(isOneOf([isArrayOf(isString), isNull])),
     secrets: isOneOf([isArrayOf(isPairioJobSecret), isNull]),
     inputFileUrlList: isArrayOf(isString),
     outputFileUrlList: isArrayOf(isString),
@@ -634,6 +636,7 @@ export type CreateJobRequest = {
   tags: string[]
   jobDefinition: PairioJobDefinition
   requiredResources: PairioJobRequiredResources
+  targetComputeClientIds?: string[]
   secrets: PairioJobSecret[]
   jobDependencies: string[]
   skipCache?: boolean
@@ -650,11 +653,12 @@ export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
     tags: isArrayOf(isString),
     jobDefinition: isPairioJobDefinition,
     requiredResources: isPairioJobRequiredResources,
+    targetComputeClientIds: optional(isArrayOf(isString)),
     secrets: isArrayOf(isPairioJobSecret),
     jobDependencies: isArrayOf(isString),
     skipCache: optional(isBoolean),
     rerunFailing: optional(isBoolean),
-    deleteFailing: optional(isBoolean)
+    deleteFailing: optional(isBoolean),
   })
 }
 

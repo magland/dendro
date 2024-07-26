@@ -478,6 +478,7 @@ export const createJobHandler = allowCors(async (req: VercelRequest, res: Vercel
             jobDefinitionHash,
             jobDependencies: rr.jobDependencies,
             requiredResources: rr.requiredResources,
+            targetComputeClientIds: rr.targetComputeClientIds || null,
             secrets: rr.secrets,
             inputFileUrlList: rr.jobDefinition.inputFiles.map(f => f.url),
             outputFileUrlList: [],
@@ -774,6 +775,15 @@ export const getRunnableJobsForComputeClientHandler = allowCors(async (req: Verc
             // and minimize conflicts between compute clients when there are many
             // pending jobs
             runnableJobs = shuffleArray(runnableJobs);
+            // exclude jobs that are targeting other compute clients
+            runnableJobs = runnableJobs.filter(j => {
+                if (j.targetComputeClientIds) {
+                    return j.targetComputeClientIds.includes(rr.computeClientId);
+                }
+                else {
+                    return true;
+                }
+            })
             for (const pj of runnableJobs) {
                 if (computeResourceHasEnoughCapacityForJob(computeClient, pj, [...runningJobs, ...allRunnableReadyJobs])) {
                     allRunnableReadyJobs.push(pj);
