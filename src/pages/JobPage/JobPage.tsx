@@ -8,6 +8,8 @@ import { timeAgoString } from "../../timeStrings"
 import ServiceNameComponent from "../../components/ServiceNameComponent"
 import ServiceAppNameComponent from "../../components/ServiceAppNameComponent"
 import { Refresh } from "@mui/icons-material"
+import UserIdComponent from "../../components/UserIdComponent"
+import { useLogin } from "../../LoginContext/LoginContext"
 
 type JobPageProps = {
     // none
@@ -21,14 +23,19 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
     }
     const jobId = route.jobId
     const { job, refreshJob, deleteJob } = useJob(jobId)
+    const { userId } = useLogin()
     const handleDeleteJob = useCallback(() => {
         if (!job) return;
+        if (!userId) {
+            alert('Not logged in')
+            return
+        }
         const okay = window.confirm('Are you sure you want to delete this job?')
         if (!okay) return
         deleteJob().then(() => {
             setRoute({page: 'service', serviceName: job.serviceName})
         })
-    }, [job, setRoute, deleteJob])
+    }, [job, setRoute, deleteJob, userId])
     if (!job) {
         return (
             <div style={{padding: 20}}>
@@ -91,6 +98,10 @@ export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob, dele
                         <td>{job.jobDefinition.processorName}</td>
                     </tr>
                     <tr>
+                        <td>User</td>
+                        <td><UserIdComponent userId={job.userId} /></td>
+                    </tr>
+                    <tr>
                         <td>Status</td>
                         <td>
                             {job.status}
@@ -130,6 +141,14 @@ export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob, dele
                             <pre>
                                 {JSON.stringify(job.requiredResources)}
                             </pre>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Target compute clients</td>
+                        <td>
+                            {
+                                (job.targetComputeClientIds || []).join(', ')
+                            }
                         </td>
                     </tr>
                 </tbody>

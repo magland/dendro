@@ -1,4 +1,5 @@
 from typing import Union
+import socket
 import click
 from .compute_client.register_compute_client import register_compute_client as register_compute_client_function
 from .compute_client.start_compute_client import start_compute_client as start_compute_client_function
@@ -18,7 +19,10 @@ def register_compute_client(
     if service_name is None:
         service_name = input('Enter the name of the pairio service: ')
     if compute_client_name is None:
-        compute_client_name = input('Enter a unique name for the compute client: ')
+        default_compute_client_name = socket.gethostname()
+        compute_client_name = input(f'Enter a unique name for the compute client [{default_compute_client_name}]: ')
+        if compute_client_name == '':
+            compute_client_name = default_compute_client_name
     register_compute_client_function(
         dir='.',
         compute_client_name=compute_client_name,

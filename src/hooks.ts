@@ -4,7 +4,7 @@ import { useLogin } from "./LoginContext/LoginContext";
 import { AddServiceAppRequest, AddServiceRequest, ComputeClientComputeSlot, ComputeUserStatsRequest, CreateComputeClientRequest, DeleteComputeClientRequest, DeleteJobsRequest, DeleteServiceRequest, GetComputeClientRequest, GetComputeClientsRequest, GetJobRequest, FindJobsRequest, GetServiceAppRequest, GetServiceAppsRequest, GetServiceRequest, GetServicesRequest, PairioComputeClient, PairioJob, PairioService, PairioServiceApp, PairioServiceUser, PingComputeClientsRequest, SetComputeClientInfoRequest, SetServiceAppInfoRequest, SetServiceInfoRequest, UserStats, isAddServiceAppResponse, isAddServiceResponse, isComputeUserStatsResponse, isCreateComputeClientResponse, isDeleteJobsResponse, isGetComputeClientResponse, isGetComputeClientsResponse, isGetJobResponse, isFindJobsResponse, isGetServiceAppResponse, isGetServiceAppsResponse, isGetServiceResponse, isGetServicesResponse, isPairioAppSpecification, isPingComputeClientsResponse, isSetComputeClientInfoResponse, isSetServiceAppInfoResponse, isSetServiceInfoResponse } from "./types";
 
 const isLocalHost = window.location.hostname === 'localhost'
-const apiUrl = isLocalHost ? 'http://localhost:3000' : 'https://pairio.vercel.app'
+const apiUrl = isLocalHost ? `http://${window.location.hostname}:${window.location.port}` : 'https://pairio.vercel.app'
 
 export const useServices = () => {
     const { userId, githubAccessToken } = useLogin();

@@ -116,6 +116,8 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
                 </tbody>
             </table>
             <hr />
+            To run your compute client, change to the compute client directory and run "pairio start-compute-client" and leave the terminal open. On a remote machine, you may want to use tmux or screen.
+            <hr />
             {/* <div>
                 {errorMessage && (
                     <div style={{color: 'red'}}>
@@ -256,7 +258,15 @@ const ProcessJobsForUsersView: FunctionComponent<ProcessJobsForUsersViewProps> =
                                 onSetProcessJobsForUsers([])
                             }
                             else if (lines.length > 0) {
-                                onSetProcessJobsForUsers(lines)
+                                const userIds = lines.map(x => {
+                                    if (!x.startsWith('github|')) {
+                                        return 'github|' + x
+                                    }
+                                    else {
+                                        return x
+                                    }
+                                })
+                                onSetProcessJobsForUsers(userIds)
                             }
                             else {
                                 onSetProcessJobsForUsers(null)
@@ -266,6 +276,7 @@ const ProcessJobsForUsersView: FunctionComponent<ProcessJobsForUsersViewProps> =
                     />
                 </div>
                 <div>
+                    <p>Use GitHub IDs. One user ID per line. Empty means process for all users. "*none*" means for no users.</p>
                     <textarea
                         value={editedText}
                         onChange={evt => {
