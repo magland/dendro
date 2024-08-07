@@ -108,7 +108,7 @@ class CebraNwbEmbedding5(ProcessorBase):
         embedding = model.transform(spike_counts)
 
         with lindi.LindiH5pyFile.from_lindi_file('cebra.lindi', mode='w') as f:
-            f.create_dataset('embedding', data=embedding)
+            f.create_dataset('embedding', data=embedding, chunks=(int(1e6), output_dimensions))
             f.attrs['batch_size'] = batch_size
             f.attrs['bin_size_msec'] = bin_size_msec
             f.attrs['max_iterations'] = max_iterations
@@ -117,7 +117,7 @@ class CebraNwbEmbedding5(ProcessorBase):
             f.attrs['num_bins'] = num_bins
             f.attrs['start_time_sec'] = start_time_sec
             f.attrs['end_time_sec'] = end_time_sec
-            loss = model.state_dict_['loss']
+            loss = model.state_dict_['loss'].cpu().numpy()
             f.create_dataset('loss', data=loss)
 
         context.output.upload('cebra.lindi')

@@ -26,10 +26,17 @@ RUN git clone https://github.com/neurodatawithoutborders/lindi \
     && cd lindi \
     && git checkout lindi-tar \
     && pip install -e . \
-    && echo "v1"
+    && echo "v2"
 
 # Install qfc
-RUN pip install qfc
+RUN pip install qfc==0.3.6
+
+# Install fork of hdmf until PR is merged
+RUN git clone https://github.com/magland/hdmf \
+    && cd hdmf \
+    && git submodule update --init --recursive \
+    && pip install -e . \
+    && echo "v1"
 
 # Copy files into the container
 COPY *.py /app/

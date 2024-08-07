@@ -28,6 +28,8 @@ class EphysPreprocess(ProcessorBase):
         from nwbextractors import NwbRecordingExtractor
         import spikeinterface.preprocessing as spre
 
+        QFCCodec.register_codec()
+
         if context.input.file_base_name.endswith('.nwb'):
             print('Creating LINDI file from NWB file')
             url = context.input.get_url()
