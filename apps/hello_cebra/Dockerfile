@@ -13,10 +13,15 @@ RUN git clone https://github.com/magland/pairio \
     && cd pairio \
     && cd python \
     && pip install -e . \
-    && echo "v21"
+    && echo "v22"
 
-# Install lindi
-RUN pip install lindi==0.3.11
+# Install lindi from branch
+WORKDIR /src
+RUN git clone https://github.com/neurodatawithoutborders/lindi \
+    && cd lindi \
+    && git checkout lindi-tar \
+    && pip install -e . \
+    && echo "v1"
 
 # Copy files into the container
 COPY *.py /app/

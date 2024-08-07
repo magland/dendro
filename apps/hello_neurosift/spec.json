@@ -11,13 +11,13 @@
             "inputs": [
                 {
                     "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi.json format"
+                    "description": "Input NWB file in .nwb or .nwb.lindi format"
                 }
             ],
             "outputs": [
                 {
                     "name": "output",
-                    "description": "Output data in .lindi.json format"
+                    "description": "Output data in .lindi format"
                 }
             ],
             "parameters": [
@@ -51,13 +51,13 @@
             "inputs": [
                 {
                     "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi.json format"
+                    "description": "Input NWB file in .nwb or .nwb.lindi format"
                 }
             ],
             "outputs": [
                 {
                     "name": "output",
-                    "description": "Output data in .lindi.json format"
+                    "description": "Output data in .lindi format"
                 }
             ],
             "parameters": [
@@ -107,6 +107,33 @@
                     "type": "str",
                     "description": "The duration of the output video in seconds",
                     "defaultValue": 10
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "name": "ephys_preprocess",
+            "description": "Run preprocessing on an electrophysiology dataset",
+            "label": "ephys_preprocess",
+            "image": "magland/pairio-hello-neurosift:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [
+                {
+                    "name": "input",
+                    "description": "Input NWB file in .nwb or .nwb.lindi format"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": "Output data in .nwb.lindi format"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "electrical_series_path",
+                    "type": "str",
+                    "description": "Path to the electrical series object in the NWB file"
                 }
             ],
             "attributes": []

@@ -1,4 +1,5 @@
 import pynwb
+import lindi
 from uuid import uuid4
 
 
@@ -28,5 +29,6 @@ def create_sorting_out_nwb_file(*, nwbfile_rec, sorting, sorting_out_fname):
         nwbfile.add_unit(id=ii + 1, spike_times=st)  # must be an int
 
     # Write the nwb file
-    with pynwb.NWBHDF5IO(sorting_out_fname, "w") as io:  # type: ignore
-        io.write(nwbfile, cache_spec=True)  # type: ignore
+    with lindi.LindiH5pyFile.from_lindi_file(sorting_out_fname, mode="w") as f:
+        with pynwb.NWBHDF5IO(file=f, mode="w") as io:  # type: ignore
+            io.write(nwbfile, cache_spec=True)  # type: ignore

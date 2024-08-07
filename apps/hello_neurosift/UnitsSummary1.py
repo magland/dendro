@@ -1,9 +1,9 @@
 import time
-from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile, upload_additional_job_output
+from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class UnitsSummary1Context(BaseModel):
-    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.json format')
-    output: OutputFile = Field(description='Output data in .lindi.json format')
+    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi format')
+    output: OutputFile = Field(description='Output data in .lindi format')
     units_path: str = Field(description='Path to the units table in the NWB file', default='units')
     correlogram_window_size_msec: float = Field(description='Correlogram window size in milliseconds', default=100)
     correlogram_bin_size_msec: float = Field(description='Correlogram bin size in milliseconds', default=1)
@@ -23,7 +23,6 @@ class UnitsSummary1(ProcessorBase):
     ):
         import lindi
         import numpy as np
-        import h5py
         from helpers.compute_correlogram_data import compute_correlogram_data
 
         units_path = context.units_path
@@ -34,7 +33,7 @@ class UnitsSummary1(ProcessorBase):
         url = input.get_url()
         assert url
 
-        if input.file_base_name.endswith('.lindi.json'):
+        if input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi'):
             f = lindi.LindiH5pyFile.from_lindi_file(url)
         else:
             f = lindi.LindiH5pyFile.from_hdf5_file(url)
@@ -85,30 +84,13 @@ class UnitsSummary1(ProcessorBase):
         for i, ac in enumerate(auto_correlograms):
             autocorrelograms_array[i, :] = ac['bin_counts']
 
-        with open('units_summary.h5', 'wb') as f:
-            with h5py.File(f, 'w') as hf:
-                x = hf.create_dataset('autocorrelograms', data=autocorrelograms_array)
-                x.attrs['bin_edges_sec'] = auto_correlograms[0]['bin_edges_sec']
-                hf.attrs['correlogram_window_size_msec'] = correlogram_window_size_msec
-                hf.attrs['correlogram_bin_size_msec'] = correlogram_bin_size_msec
-                hf.attrs['correlogram_num_bins'] = num_bins
-                hf.attrs['num_units'] = num_units
-                hf.attrs['unit_ids'] = [str(uid) for uid in unit_ids]
+        with lindi.LindiH5pyFile.from_lindi_file('units_summary.lindi', mode='w') as f:
+            x = f.create_dataset('autocorrelograms', data=autocorrelograms_array)
+            x.attrs['bin_edges_sec'] = auto_correlograms[0]['bin_edges_sec']
+            f.attrs['correlogram_window_size_msec'] = correlogram_window_size_msec
+            f.attrs['correlogram_bin_size_msec'] = correlogram_bin_size_msec
+            f.attrs['correlogram_num_bins'] = num_bins
+            f.attrs['num_units'] = num_units
+            f.attrs['unit_ids'] = [str(uid) for uid in unit_ids]
 
-        upload_h5_as_lindi_output(
-            h5_fname='units_summary.h5',
-            output=context.output
-        )
-
-
-def upload_h5_as_lindi_output(
-    h5_fname,
-    output: OutputFile,
-    remote_fname='output.h5'
-):
-    import lindi
-    h5_url = upload_additional_job_output(h5_fname, remote_fname=remote_fname)
-    f = lindi.LindiH5pyFile.from_hdf5_file(h5_url)
-    lindi_fname = h5_fname + '.lindi.json'
-    f.write_lindi_file(lindi_fname)
-    output.upload(lindi_fname)
+        context.output.upload('units_summary.lindi')

@@ -1,8 +1,8 @@
-from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile, upload_additional_job_output
+from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class CebraNwbEmbedding5Context(BaseModel):
-    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.json')
-    output: OutputFile = Field(description='Output embedding in .lindi.json format')
+    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi')
+    output: OutputFile = Field(description='Output embedding in .lindi format')
     units_path: str = Field(description='Path to the units table in the NWB file', default='units')
     max_iterations: int = Field(description='Maximum number of iterations', default=1000)
     batch_size: int = Field(description='Batch size', default=1000)
@@ -25,7 +25,6 @@ class CebraNwbEmbedding5(ProcessorBase):
         import numpy as np
         import cebra
         import torch
-        import h5py
 
         units_path = context.units_path
         batch_size = context.batch_size
@@ -39,7 +38,7 @@ class CebraNwbEmbedding5(ProcessorBase):
         url = input.get_url()
         assert url
 
-        if input.file_base_name.endswith('.lindi.json'):
+        if input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi'):
             f = lindi.LindiH5pyFile.from_lindi_file(url)
         else:
             f = lindi.LindiH5pyFile.from_hdf5_file(url)
@@ -108,34 +107,17 @@ class CebraNwbEmbedding5(ProcessorBase):
 
         embedding = model.transform(spike_counts)
 
-        with open('cebra.h5', 'wb') as f:
-            with h5py.File(f, 'w') as hf:
-                hf.create_dataset('embedding', data=embedding)
-                hf.attrs['batch_size'] = batch_size
-                hf.attrs['bin_size_msec'] = bin_size_msec
-                hf.attrs['max_iterations'] = max_iterations
-                hf.attrs['output_dimensions'] = output_dimensions
-                hf.attrs['num_units'] = num_units
-                hf.attrs['num_bins'] = num_bins
-                hf.attrs['start_time_sec'] = start_time_sec
-                hf.attrs['end_time_sec'] = end_time_sec
-                loss = model.state_dict_['loss']
-                hf.create_dataset('loss', data=loss)
+        with lindi.LindiH5pyFile.from_lindi_file('cebra.lindi', mode='w') as f:
+            f.create_dataset('embedding', data=embedding)
+            f.attrs['batch_size'] = batch_size
+            f.attrs['bin_size_msec'] = bin_size_msec
+            f.attrs['max_iterations'] = max_iterations
+            f.attrs['output_dimensions'] = output_dimensions
+            f.attrs['num_units'] = num_units
+            f.attrs['num_bins'] = num_bins
+            f.attrs['start_time_sec'] = start_time_sec
+            f.attrs['end_time_sec'] = end_time_sec
+            loss = model.state_dict_['loss']
+            f.create_dataset('loss', data=loss)
 
-        upload_h5_as_lindi_output(
-            h5_fname='cebra.h5',
-            output=context.output
-        )
-
-
-def upload_h5_as_lindi_output(
-    h5_fname,
-    output: OutputFile,
-    remote_fname='output.h5'
-):
-    import lindi
-    h5_url = upload_additional_job_output(h5_fname, remote_fname=remote_fname)
-    f = lindi.LindiH5pyFile.from_hdf5_file(h5_url)
-    lindi_fname = h5_fname + '.lindi.json'
-    f.write_lindi_file(lindi_fname)
-    output.upload(lindi_fname)
+        context.output.upload('cebra.lindi')

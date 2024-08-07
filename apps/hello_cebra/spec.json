@@ -11,13 +11,13 @@
             "inputs": [
                 {
                     "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi.json"
+                    "description": "Input NWB file in .nwb or .nwb.lindi"
                 }
             ],
             "outputs": [
                 {
                     "name": "output",
-                    "description": "Output embedding in .lindi.json format"
+                    "description": "Output embedding in .lindi format"
                 }
             ],
             "parameters": [
