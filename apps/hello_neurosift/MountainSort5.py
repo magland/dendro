@@ -21,9 +21,10 @@ class MountainSort5(ProcessorBase):
     def run(
         context: MountainSort5Context
     ):
-        import pynwb
         import lindi
+        import pynwb
         from pynwb.misc import Units
+        from pynwb.file import ProcessingModule
         from qfc.codecs.QFCCodec import QFCCodec
         from helpers.nwbextractors import NwbRecordingExtractor
         from helpers.make_float32_recording import make_float32_recording
@@ -106,8 +107,11 @@ class MountainSort5(ProcessorBase):
                 for i, unit_id in enumerate(unit_ids):
                     st = sorting.get_unit_spike_train(unit_id=unit_id)
                     spike_times = st / recording.get_sampling_frequency()
-                    units_table.add_unit(spike_times=spike_times)
-                nwbfile.processing["ecephys"].add(units_table, id=i + 1)  # unit ID must be an int # type: ignore
+                    units_table.add_unit(spike_times=spike_times, id=i + 1)  # unit ID must be an int
+                if 'ecephys' not in nwbfile.processing:  # type: ignore
+                    ecephys_module = ProcessingModule(name='ecephys', description='Processed extracellular electrophysiology data')
+                    nwbfile.add_processing_module(ecephys_module)  # type: ignore
+                nwbfile.processing["ecephys"].add(units_table)  # type: ignore
 
                 print('Writing NWB file')
                 io.write(nwbfile)  # type: ignore

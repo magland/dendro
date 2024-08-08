@@ -29,7 +29,7 @@ RUN git clone https://github.com/neurodatawithoutborders/lindi \
     && cd lindi \
     && git checkout lindi-tar \
     && pip install -e . \
-    && echo "v3"
+    && echo "v5"
 
 # Install qfc
 RUN pip install qfc==0.3.6
