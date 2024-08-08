@@ -194,6 +194,43 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "name": "mountainsort5",
+            "description": "Run spike sorting using MountainSort5",
+            "label": "mountainsort5",
+            "image": "magland/pairio-hello-neurosift:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [
+                {
+                    "name": "input",
+                    "description": "Input NWB file in .nwb.lindi format"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": "New NWB file in .nwb.lindi format"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "electrical_series_path",
+                    "type": "str",
+                    "description": "Path to the electrical series object in the NWB file"
+                },
+                {
+                    "name": "output_units_name",
+                    "type": "str",
+                    "description": "Name of the output units object"
+                },
+                {
+                    "name": "detect_threshold",
+                    "type": "float",
+                    "description": "Threshold for spike detection"
+                }
+            ],
+            "attributes": []
         }
     ]
 }

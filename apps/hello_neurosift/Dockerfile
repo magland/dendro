@@ -11,6 +11,9 @@ RUN pip install spikeinterface==0.100.8
 # don't install all the SI dependencies... instead manually specify the ones we need
 RUN pip install scipy pynwb
 
+# Install mountainsort5
+RUN pip install mountainsort5==0.5.6
+
 # Install pairio from github
 RUN mkdir -p /src
 WORKDIR /src
