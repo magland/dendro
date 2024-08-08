@@ -7,7 +7,7 @@ import useRoute from "../../useRoute"
 import { timeAgoString } from "../../timeStrings"
 import ServiceNameComponent from "../../components/ServiceNameComponent"
 import ServiceAppNameComponent from "../../components/ServiceAppNameComponent"
-import { Refresh } from "@mui/icons-material"
+import { Download, Refresh } from "@mui/icons-material"
 import UserIdComponent from "../../components/UserIdComponent"
 import { useLogin } from "../../LoginContext/LoginContext"
 
@@ -283,7 +283,7 @@ const InputsOutputsParametersView: FunctionComponent<InputsOutputsParametersView
             </thead>
             <tbody>
                 {rows.map((row, i) => {
-                    const doLinkToFile = row.url && row.size !== undefined && row.size !== null && row.size < 1000 * 1000 * 10
+                    const doLinkToFile = row.url && ((row.url.endsWith('.json')) || (row.size !== undefined && row.size !== null && row.size < 1000 * 1000 * 10))
                     return (
                         <tr key={i}>
                             <td>{row.name}</td>
@@ -291,12 +291,17 @@ const InputsOutputsParametersView: FunctionComponent<InputsOutputsParametersView
                             <td>{
                                 row.url ? (
                                     doLinkToFile ? (
-                                        <a href={row.url} target="_blank" rel="noopener noreferrer">{row.url}</a>
+                                        <>
+                                            <span>{row.url}</span>&nbsp;
+                                            <a href={row.url} target="_blank" rel="noopener noreferrer" style={{fontSize: 14}}>
+                                                <Download fontSize="inherit" />
+                                            </a>
+                                        </>
                                     ) : (
                                         <span>{row.url || ''}</span>
                                     )
                                 ) : (
-                                    <span>{row.value}</span>
+                                    <span>{formatValue(row.value)}</span>
                                 )
                             }</td>
                             <td>{row.size ? row.size : ''}</td>
@@ -306,6 +311,21 @@ const InputsOutputsParametersView: FunctionComponent<InputsOutputsParametersView
             </tbody>
         </table>
     )
+}
+
+const formatValue = (value: any) => {
+    if (value === null) return 'null'
+    if (value === undefined) return 'undefined'
+    if (typeof(value) === 'string') {
+        return value
+    }
+    if (typeof(value) === 'number') {
+        return `${value}`
+    }
+    if (typeof(value) === 'boolean') {
+        return `${value}`
+    }
+    return JSON.stringify(value)
 }
 
 export default JobPage

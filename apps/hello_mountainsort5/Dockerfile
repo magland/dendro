@@ -23,7 +23,7 @@ RUN git clone https://github.com/neurodatawithoutborders/lindi \
     && cd lindi \
     && git checkout lindi-tar \
     && pip install -e . \
-    && echo "v2"
+    && echo "v3"
 
 # Copy files into the container
 COPY *.py /app/

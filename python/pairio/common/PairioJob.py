@@ -67,7 +67,7 @@ class SpecialJobOutput(BaseModel):
 
 class PairioJob(BaseModel):
     jobId: str
-    jobPrivateKey: Union[str, None]
+    jobPrivateKey: Union[str, None] = None
     serviceName: str
     userId: str
     batchId: str
@@ -76,23 +76,25 @@ class PairioJob(BaseModel):
     jobDefinitionHash: str
     jobDependencies: List[str]
     requiredResources: PairioJobRequiredResources
-    secrets: Union[List[PairioJobSecret], None]
+    targetComputeClientIds: Union[List[str], None] = None
+    secrets: Union[List[PairioJobSecret], None] = None
     inputFileUrlList: List[str]
     outputFileUrlList: List[str]
     outputFileResults: List[PairioJobOutputFileResult]
     consoleOutputUrl: str
     resourceUtilizationLogUrl: str
     timestampCreatedSec: float
-    timestampStartingSec: Union[float, None]
-    timestampStartedSec: Union[float, None]
-    timestampFinishedSec: Union[float, None]
+    timestampStartingSec: Union[float, None] = None
+    timestampStartedSec: Union[float, None] = None
+    timestampFinishedSec: Union[float, None] = None
     canceled: bool
     status: str
     isRunnable: bool
-    error: Union[str, None]
-    computeClientId: Union[str, None]
-    computeClientName: Union[str, None]
-    imageUri: Union[str, None]
+    error: Union[str, None] = None
+    computeClientId: Union[str, None] = None
+    computeClientName: Union[str, None] = None
+    computeClientUserId: Union[str, None] = None
+    imageUri: Union[str, None] = None
 
     @property
     def job_url(self):
