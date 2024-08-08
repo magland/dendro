@@ -10,6 +10,7 @@ import ServiceAppNameComponent from "../../components/ServiceAppNameComponent"
 import { Download, Refresh } from "@mui/icons-material"
 import UserIdComponent from "../../components/UserIdComponent"
 import { useLogin } from "../../LoginContext/LoginContext"
+import formatByteCount from "./formatByteCount"
 
 type JobPageProps = {
     // none
@@ -304,7 +305,7 @@ const InputsOutputsParametersView: FunctionComponent<InputsOutputsParametersView
                                     <span>{formatValue(row.value)}</span>
                                 )
                             }</td>
-                            <td>{row.size ? row.size : ''}</td>
+                            <td>{row.size ? formatByteCount(row.size) : ''}</td>
                         </tr>
                     )
                 })}

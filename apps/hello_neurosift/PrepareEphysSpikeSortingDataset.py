@@ -28,6 +28,7 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
     ):
         import pynwb
         from pynwb.ecephys import ElectricalSeries
+        from hdmf.common.table import DynamicTableRegion
         import lindi
         from qfc import qfc_estimate_quant_scale_factor
         from qfc.codecs.QFCCodec import QFCCodec
@@ -127,6 +128,15 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
 
                 electrical_series_name = electrical_series_path.split('/')[-1]
                 electrical_series = nwbfile.acquisition[electrical_series_name]  # type: ignore
+
+                electrodes = electrical_series.electrodes
+                new_electrodes = DynamicTableRegion(
+                    name=electrodes.name,
+                    data=[electrodes.data[i] for i in electrode_indices],
+                    description=electrodes.description,
+                    table=electrodes.table
+                )
+
                 print(f'Creating new electrical series: {output_electrical_series_name}')
                 electrical_series_pre = ElectricalSeries(
                     name=output_electrical_series_name,
@@ -135,14 +145,14 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                         chunks=(int(recording.get_sampling_frequency() * 1), recording.get_num_channels()),
                         compression=codec
                     ),
-                    electrodes=electrical_series.electrodes,
+                    electrodes=new_electrodes,
                     starting_time=0.0,  # timestamp of the first sample in seconds relative to the session start time
                     rate=recording_binary.get_sampling_frequency(),
                 )
                 print('Adding new electrical series to NWB file')
                 nwbfile.add_acquisition(electrical_series_pre)  # type: ignore
-            print('Writing NWB file')
-            io.write(nwbfile)  # type: ignore
+                print('Writing NWB file')
+                io.write(nwbfile)  # type: ignore
 
         print('Uploading output file')
         output.upload('output.nwb.lindi')
