@@ -25,7 +25,7 @@ class EphysPreprocess(ProcessorBase):
         import lindi
         from qfc import qfc_estimate_quant_scale_factor
         from qfc.codecs.QFCCodec import QFCCodec
-        from nwbextractors import NwbRecordingExtractor
+        from helpers.nwbextractors import NwbRecordingExtractor
         import spikeinterface.preprocessing as spre
 
         QFCCodec.register_codec()

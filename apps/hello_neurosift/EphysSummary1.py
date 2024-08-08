@@ -24,7 +24,7 @@ class EphysSummary1(ProcessorBase):
         import numpy as np
         import lindi
         import h5py
-        from nwbextractors import NwbRecordingExtractor
+        from helpers.nwbextractors import NwbRecordingExtractor
         import spikeinterface.preprocessing as spre
 
         electrical_series_path = context.electrical_series_path
