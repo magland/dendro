@@ -2,8 +2,8 @@ import time
 from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class UnitsSummary1Context(BaseModel):
-    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi format')
-    output: OutputFile = Field(description='Output data in .lindi format')
+    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
+    output: OutputFile = Field(description='Output data in .lindi.tar format')
     units_path: str = Field(description='Path to the units table in the NWB file', default='units')
     correlogram_window_size_msec: float = Field(description='Correlogram window size in milliseconds', default=100)
     correlogram_bin_size_msec: float = Field(description='Correlogram bin size in milliseconds', default=1)
@@ -33,7 +33,7 @@ class UnitsSummary1(ProcessorBase):
         url = input.get_url()
         assert url
 
-        if input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi'):
+        if input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi.tar'):
             f = lindi.LindiH5pyFile.from_lindi_file(url)
         else:
             f = lindi.LindiH5pyFile.from_hdf5_file(url)
@@ -84,7 +84,7 @@ class UnitsSummary1(ProcessorBase):
         for i, ac in enumerate(auto_correlograms):
             autocorrelograms_array[i, :] = ac['bin_counts']
 
-        with lindi.LindiH5pyFile.from_lindi_file('units_summary.lindi', mode='w') as f:
+        with lindi.LindiH5pyFile.from_lindi_file('units_summary.lindi.tar', mode='w') as f:
             x = f.create_dataset('autocorrelograms', data=autocorrelograms_array)
             x.attrs['bin_edges_sec'] = auto_correlograms[0]['bin_edges_sec']
             f.attrs['correlogram_window_size_msec'] = correlogram_window_size_msec
@@ -93,4 +93,4 @@ class UnitsSummary1(ProcessorBase):
             f.attrs['num_units'] = num_units
             f.attrs['unit_ids'] = [str(uid) for uid in unit_ids]
 
-        context.output.upload('units_summary.lindi')
+        context.output.upload('units_summary.lindi.tar')

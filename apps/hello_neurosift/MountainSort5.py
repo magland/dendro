@@ -2,8 +2,8 @@ import numpy as np
 from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class MountainSort5Context(BaseModel):
-    input: InputFile = Field(description='Input NWB file in .nwb.lindi format')
-    output: OutputFile = Field(description='New NWB file in .nwb.lindi format')
+    input: InputFile = Field(description='Input NWB file in .nwb.lindi.tar format')
+    output: OutputFile = Field(description='New NWB file in .nwb.lindi.tar format')
     electrical_series_path: str = Field(description='Path to the electrical series object in the NWB file')
     output_units_name: str = Field(description='Name of the output units object')
     detect_threshold: float = Field(description='Threshold for spike detection')
@@ -47,10 +47,10 @@ class MountainSort5(ProcessorBase):
         url = input.get_url()
         assert url, 'No URL for input file'
         with lindi.LindiH5pyFile.from_lindi_file(url) as f:
-            f.write_lindi_file('output.nwb.lindi')
+            f.write_lindi_file('output.nwb.lindi.tar')
 
         print('Opening LINDI file')
-        with lindi.LindiH5pyFile.from_lindi_file('output.nwb.lindi', mode="r+", local_cache=cache) as f:
+        with lindi.LindiH5pyFile.from_lindi_file('output.nwb.lindi.tar', mode="r+", local_cache=cache) as f:
             print('Reading NWB file')
             with pynwb.NWBHDF5IO(file=f, mode='a') as io:
                 nwbfile = io.read()
@@ -117,7 +117,7 @@ class MountainSort5(ProcessorBase):
                 io.write(nwbfile)  # type: ignore
 
         print('Uploading output file')
-        output.upload('output.nwb.lindi')
+        output.upload('output.nwb.lindi.tar')
 
 
 def estimate_noise_level(traces):

@@ -2,8 +2,8 @@ import time
 from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class EphysSummary1Context(BaseModel):
-    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi format')
-    output: OutputFile = Field(description='Output data in .lindi format')
+    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
+    output: OutputFile = Field(description='Output data in .lindi.tar format')
     electrical_series_path: str = Field(description='Path to the electrical series object in the NWB file')
     segment_start_time_sec: float = Field(description='Start time of segment to analyze in seconds')
     segment_duration_sec: float = Field(description='Duration of segment to analyze in seconds')
@@ -37,7 +37,7 @@ class EphysSummary1(ProcessorBase):
 
         print('Loading file')
         local_cache = lindi.LocalCache(cache_dir='lindi_cache')
-        if input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi'):
+        if input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi.tar'):
             f = lindi.LindiH5pyFile.from_lindi_file(url, local_cache=local_cache)
         else:
             f = lindi.LindiH5pyFile.from_hdf5_file(url, local_cache=local_cache)
@@ -77,14 +77,14 @@ class EphysSummary1(ProcessorBase):
         ps_freq, ps = compute_channel_power_spectra(recording)
 
         print('Saving output')
-        with lindi.LindiH5pyFile.from_lindi_file('ephys_summary.lindi', mode='w') as f:
+        with lindi.LindiH5pyFile.from_lindi_file('ephys_summary.lindi.tar', mode='w') as f:
             f.attrs['channel_ids'] = [str(ch) for ch in channel_ids]
             f.create_dataset('estimated_channel_firing_rates', data=estimated_channel_firing_rates)
             ps_group = f.create_group('channel_power_spectra')
             ps_group.create_dataset('freq', data=ps_freq)
             ps_group.create_dataset('ps', data=ps)
 
-        context.output.upload('ephys_summary.lindi')
+        context.output.upload('ephys_summary.lindi.tar')
 
 
 def compute_estimated_channel_firing_rates(recording):

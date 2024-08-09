@@ -1,8 +1,8 @@
 from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class CebraNwbEmbedding5Context(BaseModel):
-    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi')
-    output: OutputFile = Field(description='Output embedding in .lindi format')
+    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
+    output: OutputFile = Field(description='Output embedding in .lindi.tar format')
     units_path: str = Field(description='Path to the units table in the NWB file', default='units')
     max_iterations: int = Field(description='Maximum number of iterations', default=1000)
     batch_size: int = Field(description='Batch size', default=1000)
@@ -38,7 +38,7 @@ class CebraNwbEmbedding5(ProcessorBase):
         url = input.get_url()
         assert url
 
-        if input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi'):
+        if input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi.tar'):
             f = lindi.LindiH5pyFile.from_lindi_file(url)
         else:
             f = lindi.LindiH5pyFile.from_hdf5_file(url)
@@ -107,7 +107,7 @@ class CebraNwbEmbedding5(ProcessorBase):
 
         embedding = model.transform(spike_counts)
 
-        with lindi.LindiH5pyFile.from_lindi_file('cebra.lindi', mode='w') as f:
+        with lindi.LindiH5pyFile.from_lindi_file('cebra.lindi.tar', mode='w') as f:
             f.create_dataset('embedding', data=embedding, chunks=(int(1e6), output_dimensions))
             f.attrs['batch_size'] = batch_size
             f.attrs['bin_size_msec'] = bin_size_msec
@@ -120,4 +120,4 @@ class CebraNwbEmbedding5(ProcessorBase):
             loss = model.state_dict_['loss'].cpu().numpy()
             f.create_dataset('loss', data=loss)
 
-        context.output.upload('cebra.lindi')
+        context.output.upload('cebra.lindi.tar')

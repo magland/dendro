@@ -669,14 +669,14 @@ const determineDefaultFileBaseName = (oo: PairioAppProcessorOutputFile) => {
     else if (words.includes('.nwb.lindi.json')) {
         return `${oo.name}.nwb.lindi.json`
     }
-    else if (words.includes('.nwb.lindi')) {
-        return `${oo.name}.nwb.lindi`
+    else if (words.includes('.nwb.lindi.tar')) {
+        return `${oo.name}.nwb.lindi.tar`
     }
     else if (words.includes('.lindi.json')) {
         return `${oo.name}.lindi.json`
     }
-    else if (words.includes('.lindi')) {
-        return `${oo.name}.lindi`
+    else if (words.includes('.lindi.tar')) {
+        return `${oo.name}.lindi.tar`
     }
     else if (words.includes('.json')) {
         return `${oo.name}.json`

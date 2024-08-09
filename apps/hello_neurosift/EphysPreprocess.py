@@ -2,8 +2,8 @@ import time
 from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class EphysPreprocessContext(BaseModel):
-    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi format')
-    output: OutputFile = Field(description='Output data in .nwb.lindi format')
+    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
+    output: OutputFile = Field(description='Output data in .nwb.lindi.tar format')
     electrical_series_path: str = Field(description='Path to the electrical series object in the NWB file')
 
 
@@ -35,18 +35,18 @@ class EphysPreprocess(ProcessorBase):
             url = context.input.get_url()
             assert url, 'No URL for input file'
             with lindi.LindiH5pyFile.from_hdf5_file(url) as f:
-                f.write_lindi_file('output.nwb.lindi')
-        elif context.input.file_base_name.endswith('.lindi.json') or context.input.file_base_name.endswith('.lindi'):
+                f.write_lindi_file('output.nwb.lindi.tar')
+        elif context.input.file_base_name.endswith('.lindi.json') or context.input.file_base_name.endswith('.lindi.tar'):
             print('Creating LINDI file')
             url = context.input.get_url()
             assert url, 'No URL for input file'
             with lindi.LindiH5pyFile.from_lindi_file(url) as f:
-                f.write_lindi_file('output.nwb.lindi')
+                f.write_lindi_file('output.nwb.lindi.tar')
         else:
             raise Exception(f'Unexpected file extension: {context.input.file_base_name}')
 
         print('Reading LINDI file')
-        with lindi.LindiH5pyFile.from_lindi_file("output.nwb.lindi", mode="r") as f:
+        with lindi.LindiH5pyFile.from_lindi_file("output.nwb.lindi.tar", mode="r") as f:
             electrical_series_path = '/acquisition/ElectricalSeries'
 
             print("Loading recording")
@@ -107,7 +107,7 @@ class EphysPreprocess(ProcessorBase):
         print(f'Compression ratio: {compression_ratio}')
 
         print("Writing filtered recording to LINDI file")
-        with lindi.LindiH5pyFile.from_lindi_file("output.nwb.lindi", mode="a") as f:
+        with lindi.LindiH5pyFile.from_lindi_file("output.nwb.lindi.tar", mode="a") as f:
             with pynwb.NWBHDF5IO(file=f, mode='a') as io:
                 nwbfile = io.read()
 
@@ -127,7 +127,7 @@ class EphysPreprocess(ProcessorBase):
                 io.write(nwbfile)  # type: ignore
 
         print('Uploading output')
-        context.output.upload('output.nwb.lindi')
+        context.output.upload('output.nwb.lindi.tar')
 
 
 def compute_estimated_channel_firing_rates(recording):

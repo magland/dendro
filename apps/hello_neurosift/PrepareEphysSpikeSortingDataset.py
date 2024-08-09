@@ -3,8 +3,8 @@ import numpy as np
 from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class PrepareEphysSpikeSortingDatasetContext(BaseModel):
-    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi format')
-    output: OutputFile = Field(description='New NWB file in .nwb.lindi format')
+    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
+    output: OutputFile = Field(description='New NWB file in .nwb.lindi.tar format')
     electrical_series_path: str = Field(description='Path to the electrical series object in the NWB file')
     duration_sec: float = Field(description='Duration of the recording to process, or 0 to process the entire recording')
     electrode_indices: List[int] = Field(description='List of electrode indices to process')
@@ -55,18 +55,18 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
             url = input.get_url()
             assert url, 'No URL for input file'
             with lindi.LindiH5pyFile.from_hdf5_file(url) as f:
-                f.write_lindi_file('output.nwb.lindi')
-        elif input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi'):
+                f.write_lindi_file('output.nwb.lindi.tar')
+        elif input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi.tar'):
             print('Creating LINDI file')
             url = input.get_url()
             assert url, 'No URL for input file'
             with lindi.LindiH5pyFile.from_lindi_file(url) as f:
-                f.write_lindi_file('output.nwb.lindi')
+                f.write_lindi_file('output.nwb.lindi.tar')
         else:
             raise Exception(f'Unexpected file extension: {input.file_base_name}')
 
         print('Opening LINDI file')
-        with lindi.LindiH5pyFile.from_lindi_file('output.nwb.lindi', mode="r+", local_cache=cache) as f:
+        with lindi.LindiH5pyFile.from_lindi_file('output.nwb.lindi.tar', mode="r+", local_cache=cache) as f:
             print('Reading NWB file')
             with pynwb.NWBHDF5IO(file=f, mode='a') as io:
                 nwbfile = io.read()
@@ -157,7 +157,7 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                 io.write(nwbfile)  # type: ignore
 
         print('Uploading output file')
-        output.upload('output.nwb.lindi')
+        output.upload('output.nwb.lindi.tar')
 
 
 def estimate_noise_level(traces):

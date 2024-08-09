@@ -9,9 +9,9 @@ from pairio.sdk import (
 
 class MountainSort5_1Context(BaseModel):
     input: InputFile = Field(
-        description="Input NWB file in .nwb or .nwb.lindi format"
+        description="Input NWB file in .nwb or .nwb.lindi.tar format"
     )
-    output: OutputFile = Field(description="Output data in .lindi format")
+    output: OutputFile = Field(description="Output data in .lindi.tar format")
     electrical_series_path: str = Field(
         description="Path to the electrical series object in the NWB file"
     )
@@ -57,7 +57,7 @@ class MountainSort5_1(ProcessorBase):
 
         print("Loading file")
         local_cache = lindi.LocalCache(cache_dir="lindi_cache")
-        if input.file_base_name.endswith(".lindi.json") or input.file_base_name.endswith(".lindi"):
+        if input.file_base_name.endswith(".lindi.json") or input.file_base_name.endswith(".lindi.tar"):
             f = lindi.LindiH5pyFile.from_lindi_file(
                 url, local_cache=local_cache
             )
@@ -141,7 +141,7 @@ class MountainSort5_1(ProcessorBase):
         print("Saving output")
         with pynwb.NWBHDF5IO(file=f, mode="r") as f_io:
             f_nwbfile = f_io.read()
-            output_fname = "units.nwb.lindi"
+            output_fname = "units.nwb.lindi.tar"
             create_sorting_out_nwb_file(
                 nwbfile_rec=f_nwbfile, sorting=sorting, sorting_out_fname=output_fname
             )

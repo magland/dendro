@@ -11,13 +11,13 @@
             "inputs": [
                 {
                     "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi format"
+                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
                 }
             ],
             "outputs": [
                 {
                     "name": "output",
-                    "description": "Output data in .lindi format"
+                    "description": "Output data in .lindi.tar format"
                 }
             ],
             "parameters": [
@@ -51,13 +51,13 @@
             "inputs": [
                 {
                     "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi format"
+                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
                 }
             ],
             "outputs": [
                 {
                     "name": "output",
-                    "description": "Output data in .lindi format"
+                    "description": "Output data in .lindi.tar format"
                 }
             ],
             "parameters": [
@@ -120,13 +120,13 @@
             "inputs": [
                 {
                     "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi format"
+                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
                 }
             ],
             "outputs": [
                 {
                     "name": "output",
-                    "description": "Output data in .nwb.lindi format"
+                    "description": "Output data in .nwb.lindi.tar format"
                 }
             ],
             "parameters": [
@@ -147,13 +147,13 @@
             "inputs": [
                 {
                     "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi format"
+                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
                 }
             ],
             "outputs": [
                 {
                     "name": "output",
-                    "description": "New NWB file in .nwb.lindi format"
+                    "description": "New NWB file in .nwb.lindi.tar format"
                 }
             ],
             "parameters": [
@@ -204,13 +204,13 @@
             "inputs": [
                 {
                     "name": "input",
-                    "description": "Input NWB file in .nwb.lindi format"
+                    "description": "Input NWB file in .nwb.lindi.tar format"
                 }
             ],
             "outputs": [
                 {
                     "name": "output",
-                    "description": "New NWB file in .nwb.lindi format"
+                    "description": "New NWB file in .nwb.lindi.tar format"
                 }
             ],
             "parameters": [
@@ -241,13 +241,13 @@
             "inputs": [
                 {
                     "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi format"
+                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
                 }
             ],
             "outputs": [
                 {
                     "name": "output",
-                    "description": "New NWB file in .nwb.lindi format"
+                    "description": "New NWB file in .nwb.lindi.tar format"
                 }
             ],
             "parameters": [
