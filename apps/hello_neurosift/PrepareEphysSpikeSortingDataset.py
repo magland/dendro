@@ -78,6 +78,8 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                 if duration_sec > 0:
                     start_frame = 0
                     end_frame = int(duration_sec * recording.get_sampling_frequency())
+                    if end_frame > recording.get_num_frames():
+                        end_frame = recording.get_num_frames()
                     print(f'Extracting segment from frame {start_frame} to {end_frame}')
                     recording = recording.frame_slice(start_frame=start_frame, end_frame=end_frame)
 

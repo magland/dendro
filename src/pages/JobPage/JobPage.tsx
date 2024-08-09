@@ -156,14 +156,14 @@ export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob, dele
             </table>
             <hr />
             <InputsOutputsParametersView job={job} />
-            <hr />
-            <ConsoleOutputView job={job} />
-            <hr />
             {deleteJob && (<button
                 onClick={deleteJob}
             >
                 Delete job
             </button>)}
+            <hr />
+            <ConsoleOutputView job={job} />
+            <hr />
         </div>
     )
 }

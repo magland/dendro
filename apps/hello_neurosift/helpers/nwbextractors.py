@@ -1039,7 +1039,8 @@ class NwbSortingExtractor(BaseSorting):
 
     def __init__(
         self,
-        file_path: str | Path,
+        file_path: str | Path | None = None,
+        h5py_file: h5py.File | None = None,
         electrical_series_path: str | None = None,
         sampling_frequency: float | None = None,
         samples_for_rate_estimation: int = 1_000,
@@ -1065,13 +1066,22 @@ class NwbSortingExtractor(BaseSorting):
         self.stream_cache_path = stream_cache_path
         self.electrical_series_path = electrical_series_path
         self.file_path = file_path
+        self.h5py_file = h5py_file
         self.t_start = t_start
         self.provided_or_electrical_series_sampling_frequency = sampling_frequency
         self.storage_options = storage_options
         self.units_table = None
 
+        if file_path is None and h5py_file is None:
+            raise ValueError("Provide either file_path or h5py_file")
+        if file_path is not None and h5py_file is not None:
+            raise ValueError("Provide either file_path or h5py_file, not both")
+
         if self.stream_mode is None:
-            self.backend = _get_backend_from_local_file(file_path)
+            if file_path is not None:
+                self.backend = _get_backend_from_local_file(file_path)
+            else:
+                self.backend = "hdf5"
         else:
             if self.stream_mode == "zarr":
                 self.backend = "zarr"
@@ -1131,6 +1141,7 @@ class NwbSortingExtractor(BaseSorting):
 
         self._kwargs = {
             "file_path": file_path,
+            "h5py_file": self.h5py_file,
             "electrical_series_path": self.electrical_series_path,
             "sampling_frequency": sampling_frequency,
             "samples_for_rate_estimation": samples_for_rate_estimation,
@@ -1161,6 +1172,7 @@ class NwbSortingExtractor(BaseSorting):
         self._nwbfile = read_nwbfile(
             backend=self.backend,
             file_path=self.file_path,
+            h5py_file=self.h5py_file,
             stream_mode=self.stream_mode,
             cache=cache,
             stream_cache_path=self.stream_cache_path,
@@ -1213,6 +1225,7 @@ class NwbSortingExtractor(BaseSorting):
     ):
         open_file = read_file_from_backend(
             file_path=self.file_path,
+            h5py_file=self.h5py_file,
             stream_mode=self.stream_mode,
             cache=cache,
             stream_cache_path=self.stream_cache_path,
