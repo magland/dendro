@@ -56,7 +56,9 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
 
                 print('Loading sorting')
                 sorting = NwbSortingExtractor(
-                    h5py_file=f, units_path=units_path
+                    h5py_file=f,
+                    unit_table_path=units_path,
+                    electrical_series_path=electrical_series_path
                 )
                 unit_ids = sorting.get_unit_ids()
 
@@ -64,10 +66,25 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                 recording_binary = make_float32_recording(recording, dirname='recording_float32')
 
                 colnames = units.attrs['colnames']
-                assert isinstance(colnames, list)
+                if isinstance(colnames, np.ndarray):
+                    colnames = colnames.tolist()
+                else:
+                    assert isinstance(colnames, list)
+
+                spike_trains = [
+                    sorting.get_unit_spike_train(unit_id) for unit_id in unit_ids
+                ]
 
                 colnames.append('num_spikes')
-                units.create_dataset('num_spikes', data=np.zeros(len(unit_ids), dtype=np.int64))
+                units.create_dataset('num_spikes', data=[
+                    len(spike_train) for spike_train in spike_trains
+                ], dtype=np.int64)
+
+                colnames.append('firing_rate')
+                duration_sec = recording.get_num_frames() / recording.get_sampling_frequency()
+                units.create_dataset('firing_rate', data=[
+                    len(spike_train) / duration_sec for spike_train in spike_trains
+                ], dtype=np.float32)
 
                 units.attrs['colnames'] = colnames
 
