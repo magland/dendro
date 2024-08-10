@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import allowCors from "./allowCors"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient"; // remove .js for local dev
 import publishPubsubMessage from "./publicPubsubMessage"; // remove .js for local dev
-import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, ComputeUserStatsResponse, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, FindJobByDefinitionResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, FindJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioJobOutputFileResult, PairioService, PairioServiceApp, PairioUser, PingComputeClientsResponse, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, UserStats, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isComputeUserStatsRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isFindJobByDefinitionRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isFindJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isPingComputeClientsRequest, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest } from "./types"; // remove .js for local dev
+import { AddServiceAppResponse, AddServiceResponse, AddUserResponse, CancelJobResponse, ComputeClientComputeSlot, ComputeUserStatsResponse, CreateComputeClientResponse, CreateJobResponse, DeleteComputeClientResponse, DeleteJobsResponse, DeleteServiceAppResponse, DeleteServiceResponse, FindJobByDefinitionResponse, GetComputeClientResponse, GetComputeClientsResponse, GetJobResponse, FindJobsResponse, GetPubsubSubscriptionResponse, GetRunnableJobsForComputeClientResponse, GetServiceAppResponse, GetServiceAppsResponse, GetServiceResponse, GetServicesResponse, GetSignedUploadUrlResponse, PairioComputeClient, PairioJob, PairioJobDefinition, PairioJobOutputFileResult, PairioService, PairioServiceApp, PairioUser, PingComputeClientsResponse, ResetUserApiKeyResponse, SetComputeClientInfoResponse, SetJobStatusResponse, SetServiceAppInfoResponse, SetServiceInfoResponse, SetUserInfoResponse, UserStats, isAddServiceAppRequest, isAddServiceRequest, isAddUserRequest, isCancelJobRequest, isComputeUserStatsRequest, isCreateComputeClientRequest, isCreateJobRequest, isDeleteComputeClientRequest, isDeleteJobsRequest, isDeleteServiceAppRequest, isDeleteServiceRequest, isFindJobByDefinitionRequest, isGetComputeClientRequest, isGetComputeClientsRequest, isGetJobRequest, isFindJobsRequest, isGetPubsubSubscriptionRequest, isGetRunnableJobsForComputeClientRequest, isGetServiceAppRequest, isGetServiceAppsRequest, isGetServiceRequest, isGetServicesRequest, isGetSignedUploadUrlRequest, isPairioComputeClient, isPairioJob, isPairioService, isPairioServiceApp, isPairioUser, isPingComputeClientsRequest, isResetUserApiKeyRequest, isSetComputeClientInfoRequest, isSetJobStatusRequest, isSetServiceAppInfoRequest, isSetServiceInfoRequest, isSetUserInfoRequest, isFinalizeMultipartUploadRequest, FinalizeMultipartUploadResponse, isCancelMultipartUploadRequest, CancelMultipartUploadResponse } from "./types"; // remove .js for local dev
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -1171,11 +1171,97 @@ export const getSignedUploadUrlHandler = allowCors(async (req: VercelRequest, re
             res.status(400).json({ error: "Invalid uploadType" });
             return
         }
-        const signedUrl = await createSignedUploadUrl({ url, size: rr.size, userId: job.userId });
-        const resp: GetSignedUploadUrlResponse = {
-            type: 'getSignedUploadUrlResponse',
-            signedUrl,
-            downloadUrl: url
+        if (rr.size < 1024 * 1024 * 100) {
+            const signedUrl = await createSignedUploadUrl({ url, size: rr.size, userId: job.userId });
+            const resp: GetSignedUploadUrlResponse = {
+                type: 'getSignedUploadUrlResponse',
+                signedUrl,
+                downloadUrl: url
+            };
+            res.status(200).json(resp);
+        }
+        else {
+            const numParts = Math.ceil(rr.size / (1024 * 1024 * 100));
+            const { parts, uploadId } = await initiateMultipartUpload({ url, size: rr.size, userId: job.userId, numParts });
+            const resp: GetSignedUploadUrlResponse = {
+                type: 'getSignedUploadUrlResponse',
+                parts,
+                uploadId,
+                downloadUrl: url
+            };
+            res.status(200).json(resp);
+        }
+    }
+    catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+export const finalizeMultipartUploadHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
+    if (req.method !== "POST") {
+        res.status(405).json({ error: "Method not allowed" });
+        return;
+    }
+    const rr = req.body;
+    if (!isFinalizeMultipartUploadRequest(rr)) {
+        res.status(400).json({ error: "Invalid request" });
+        return;
+    }
+    try {
+        const job = await fetchOneJobByJobId(rr.jobId);
+        if (!job) {
+            res.status(404).json({ error: "Job not found" });
+            return;
+        }
+        const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
+        if (job.jobPrivateKey !== jobPrivateKey) {
+            res.status(401).json({ error: "Unauthorized: incorrect or missing job private key" });
+            return;
+        }
+        const url = rr.url;
+        const uploadId = rr.uploadId;
+        const parts = rr.parts;
+        const size = rr.size;
+        const userId = job.userId;
+        await finalizeMultipartUpload({ url, uploadId, parts, size, userId });
+        const resp: FinalizeMultipartUploadResponse = {
+            type: 'finalizeMultipartUploadResponse'
+        };
+        res.status(200).json(resp);
+    }
+    catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+export const cancelMultipartUploadHandler = allowCors(async (req: VercelRequest, res: VercelResponse) => {
+    if (req.method !== "POST") {
+        res.status(405).json({ error: "Method not allowed" });
+        return;
+    }
+    const rr = req.body;
+    if (!isCancelMultipartUploadRequest(rr)) {
+        res.status(400).json({ error: "Invalid request" });
+        return;
+    }
+    try {
+        const job = await fetchOneJobByJobId(rr.jobId);
+        if (!job) {
+            res.status(404).json({ error: "Job not found" });
+            return;
+        }
+        const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
+        if (job.jobPrivateKey !== jobPrivateKey) {
+            res.status(401).json({ error: "Unauthorized: incorrect or missing job private key" });
+            return;
+        }
+        const url = rr.url;
+        const uploadId = rr.uploadId;
+        await cancelMultipartUpload({ url, uploadId });
+        const resp: CancelMultipartUploadResponse = {
+            type: 'cancelMultipartUploadResponse'
         };
         res.status(200).json(resp);
     }
@@ -2107,6 +2193,134 @@ const createSignedUploadUrl = async (o: { url: string, size: number, userId: str
         throw Error('Mismatch between download url and url');
     }
     return uploadUrl;
+}
+
+const initiateMultipartUpload = async (o: { url: string, size: number, userId: string, numParts: number }) => {
+    const { url, numParts } = o;
+    const prefix = `https://tempory.net/f/pairio/`;
+    if (!url.startsWith(prefix)) {
+        throw Error('Invalid url. Does not have proper prefix');
+    }
+    const filePath = url.slice(prefix.length);
+    const temporaryApiUrl = 'https://hub.tempory.net/api/initiateMultipartUpload'
+    const response = await fetch(temporaryApiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${TEMPORY_ACCESS_TOKEN}`,
+        },
+        body: JSON.stringify({
+            appName: "pairio",
+            filePath
+        })
+    });
+    if (!response.ok) {
+        throw Error('Failed to initiate multipart upload');
+    }
+    const result = await response.json();
+    const { success, uploadId } = result;
+    if (!success) {
+        throw Error('Failed to initiate multipart upload');
+    }
+    const temporaryApiUrl2 = 'https://hub.tempory.net/api/uploadFileParts'
+    const partNumbers: number[] = [];
+    for (let i = 1; i <= numParts; i++) {
+        partNumbers.push(i);
+    }
+    const response2 = await fetch(temporaryApiUrl2, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${TEMPORY_ACCESS_TOKEN}`,
+        },
+        body: JSON.stringify({
+            appName: "pairio",
+            filePath,
+            partNumbers,
+            uploadId
+        })
+    })
+    if (!response2.ok) {
+        throw Error('Failed to upload file parts');
+    }
+    const result2 = await response2.json();
+    const { success: success2, uploadUrls } = result2;
+    if (!success2) {
+        throw Error('Failed to upload file parts');
+    }
+    const parts: { partNumber: number, signedUrl: string }[] = [];
+    for (let i = 0; i < numParts; i++) {
+        parts.push({
+            partNumber: i + 1,
+            signedUrl: uploadUrls[i]
+        });
+    }
+    return { uploadId, parts };
+}
+
+const finalizeMultipartUpload = async (o: { url: string, uploadId: string, parts: {PartNumber: number, ETag: string}[], userId: string, size: number }) => {
+    const { url, uploadId, parts, userId, size } = o;
+    const prefix = `https://tempory.net/f/pairio/`;
+    if (!url.startsWith(prefix)) {
+        throw Error('Invalid url. Does not have proper prefix');
+    }
+    const filePath = url.slice(prefix.length);
+    const temporaryApiUrl = 'https://hub.tempory.net/api/finalizeMultipartUpload'
+    const response = await fetch(temporaryApiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${TEMPORY_ACCESS_TOKEN}`,
+        },
+        body: JSON.stringify({
+            appName: "pairio",
+            filePath,
+            size,
+            userId,
+            uploadId,
+            parts
+        })
+    });
+    if (!response.ok) {
+        throw Error('Failed to finalize multipart upload');
+    }
+    const result = await response.json();
+    const { success } = result;
+    if (!success) {
+        throw Error('Failed to finalize multipart upload');
+    }
+    return { success };
+}
+
+const cancelMultipartUpload = async (o: { url: string, uploadId: string }) => {
+    const { url, uploadId } = o;
+    const prefix = `https://tempory.net/f/pairio/`;
+    if (!url.startsWith(prefix)) {
+        throw Error('Invalid url. Does not have proper prefix');
+    }
+    const filePath = url.slice(prefix.length);
+    const temporaryApiUrl = 'https://hub.tempory.net/api/cancelMultipartUpload'
+    const response = await fetch(temporaryApiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${TEMPORY_ACCESS_TOKEN}`,
+        },
+        body: JSON.stringify({
+            appName: "pairio",
+            filePath,
+            uploadId
+        })
+    });
+    if (!response.ok) {
+        throw Error('Failed to cancel multipart upload');
+    }
+    const result = await response.json();
+    const { success } = result;
+    if (!success) {
+        throw Error('Failed to cancel multipart upload');
+    }
+    return { success };
 }
 
 const userIsAllowedToProcessJobsForService = (service: PairioService, userId: string) => {

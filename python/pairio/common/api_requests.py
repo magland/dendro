@@ -167,7 +167,9 @@ def get_upload_url(*,
     #
     # export type GetSignedUploadUrlResponse = {
     #   type: 'getSignedUploadUrlResponse'
-    #   signedUrl: string
+    #   signedUrl?: string
+    #   parts?: {partNumber: number, signedUrl: string}[]
+    #   uploadId?: string
     # }
     """Get a signed upload URL for the output (console or resource log) of a job"""
     url_path = '/api/getSignedUploadUrl'
@@ -189,7 +191,97 @@ def get_upload_url(*,
         data=req,
         headers=headers
     )
-    return res['signedUrl'], res['downloadUrl']
+    if res['type'] != 'getSignedUploadUrlResponse':
+        raise Exception('Unexpected response for getSignedUploadUrlRequest')
+    if 'signedUrl' in res:
+        return res['signedUrl'], res['downloadUrl']
+    else:
+        if 'parts' not in res:
+            raise Exception('Unexpected response for getSignedUploadUrlRequest. Missing signedUrl and parts fields.')
+        if 'uploadId' not in res:
+            raise Exception('Unexpected response for getSignedUploadUrlRequest. Missing uploadId field.')
+        return {
+            'parts': res['parts'],
+            'uploadId': res['uploadId']
+        }, res['downloadUrl']
+
+def finalize_multipart_upload(*,
+    upload_id: str,
+    parts: List[dict],
+    job_id: str,
+    job_private_key: str,
+    url: str,
+    size: int
+):
+    # // finalizeMultipartUpload
+
+    # export type FinalizeMultipartUploadRequest = {
+    #     type: 'finalizeMultipartUploadRequest'
+    #     jobId: string
+    #     url: string
+    #     size: number
+    #     uploadId: string
+    #     parts: {
+    #         PartNumber: number
+    #         ETag: string
+    #     }[]
+    # }
+    # export type FinalizeMultipartUploadResponse = {
+    #    type: 'finalizeMultipartUploadResponse'
+    # }
+    url_path = '/api/finalizeMultipartUpload'
+    req = {
+        'type': 'finalizeMultipartUploadRequest',
+        'jobId': job_id,
+        'url': url,
+        'size': size,
+        'uploadId': upload_id,
+        'parts': parts
+    }
+    headers = {
+        'Authorization': f'Bearer {job_private_key}'
+    }
+    res = _post_api_request(
+        url_path=url_path,
+        data=req,
+        headers=headers
+    )
+    if res['type'] != 'finalizeMultipartUploadResponse':
+        raise Exception('Unexpected response for finalizeMultipartUploadRequest')
+
+
+def cancel_multipart_upload(*,
+    job_id: str,
+    job_private_key: str,
+    upload_id: str,
+    url: str
+):
+    # export type CancelMultipartUploadRequest = {
+    #   type: 'cancelMultipartUploadRequest'
+    #   jobId: string
+    #   url: string
+    #   uploadId: string
+    # }
+    # export type CancelMultipartUploadResponse = {
+    #   type: 'cancelMultipartUploadResponse'
+    # }
+    url_path = '/api/cancelMultipartUpload'
+    req = {
+        'type': 'cancelMultipartUploadRequest',
+        'jobId': job_id,
+        'url': url,
+        'uploadId': upload_id
+    }
+    headers = {
+        'Authorization': f'Bearer {job_private_key}'
+    }
+    res = _post_api_request(
+        url_path=url_path,
+        data=req,
+        headers=headers
+    )
+    if res['type'] != 'cancelMultipartUploadResponse':
+        raise Exception('Unexpected response for cancelMultipartUploadRequest')
 
 
 def create_job(

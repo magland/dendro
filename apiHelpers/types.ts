@@ -907,15 +907,94 @@ export const isGetSignedUploadUrlRequest = (x: any): x is GetSignedUploadUrlRequ
 
 export type GetSignedUploadUrlResponse = {
   type: 'getSignedUploadUrlResponse'
-  signedUrl: string
+  signedUrl?: string
   downloadUrl: string
+  parts?: {
+    partNumber: number
+    signedUrl: string
+  }[]
+  uploadId?: string
 }
 
 export const isGetSignedUploadUrlResponse = (x: any): x is GetSignedUploadUrlResponse => {
+  const isGetSignedUploadUrlResponsePart = (x: any): x is { partNumber: number, signedUrl: string } => {
+    return validateObject(x, {
+      partNumber: isNumber,
+      signedUrl: isString
+    })
+  }
   return validateObject(x, {
     type: isEqualTo('getSignedUploadUrlResponse'),
-    signedUrl: isString,
-    downloadUrl: isString
+    signedUrl: optional(isString),
+    downloadUrl: isString,
+    parts: optional(isArrayOf(isGetSignedUploadUrlResponsePart)),
+    uploadId: optional(isString)
+  })
+}
+
+// finalizeMultipartUpload
+
+export type FinalizeMultipartUploadRequest = {
+  type: 'finalizeMultipartUploadRequest'
+  jobId: string
+  url: string
+  size: number
+  uploadId: string
+  parts: {
+    PartNumber: number
+    ETag: string
+  }[]
+}
+
+export const isFinalizeMultipartUploadRequest = (x: any): x is FinalizeMultipartUploadRequest => {
+  return validateObject(x, {
+    type: isEqualTo('finalizeMultipartUploadRequest'),
+    jobId: isString,
+    url: isString,
+    size: isNumber,
+    uploadId: isString,
+    parts: isArrayOf((y: any) => validateObject(y, {
+      PartNumber: isNumber,
+      ETag: isString
+    }))
+  })
+}
+
+export type FinalizeMultipartUploadResponse = {
+  type: 'finalizeMultipartUploadResponse'
+}
+
+export const isFinalizeMultipartUploadResponse = (x: any): x is FinalizeMultipartUploadResponse => {
+  return validateObject(x, {
+    type: isEqualTo('finalizeMultipartUploadResponse')
+  })
+}
+
+// cancelMultipartUpload
+
+export type CancelMultipartUploadRequest = {
+  type: 'cancelMultipartUploadRequest'
+  jobId: string
+  url: string
+  uploadId: string
+}
+
+export const isCancelMultipartUploadRequest = (x: any): x is CancelMultipartUploadRequest => {
+  return validateObject(x, {
+    type: isEqualTo('cancelMultipartUploadRequest'),
+    jobId: isString,
+    url: isString,
+    uploadId: isString
+  })
+}
+
+export type CancelMultipartUploadResponse = {
+  type: 'cancelMultipartUploadResponse'
+}
+
+export const isCancelMultipartUploadResponse = (x: any): x is CancelMultipartUploadResponse => {
+  return validateObject(x, {
+    type: isEqualTo('cancelMultipartUploadResponse')
   })
 }
 
