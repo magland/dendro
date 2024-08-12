@@ -1171,7 +1171,7 @@ export const getSignedUploadUrlHandler = allowCors(async (req: VercelRequest, re
             res.status(400).json({ error: "Invalid uploadType" });
             return
         }
-        if (rr.size < 1024 * 1024 * 1) {
+        if (rr.size < 1024 * 1024 * 1000) {
             const signedUrl = await createSignedUploadUrl({ url, size: rr.size, userId: job.userId });
             const resp: GetSignedUploadUrlResponse = {
                 type: 'getSignedUploadUrlResponse',
@@ -1181,7 +1181,7 @@ export const getSignedUploadUrlHandler = allowCors(async (req: VercelRequest, re
             res.status(200).json(resp);
         }
         else {
-            const numParts = Math.ceil(rr.size / (1024 * 1024 * 100));
+            const numParts = Math.ceil(rr.size / (1024 * 1024 * 1000));
             const { parts, uploadId } = await initiateMultipartUpload({ url, size: rr.size, userId: job.userId, numParts });
             const resp: GetSignedUploadUrlResponse = {
                 type: 'getSignedUploadUrlResponse',
