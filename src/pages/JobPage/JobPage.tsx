@@ -11,6 +11,7 @@ import { Download, Refresh } from "@mui/icons-material"
 import UserIdComponent from "../../components/UserIdComponent"
 import { useLogin } from "../../LoginContext/LoginContext"
 import formatByteCount from "./formatByteCount"
+import JobComponent from "../../components/JobComponent"
 
 type JobPageProps = {
     // none
@@ -131,12 +132,6 @@ export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob, dele
                         <td>{job.error}</td>
                     </tr>
                     <tr>
-                        <td>Dependencies</td>
-                        <td>{
-                            job.jobDependencies.join(', ')
-                        }</td>
-                    </tr>
-                    <tr>
                         <td>Required resources</td>
                         <td>
                             <pre>
@@ -150,6 +145,14 @@ export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob, dele
                             {
                                 (job.targetComputeClientIds || []).join(', ')
                             }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Job dependencies</td>
+                        <td>
+                            {job.jobDependencies.map(jobId => (
+                                <JobComponent jobId={jobId} key={jobId} />
+                            ))}
                         </td>
                     </tr>
                 </tbody>

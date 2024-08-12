@@ -1171,7 +1171,7 @@ export const getSignedUploadUrlHandler = allowCors(async (req: VercelRequest, re
             res.status(400).json({ error: "Invalid uploadType" });
             return
         }
-        if (rr.size < 1024 * 1024 * 100) {
+        if (rr.size < 1024 * 1024 * 1) {
             const signedUrl = await createSignedUploadUrl({ url, size: rr.size, userId: job.userId });
             const resp: GetSignedUploadUrlResponse = {
                 type: 'getSignedUploadUrlResponse',
@@ -2215,12 +2215,12 @@ const initiateMultipartUpload = async (o: { url: string, size: number, userId: s
         })
     });
     if (!response.ok) {
-        throw Error('Failed to initiate multipart upload');
+        throw Error(`Failed to initiate multipart upload: ${response.statusText}`);
     }
     const result = await response.json();
     const { success, uploadId } = result;
     if (!success) {
-        throw Error('Failed to initiate multipart upload');
+        throw Error('Failed to initiate multipart upload. No success');
     }
     const temporaryApiUrl2 = 'https://hub.tempory.net/api/uploadFileParts'
     const partNumbers: number[] = [];

@@ -32,6 +32,7 @@ class Kilosort4(ProcessorBase):
         from helpers.nwbextractors import NwbRecordingExtractor
         import spikeinterface.sorters as ss
         import spikeinterface as si
+        from helpers.make_float32_recording import make_float32_recording
 
         QFCCodec.register_codec()
 
@@ -58,13 +59,17 @@ class Kilosort4(ProcessorBase):
                     h5py_file=f, electrical_series_path=electrical_series_path
                 )
 
+                print('Writing float32 recording to disk')
+                recording_binary = make_float32_recording(recording, dirname='recording_float32')
+
+                sorter_params = {}
                 sorting = ss.run_sorter(
                     'kilosort4',
-                    recording=recording,
+                    recording=recording_binary,
                     output_folder='tmp_kilosort4',
                     delete_output_folder=True,
                     verbose=True,
-                    sorter_params={}
+                    **sorter_params
                 )
                 assert isinstance(sorting, si.BaseSorting)
                 print('Unit IDs:', sorting.get_unit_ids())
