@@ -61,7 +61,7 @@ class OutputFile(BaseModel):
                         raise SetOutputFileException(f'Error uploading file to bucket ({resp_upload.status_code}) {resp_upload.reason}: {resp_upload.text}')
                     ETag = resp_upload.headers['ETag']
                     upload_parts.append({
-                        'partNumber': part['partNumber'],
+                        'PartNumber': part['partNumber'],
                         'ETag': ETag
                     })
             print('[] Completing multi-part upload')
