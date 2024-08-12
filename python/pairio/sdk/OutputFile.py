@@ -73,6 +73,8 @@ class OutputFile(BaseModel):
                 url=download_url,
                 size=os.path.getsize(local_file_name)
             )
+
+            self.was_uploaded = True
         else:
             try:
                 print('[] Cancelling multi-part upload')
