@@ -48,7 +48,9 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
         compression_ratio = context.compression_ratio
         output_electrical_series_name = context.output_electrical_series_name
 
-        cache = lindi.LocalCache(cache_dir='lindi_cache')
+        # Important: use of local cache causes severe slowdowns on dandihub
+        # cache = lindi.LocalCache(cache_dir='lindi_cache')
+        cache = None
 
         if input.file_base_name.endswith('.nwb'):
             print('Creating LINDI file from NWB file')
@@ -143,6 +145,7 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                 electrical_series_pre = ElectricalSeries(
                     name=output_electrical_series_name,
                     data=pynwb.H5DataIO(
+                        # TODO: figure out a different way to do this because we don't want to load the entire recording into memory
                         recording_binary.get_traces(),  # type: ignore
                         chunks=(int(recording.get_sampling_frequency() * 1), recording.get_num_channels()),
                         compression=codec

@@ -41,7 +41,9 @@ class Kilosort4(ProcessorBase):
         electrical_series_path = context.electrical_series_path
         output_units_name = context.output_units_name
 
-        cache = lindi.LocalCache(cache_dir='lindi_cache')
+        # Important: use of local cache causes severe slowdowns on dandihub
+        # cache = lindi.LocalCache(cache_dir='lindi_cache')
+        cache = None
 
         print('Creating LINDI file')
         url = input.get_url()

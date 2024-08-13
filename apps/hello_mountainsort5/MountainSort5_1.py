@@ -55,8 +55,11 @@ class MountainSort5_1(ProcessorBase):
         url = input.get_url()
         assert url
 
+        # Important: use of local cache causes severe slowdowns on dandihub
+        # cache = lindi.LocalCache(cache_dir='lindi_cache')
+        local_cache = None
+
         print("Loading file")
-        local_cache = lindi.LocalCache(cache_dir="lindi_cache")
         if input.file_base_name.endswith(".lindi.json") or input.file_base_name.endswith(".lindi.tar"):
             f = lindi.LindiH5pyFile.from_lindi_file(
                 url, local_cache=local_cache
