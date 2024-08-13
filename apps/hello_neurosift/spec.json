@@ -260,6 +260,26 @@
                     "name": "units_path",
                     "type": "str",
                     "description": "Path to the units object in the NWB file"
+                },
+                {
+                    "name": "n_jobs",
+                    "type": "int",
+                    "description": "Number of jobs to run in parallel",
+                    "defaultValue": -1
+                },
+                {
+                    "name": "metric_names",
+                    "type": "List[str]",
+                    "description": "List of metric names to compute",
+                    "defaultValue": [
+                        "firing_rate",
+                        "isi_violation",
+                        "rp_violation",
+                        "snr",
+                        "presence_ratio",
+                        "amplitude_cutoff",
+                        "amplitude_median"
+                    ]
                 }
             ],
             "attributes": []

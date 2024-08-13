@@ -104,8 +104,6 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                 analyzer = si.create_sorting_analyzer(
                     sorting, recording=recording_binary
                 )
-                num_spikes = sorting.count_num_spikes_per_unit()
-                peak_channels = si.get_template_extremum_channel(analyzer)
                 qm_params = dict(
                     metric_names=context.metric_names,
                 )
@@ -117,22 +115,25 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                         "unit_locations",
                         "correlograms",
                         "quality_metrics",
+                        "waveforms",
                     ],
                     extension_params=dict(quality_metrics=qm_params),
                 )
+                num_spikes = sorting.count_num_spikes_per_unit()
+                # peak_channels = si.get_template_extremum_channel(analyzer)
 
                 colnames.append("num_spikes")
                 units.create_dataset(
                     "num_spikes", data=list(num_spikes.values()), dtype=np.int64
                 )
 
-                colnames.append("peak_channel")
-                channel_dtype = recording.channel_ids.dtype
-                units.create_dataset(
-                    "peak_channel",
-                    data=list(peak_channels.values()),
-                    dtype=channel_dtype,
-                )
+                # colnames.append("peak_channel")
+                # channel_dtype = recording.channel_ids.dtype
+                # units.create_dataset(
+                #     "peak_channel",
+                #     data=list(peak_channels.values()),
+                #     dtype=channel_dtype,
+                # )
 
                 # estimated unit locations
                 unit_locations = analyzer.get_extension("unit_locations").get_data()
@@ -160,18 +161,18 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                         metric_name, data=qm[metric_name], dtype=qm[metric_name].dtype
                     )
 
-                # waveform mean and sd
-                templates_ext = analyzer.get_extension("templates")
-                template_means = templates_ext.get_templates(operator="mean")
-                templates_sd = templates_ext.get_templates(operator="std")
-                colnames.append("waveform_mean")
-                units.create_dataset(
-                    "waveform_mean", data=template_means, dtype=template_means.dtype
-                )
-                colnames.append("waveform_sd")
-                units.create_dataset(
-                    "waveform_sd", data=templates_sd, dtype=templates_sd.dtype
-                )
+                # # waveform mean and sd
+                # templates_ext = analyzer.get_extension("templates")
+                # template_means = templates_ext.get_templates(operator="mean")
+                # templates_sd = templates_ext.get_templates(operator="std")
+                # colnames.append("waveform_mean")
+                # units.create_dataset(
+                #     "waveform_mean", data=template_means, dtype=template_means.dtype
+                # )
+                # colnames.append("waveform_sd")
+                # units.create_dataset(
+                #     "waveform_sd", data=templates_sd, dtype=templates_sd.dtype
+                # )
 
                 # correlograms
                 ccg, bins = analyzer.get_extension("correlograms").get_data()
@@ -187,6 +188,8 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                 units.create_dataset(
                     "acg_bin_edges", data=bin_edges_s, dtype=bins.dtype
                 )
+
+                units.attrs["colnames"] = colnames
 
         print("Uploading output file")
         output.upload("output.nwb.lindi.tar")

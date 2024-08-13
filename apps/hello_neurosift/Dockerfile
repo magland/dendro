@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y ffmpeg
 RUN pip install opencv-python
 
 # Install spikeinterface
-RUN pip install spikeinterface==0.100.8
+RUN pip install spikeinterface==0.101.0
 # don't install all the SI dependencies... instead manually specify the ones we need
 RUN pip install scipy pynwb
 
@@ -29,7 +29,7 @@ RUN git clone https://github.com/neurodatawithoutborders/lindi \
     && cd lindi \
     && git checkout lindi-tar \
     && pip install -e . \
-    && echo "v5"
+    && echo "v7"
 
 # Install qfc
 RUN pip install qfc==0.3.6
