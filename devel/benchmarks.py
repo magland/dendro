@@ -36,7 +36,7 @@ def benchmark_load_ephys_from_nwb():
         d = f['acquisition/ElectricalSeriesAp/data']
         assert isinstance(d, lindi.LindiH5pyDataset)
         print(d.shape)
-        x = d[0:30000 * 30]
+        x = d[0:30000 * 60]
         assert isinstance(x, np.ndarray)
         print(x.shape)
 
@@ -44,7 +44,7 @@ def benchmark_load_ephys_from_nwb():
 def benchmark_write_float32_recording():
     with TimeIt(label='Write float32 recording'):
         channel_index_range = [101, 165]
-        num_timepoints = 30000 * 30
+        num_timepoints = 30000 * 60
         f = lindi.LindiH5pyFile.from_hdf5_file(url1)
         recording = NwbRecordingExtractor(
             h5py_file=f,
@@ -65,8 +65,39 @@ def benchmark_write_float32_recording():
 def benchmark_write_filtered_recording():
     with TimeIt(label='Write filtered recording'):
         channel_index_range = [101, 165]
-        num_timepoints = 30000 * 30
+        num_timepoints = 30000 * 60
         f = lindi.LindiH5pyFile.from_hdf5_file(url1)
+        recording = NwbRecordingExtractor(
+            h5py_file=f,
+            electrical_series_path='acquisition/ElectricalSeriesAp'
+        )
+        all_channel_ids = recording.get_channel_ids()
+        channel_ids = all_channel_ids[channel_index_range[0]:channel_index_range[1]]
+        recording = recording.frame_slice(start_frame=0, end_frame=num_timepoints)
+        recording = recording.channel_slice(channel_ids=channel_ids)
+        freq_min = 300
+        freq_max = 6000
+        recording_filtered = spre.bandpass_filter(
+            recording, freq_min=freq_min, freq_max=freq_max, dtype=np.float32
+        )  # important to specify dtype here
+        if os.path.exists('filtered_recording'):
+            shutil.rmtree('filtered_recording')
+        make_float32_recording(
+            recording=recording_filtered,
+            dirname='filtered_recording'
+        )
+
+
+def benchmark_write_filtered_recording_2():
+    with TimeIt(label='Write filtered recording 2'):
+        print('Creating LINDI file from NWB file')
+        if os.path.exists('output.nwb.lindi.tar'):
+            os.remove('output.nwb.lindi.tar')
+        with lindi.LindiH5pyFile.from_hdf5_file(url1) as f:
+            f.write_lindi_file('output.nwb.lindi.tar')
+        channel_index_range = [101, 165]
+        num_timepoints = 30000 * 60
+        f = lindi.LindiH5pyFile.from_lindi_file('output.nwb.lindi.tar')
         recording = NwbRecordingExtractor(
             h5py_file=f,
             electrical_series_path='acquisition/ElectricalSeriesAp'
@@ -117,6 +148,7 @@ benchmarks = [
     ('load_ephys_from_nwb', benchmark_load_ephys_from_nwb),
     ('write_float32_recording', benchmark_write_float32_recording),
     ('write_filtered_recording', benchmark_write_filtered_recording),
+    ('write_filtered_recording_2', benchmark_write_filtered_recording_2),
 ]
 
 if __name__ == '__main__':
