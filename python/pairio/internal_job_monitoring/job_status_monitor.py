@@ -55,7 +55,10 @@ def job_status_monitor(parent_pid: str):
                 else:
                     print('Job status is running')
             except: # noqa
+                import traceback
+                traceback.print_exc()
                 # maybe there was a network error
+                # so we don't want to cancel the job at this point
                 print('Error getting job status')
 
         time.sleep(1)

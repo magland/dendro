@@ -1,6 +1,8 @@
 import sys
 import urllib.request
 import time
+import lindi
+import numpy as np
 
 
 url1 = 'https://api.dandiarchive.org/api/assets/c04f6b30-82bf-40e1-9210-34f0bcd8be24/download/'
@@ -21,6 +23,17 @@ def benchmark_download_1gb():
         elapsed_sec = tt.elapsed()
         rate = num_bytes / elapsed_sec
         print(f'Rate: {rate / 1_000_000:.2f} MB/s')
+
+
+def benchmark_load_ephys_from_nwb():
+    with TimeIt(label='Load ephys from NWB'):
+        f = lindi.LindiH5pyFile.from_hdf5_file(url1)
+        d = f['acquisition/ElectricalSeriesAp/data']
+        assert isinstance(d, lindi.LindiH5pyDataset)
+        print(d.shape)
+        x = d[0:30000 * 30]
+        assert isinstance(x, np.ndarray)
+        print(x.shape)
 
 
 def download_data(url, num_bytes):
@@ -49,6 +62,7 @@ class TimeIt:
 benchmarks = [
     ('download_100mb', benchmark_download_100mb),
     ('download_1gb', benchmark_download_1gb),
+    ('load_ephys_from_nwb', benchmark_load_ephys_from_nwb),
 ]
 
 if __name__ == '__main__':

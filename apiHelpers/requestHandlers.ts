@@ -862,7 +862,14 @@ export const getJobHandler = allowCors(async (req: VercelRequest, res: VercelRes
     try {
         const job = await fetchOneJobByJobId(rr.jobId);
         if (!job) {
-            res.status(404).json({ error: "Job not found" });
+            // job not found
+            // important to return undefined rather than returning an error
+            // because we need to distinguish between a job not found and an error
+            const rr: GetJobResponse = {
+                type: 'getJobResponse',
+                job: undefined
+            };
+            res.status(200).json(rr);
             return;
         }
         if (rr.includePrivateKey) {
