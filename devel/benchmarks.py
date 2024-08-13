@@ -1,8 +1,12 @@
+import shutil
+import os
 import sys
 import urllib.request
 import time
 import lindi
 import numpy as np
+from helpers.nwbextractors import NwbRecordingExtractor
+from helpers.make_float32_recording import make_float32_recording
 
 
 url1 = 'https://api.dandiarchive.org/api/assets/c04f6b30-82bf-40e1-9210-34f0bcd8be24/download/'
@@ -36,6 +40,27 @@ def benchmark_load_ephys_from_nwb():
         print(x.shape)
 
 
+def benchmark_write_float32_recording():
+    with TimeIt(label='Write float32 recording'):
+        channel_index_range = [101, 165]
+        num_timepoints = 30000 * 30
+        f = lindi.LindiH5pyFile.from_hdf5_file(url1)
+        recording = NwbRecordingExtractor(
+            h5py_file=f,
+            electrical_series_path='acquisition/ElectricalSeriesAp'
+        )
+        all_channel_ids = recording.get_channel_ids()
+        channel_ids = all_channel_ids[channel_index_range[0]:channel_index_range[1]]
+        recording = recording.frame_slice(start_frame=0, end_frame=num_timepoints)
+        recording = recording.channel_slice(channel_ids=channel_ids)
+        if os.path.exists('float32_recording'):
+            shutil.rmtree('float32_recording')
+        make_float32_recording(
+            recording=recording,
+            dirname='float32_recording'
+        )
+
+
 def download_data(url, num_bytes):
     headers = {'Range': f'bytes=0-{num_bytes - 1}'}
     req = urllib.request.Request(url, headers=headers)
@@ -63,6 +88,7 @@ benchmarks = [
     ('download_100mb', benchmark_download_100mb),
     ('download_1gb', benchmark_download_1gb),
     ('load_ephys_from_nwb', benchmark_load_ephys_from_nwb),
+    ('write_float32_recording', benchmark_write_float32_recording)
 ]
 
 if __name__ == '__main__':
