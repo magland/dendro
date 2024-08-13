@@ -1,31 +1,54 @@
 import numpy as np
+from typing import List
+
 from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
+
 class SpikeSortingPostProcessingContext(BaseModel):
-    input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
-    output: OutputFile = Field(description='New NWB file in .nwb.lindi.tar format')
-    electrical_series_path: str = Field(description='Path to the electrical series object in the NWB file')
-    units_path: str = Field(description='Path to the units object in the NWB file')
+    input: InputFile = Field(
+        description="Input NWB file in .nwb or .nwb.lindi.tar format"
+    )
+    output: OutputFile = Field(description="New NWB file in .nwb.lindi.tar format")
+    electrical_series_path: str = Field(
+        description="Path to the electrical series object in the NWB file"
+    )
+    units_path: str = Field(description="Path to the units object in the NWB file")
+    n_jobs: int = Field(default=-1, description="Number of jobs to run in parallel")
+    metric_names: List[str] = Field(
+        default=[
+            "firing_rate",
+            "isi_violation",
+            "rp_violation",
+            "snr",
+            "presence_ratio",
+            "amplitude_cutoff",
+            "amplitude_median",
+        ],
+        description="List of metric names to compute",
+    )
 
 
 class SpikeSortingPostProcessingDataset(ProcessorBase):
-    name = 'spike_sorting_post_processing'
-    description = 'Run post processing on an electrophysiology dataset after spike sorting and add columns to the units table'
-    label = 'spike_sorting_post_processing'
-    image = 'magland/pairio-hello-neurosift:0.1.0'
-    executable = '/app/main.py'
+    name = "spike_sorting_post_processing"
+    description = "Run post processing on an electrophysiology dataset after spike sorting and add columns to the units table"
+    label = "spike_sorting_post_processing"
+    image = "magland/pairio-hello-neurosift:0.1.0"
+    executable = "/app/main.py"
     attributes = {}
 
     @staticmethod
-    def run(
-        context: SpikeSortingPostProcessingContext
-    ):
+    def run(context: SpikeSortingPostProcessingContext):
         import pynwb
         import lindi
         from qfc.codecs.QFCCodec import QFCCodec
         from helpers.nwbextractors import NwbRecordingExtractor, NwbSortingExtractor
         from helpers.make_float32_recording import make_float32_recording
         from helpers.compute_correlogram_data import compute_correlogram_data
+
+        import spikeinterface as si
+        import spikeinterface.postprocessing as spost
+
+        si.set_global_job_kwargs(n_jobs=context.n_jobs)
 
         QFCCodec.register_codec()
 
@@ -34,91 +57,134 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
         electrical_series_path = context.electrical_series_path
         units_path = context.units_path
 
-        cache = lindi.LocalCache(cache_dir='lindi_cache')
+        cache = lindi.LocalCache(cache_dir="lindi_cache")
 
-        print('Creating LINDI file')
+        print("Creating LINDI file")
         url = input.get_url()
-        assert url, 'No URL for input file'
+        assert url, "No URL for input file"
         with lindi.LindiH5pyFile.from_lindi_file(url) as f:
-            f.write_lindi_file('output.nwb.lindi.tar')
+            f.write_lindi_file("output.nwb.lindi.tar")
 
-        print('Opening LINDI file')
-        with lindi.LindiH5pyFile.from_lindi_file('output.nwb.lindi.tar', mode="r+", local_cache=cache) as f:
+        print("Opening LINDI file")
+        with lindi.LindiH5pyFile.from_lindi_file(
+            "output.nwb.lindi.tar", mode="r+", local_cache=cache
+        ) as f:
             units = f[units_path]
             assert isinstance(units, lindi.LindiH5pyGroup)
 
-            print('Reading NWB file')
-            with pynwb.NWBHDF5IO(file=f, mode='a') as io:
+            print("Reading NWB file")
+            with pynwb.NWBHDF5IO(file=f, mode="a") as io:
                 nwbfile = io.read()
-                print('Loading recording')
+                print("Loading recording")
                 recording = NwbRecordingExtractor(
                     h5py_file=f, electrical_series_path=electrical_series_path
                 )
 
-                print('Loading sorting')
-                sorting = NwbSortingExtractor(
-                    h5py_file=f,
-                    unit_table_path=units_path,
-                    electrical_series_path=electrical_series_path
-                )
-                unit_ids = sorting.get_unit_ids()
-
-                print('Writing float32 recording to disk')
-                recording_binary = make_float32_recording(recording, dirname='recording_float32')
-
-                colnames = units.attrs['colnames']
+                colnames = units.attrs["colnames"]
                 if isinstance(colnames, np.ndarray):
                     colnames = colnames.tolist()
                 else:
                     assert isinstance(colnames, list)
 
-                spike_trains = [
-                    sorting.get_unit_spike_train(unit_id) for unit_id in unit_ids
-                ]
+                print("Loading sorting")
+                sorting = NwbSortingExtractor(
+                    h5py_file=f,
+                    unit_table_path=units_path,
+                    electrical_series_path=electrical_series_path,
+                )
+                unit_ids = sorting.get_unit_ids()
 
-                colnames.append('num_spikes')
-                units.create_dataset('num_spikes', data=[
-                    len(spike_train) for spike_train in spike_trains
-                ], dtype=np.int64)
+                print("Writing float32 recording to disk")
+                recording_binary = make_float32_recording(
+                    recording, dirname="recording_float32"
+                )
 
-                colnames.append('firing_rate')
-                duration_sec = recording.get_num_frames() / recording.get_sampling_frequency()
-                units.create_dataset('firing_rate', data=[
-                    len(spike_train) / duration_sec for spike_train in spike_trains
-                ], dtype=np.float32)
+                analyzer = si.create_sorting_analyzer(
+                    sorting, recording=recording_binary
+                )
+                num_spikes = sorting.count_num_spikes_per_unit()
+                peak_channels = si.get_template_extremum_channel(analyzer)
+                qm_params = dict(
+                    metric_names=context.metric_names,
+                )
+                analyzer.compute(
+                    [
+                        "random_spikes",
+                        "templates",
+                        "noise_levels",
+                        "unit_locations",
+                        "correlograms",
+                        "quality_metrics",
+                    ],
+                    extension_params=dict(quality_metrics=qm_params),
+                )
 
-                correlogram_window_size_msec = 100
-                correlogram_bin_size_msec = 1
-                bin_edges_sec_list = []
-                bin_counts_list = []
-                for i in range(len(unit_ids)):
-                    spike_train = spike_trains[i] / recording.get_sampling_frequency()
-                    r = compute_correlogram_data(
-                        spike_train_1=spike_train,
-                        spike_train_2=None,
-                        window_size_msec=correlogram_window_size_msec,
-                        bin_size_msec=correlogram_bin_size_msec
+                colnames.append("num_spikes")
+                units.create_dataset(
+                    "num_spikes", data=list(num_spikes.values()), dtype=np.int64
+                )
+
+                colnames.append("peak_channel")
+                channel_dtype = recording.channel_ids.dtype
+                units.create_dataset(
+                    "peak_channel",
+                    data=list(peak_channels.values()),
+                    dtype=channel_dtype,
+                )
+
+                # estimated unit locations
+                unit_locations = analyzer.get_extension("unit_locations").get_data()
+                colnames.append("estimated_x")
+                units.create_dataset(
+                    "estimated_x", data=unit_locations[:, 0], dtype=unit_locations.dtype
+                )
+                colnames.append("estimated_y")
+                units.create_dataset(
+                    "estimated_y", data=unit_locations[:, 1], dtype=unit_locations.dtype
+                )
+                if unit_locations.shape[1] == 3:
+                    colnames.append("estimated_z")
+                    units.create_dataset(
+                        "estimated_z",
+                        data=unit_locations[:, 2],
+                        dtype=unit_locations.dtype,
                     )
-                    bin_edges_sec = r['bin_edges_sec']
-                    bin_counts = r['bin_counts']
-                    bin_edges_sec_list.append(bin_edges_sec)
-                    bin_counts_list.append(bin_counts)
 
-                bin_counts = np.zeros((len(unit_ids), len(bin_counts_list[0])), dtype=np.uint32)
+                # quality metrics
+                qm = analyzer.get_extension("quality_metrics").get_data()
+                for metric_name in qm.columns:
+                    colnames.append(metric_name)
+                    units.create_dataset(
+                        metric_name, data=qm[metric_name], dtype=qm[metric_name].dtype
+                    )
+
+                # waveform mean and sd
+                templates_ext = analyzer.get_extension("templates")
+                template_means = templates_ext.get_templates(operator="mean")
+                templates_sd = templates_ext.get_templates(operator="std")
+                colnames.append("waveform_mean")
+                units.create_dataset(
+                    "waveform_mean", data=template_means, dtype=template_means.dtype
+                )
+                colnames.append("waveform_sd")
+                units.create_dataset(
+                    "waveform_sd", data=templates_sd, dtype=templates_sd.dtype
+                )
+
+                # correlograms
+                ccg, bins = analyzer.get_extension("correlograms").get_data()
+                acgs = np.zeros((len(unit_ids), len(bins) - 1), dtype=np.uint32)
+                # bins are in ms by default
+                bin_edges_s = np.tile(bins, (len(unit_ids), 1)) / 1000
                 for i in range(len(unit_ids)):
-                    bin_counts[i, :] = bin_counts_list[i]
-                colnames.append('acg')
-                units.create_dataset('acg', data=bin_counts, dtype=np.uint32)
-                bin_edges_sec = np.zeros((len(unit_ids), len(bin_edges_sec_list[0])), dtype=np.float32)
-                for i in range(len(unit_ids)):
-                    bin_edges_sec[i, :] = bin_edges_sec_list[i]
-                colnames.append('acg_bin_edges')
-                units.create_dataset('acg_bin_edges', data=bin_edges_sec, dtype=np.float32)
+                    acgs[i] = ccg[i, i, :]
 
-                units.attrs['colnames'] = colnames
+                colnames.append("acg")
+                units.create_dataset("acg", data=acgs, dtype=np.uint32)
+                colnames.append("acg_bin_edges")
+                units.create_dataset(
+                    "acg_bin_edges", data=bin_edges_s, dtype=bins.dtype
+                )
 
-                # print('Writing NWB file')
-                # io.write(nwbfile)  # type: ignore
-
-        print('Uploading output file')
-        output.upload('output.nwb.lindi.tar')
+        print("Uploading output file")
+        output.upload("output.nwb.lindi.tar")
