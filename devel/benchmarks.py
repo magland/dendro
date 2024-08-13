@@ -7,6 +7,7 @@ import lindi
 import numpy as np
 from helpers.nwbextractors import NwbRecordingExtractor
 from helpers.make_float32_recording import make_float32_recording
+import spikeinterface.preprocessing as spre
 
 
 url1 = 'https://api.dandiarchive.org/api/assets/c04f6b30-82bf-40e1-9210-34f0bcd8be24/download/'
@@ -61,6 +62,32 @@ def benchmark_write_float32_recording():
         )
 
 
+def benchmark_write_filtered_recording():
+    with TimeIt(label='Write filtered recording'):
+        channel_index_range = [101, 165]
+        num_timepoints = 30000 * 30
+        f = lindi.LindiH5pyFile.from_hdf5_file(url1)
+        recording = NwbRecordingExtractor(
+            h5py_file=f,
+            electrical_series_path='acquisition/ElectricalSeriesAp'
+        )
+        all_channel_ids = recording.get_channel_ids()
+        channel_ids = all_channel_ids[channel_index_range[0]:channel_index_range[1]]
+        recording = recording.frame_slice(start_frame=0, end_frame=num_timepoints)
+        recording = recording.channel_slice(channel_ids=channel_ids)
+        freq_min = 300
+        freq_max = 6000
+        recording_filtered = spre.bandpass_filter(
+            recording, freq_min=freq_min, freq_max=freq_max, dtype=np.float32
+        )  # important to specify dtype here
+        if os.path.exists('filtered_recording'):
+            shutil.rmtree('filtered_recording')
+        make_float32_recording(
+            recording=recording_filtered,
+            dirname='filtered_recording'
+        )
+
+
 def download_data(url, num_bytes):
     headers = {'Range': f'bytes=0-{num_bytes - 1}'}
     req = urllib.request.Request(url, headers=headers)
@@ -88,7 +115,8 @@ benchmarks = [
     ('download_100mb', benchmark_download_100mb),
     ('download_1gb', benchmark_download_1gb),
     ('load_ephys_from_nwb', benchmark_load_ephys_from_nwb),
-    ('write_float32_recording', benchmark_write_float32_recording)
+    ('write_float32_recording', benchmark_write_float32_recording),
+    ('write_filtered_recording', benchmark_write_filtered_recording),
 ]
 
 if __name__ == '__main__':
