@@ -40,9 +40,12 @@ def job_status_monitor(parent_pid: str):
             last_check_timestamp = time.time()
             try:
                 job = get_job(job_id=job_id)
-                status = job.status
+                status = job.status if job else None
                 if status != 'running':
-                    print(f'Job status is {status}. Canceling.')
+                    if status is None:
+                        print('Job not found. Canceling.')
+                    else:
+                        print(f'Job status is {status}. Canceling.')
                     with open(cancel_out_file, 'w') as f:
                         if isinstance(status, str):
                             f.write(status)

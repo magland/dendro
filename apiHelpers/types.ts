@@ -821,13 +821,13 @@ export const isGetJobRequest = (x: any): x is GetJobRequest => {
 
 export type GetJobResponse = {
   type: 'getJobResponse'
-  job: PairioJob
+  job?: PairioJob  // undefined means job not found
 }
 
 export const isGetJobResponse = (x: any): x is GetJobResponse => {
   return validateObject(x, {
     type: isEqualTo('getJobResponse'),
-    job: isPairioJob
+    job: optional(isPairioJob)
   })
 }
 

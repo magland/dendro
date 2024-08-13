@@ -12,7 +12,7 @@ RUN git clone https://github.com/magland/pairio \
     && cd pairio \
     && cd python \
     && pip install -e . \
-    && echo "v22"
+    && echo "v23"
 
 # Install lindi from branch
 WORKDIR /src
@@ -20,7 +20,7 @@ RUN git clone https://github.com/neurodatawithoutborders/lindi \
     && cd lindi \
     && git checkout lindi-tar \
     && pip install -e . \
-    && echo "v5"
+    && echo "v6"
 
 # Install qfc
 RUN pip install qfc==0.3.6

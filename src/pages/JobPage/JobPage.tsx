@@ -128,6 +128,14 @@ export const JobView: FunctionComponent<JobViewProps> = ({ job, refreshJob, dele
                         <td>{job.timestampFinishedSec ? timeAgoString(job.timestampFinishedSec) : ''}</td>
                     </tr>
                     <tr>
+                        <td>Elapsed</td>
+                        <td>
+                            {job.timestampStartedSec && job.timestampFinishedSec ? (
+                                formatTimeSec(job.timestampFinishedSec - job.timestampStartedSec)
+                            ) : ''}
+                        </td>
+                    </tr>
+                    <tr>
                         <td>Error</td>
                         <td>{job.error}</td>
                     </tr>
@@ -330,6 +338,21 @@ const formatValue = (value: any) => {
         return `${value}`
     }
     return JSON.stringify(value)
+}
+
+const formatTimeSec = (timeSec: number) => {
+    if (timeSec < 60) {
+        return `${timeSec} sec`
+    }
+    if (timeSec < 60 * 60) {
+        const min = Math.floor(timeSec / 60)
+        const sec = timeSec - min * 60
+        return `${min} min ${Math.floor(sec)} sec`
+    }
+    const hours = Math.floor(timeSec / (60 * 60))
+    const min = Math.floor((timeSec - hours * 60 * 60) / 60)
+    const sec = timeSec - hours * 60 * 60 - min * 60
+    return `${hours} hr ${min} min ${Math.floor(sec)} sec`
 }
 
 export default JobPage

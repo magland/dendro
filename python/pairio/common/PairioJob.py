@@ -132,7 +132,10 @@ class PairioJob(BaseModel):
             )
             if resp['type'] != 'getJobResponse':
                 raise Exception(f'Unexpected response: {resp}')
-            job = PairioJob(**resp['job'])
+            job = resp.get('job')
+            if not job:
+                raise Exception(f'Job not found: {self.jobId}')
+            job = PairioJob(**job)
             fields_to_copy = [
                 'outputFileResults',
                 'timestampCreatedSec',

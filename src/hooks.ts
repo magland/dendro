@@ -427,6 +427,9 @@ export const useJob = (jobId: string) => {
                 return
             }
             if (canceled) return
+            if (!resp.job) {
+                console.warn('Job not found', jobId)
+            }
             setJob(resp.job)
         })()
         return () => { canceled = true }

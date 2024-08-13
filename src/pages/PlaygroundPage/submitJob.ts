@@ -97,6 +97,9 @@ export const getJob = async (o: {jobId: string}): Promise<PairioJob> => {
         console.warn(json)
         throw Error(`Unexpected response for getJobRequest`)
     }
+    if (!json.job) {
+        throw Error(`No job found for jobId: ${jobId}`)
+    }
     return json.job
 }
 

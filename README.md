@@ -247,3 +247,9 @@ cd pairio
 cd python
 pip install -e .
 ```
+
+## Important note to self
+
+When using Cloudflare R2 with Range headers and large files, it's important to configure the website to bypass the cache.
+
+See: https://community.cloudflare.com/t/public-r2-bucket-doesnt-handle-range-requests-well/434221/4

@@ -110,10 +110,10 @@ def get_runnable_jobs_for_compute_client(
 #
 # export type GetJobResponse = {
 #   type: 'getJobResponse'
-#   job: PairioJob
+#   job?: PairioJob
 # }
 
-def get_job(*, job_id: str) -> PairioJob:
+def get_job(*, job_id: str) -> Union[PairioJob, None]:
     """Get a job status from the dendro API"""
     url_path = '/api/getJob'
     req = {
@@ -125,7 +125,9 @@ def get_job(*, job_id: str) -> PairioJob:
         url_path=url_path,
         data=req
     )
-    job = res['job']
+    job = res.get('job')
+    if not job:
+        return None
     job = PairioJob(**job)
     return job
 
