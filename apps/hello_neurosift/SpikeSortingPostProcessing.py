@@ -119,21 +119,24 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                     ],
                     extension_params=dict(quality_metrics=qm_params),
                 )
-                num_spikes = sorting.count_num_spikes_per_unit()
-                # peak_channels = si.get_template_extremum_channel(analyzer)
+                num_spikes = sorting.count_num_spikes_per_unit(outputs='array')
+                peak_channels = si.get_template_extremum_channel(analyzer)
+                peak_channels = [
+                    peak_channels[unit_id].encode() if isinstance(peak_channels[unit_id], str) else peak_channels[unit_id]
+                    for unit_id in sorting.get_unit_ids()
+                ]
 
                 colnames.append("num_spikes")
                 units.create_dataset(
-                    "num_spikes", data=list(num_spikes.values()), dtype=np.int64
+                    "num_spikes", data=num_spikes
                 )
 
-                # colnames.append("peak_channel")
+                colnames.append("peak_channel")
                 # channel_dtype = recording.channel_ids.dtype
-                # units.create_dataset(
-                #     "peak_channel",
-                #     data=list(peak_channels.values()),
-                #     dtype=channel_dtype,
-                # )
+                units.create_dataset(
+                    "peak_channel",
+                    data=np.array(peak_channels)
+                )
 
                 # estimated unit locations
                 unit_locations = analyzer.get_extension("unit_locations").get_data()
@@ -157,8 +160,13 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                 qm = analyzer.get_extension("quality_metrics").get_data()
                 for metric_name in qm.columns:
                     colnames.append(metric_name)
+                    x = qm[metric_name]
+                    print(f"Writing metric {metric_name}")
+                    print(x.dtype, x.shape)
+                    if x.shape[0] == 1:
+                        x = x.ravel()
                     units.create_dataset(
-                        metric_name, data=qm[metric_name], dtype=qm[metric_name].dtype
+                        metric_name, data=x
                     )
 
                 # # waveform mean and sd
