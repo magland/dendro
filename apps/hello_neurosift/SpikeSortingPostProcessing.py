@@ -132,8 +132,6 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                 )
 
                 colnames.append("peak_channel")
-                peak_channels = si.get_template_extremum_channel(analyzer)
-                colnames.append("peak_channel")
                 # channel_dtype = recording.channel_ids.dtype
                 units.create_dataset(
                     "peak_channel",

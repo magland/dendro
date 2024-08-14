@@ -9,7 +9,7 @@ RUN pip install opencv-python
 # Install spikeinterface
 RUN pip install spikeinterface==0.101.0
 # don't install all the SI dependencies... instead manually specify the ones we need
-RUN pip install scipy pynwb
+RUN pip install scipy pynwb numba
 
 # Install mountainsort5
 RUN pip install mountainsort5==0.5.6
