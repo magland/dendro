@@ -77,7 +77,7 @@ class Kilosort4(ProcessorBase):
                 print('Unit IDs:', sorting.get_unit_ids())
 
                 print('Adding units to NWB file')
-                units_table = Units(name=output_units_name, description='Units from MountainSort5')
+                units_table = Units(name=output_units_name, description='Units from Kilosort4')
                 unit_ids = sorting.get_unit_ids()
                 for i, unit_id in enumerate(unit_ids):
                     st = sorting.get_unit_spike_train(unit_id=unit_id)
