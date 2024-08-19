@@ -228,6 +228,11 @@
                     "name": "detect_threshold",
                     "type": "float",
                     "description": "Threshold for spike detection"
+                },
+                {
+                    "name": "channel_radius",
+                    "type": "float",
+                    "description": "Channel radius for spike detection"
                 }
             ],
             "attributes": []

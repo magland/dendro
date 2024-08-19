@@ -7,6 +7,7 @@ class MountainSort5Context(BaseModel):
     electrical_series_path: str = Field(description='Path to the electrical series object in the NWB file')
     output_units_name: str = Field(description='Name of the output units object')
     detect_threshold: float = Field(description='Threshold for spike detection')
+    channel_radius: float = Field(description='Channel radius for spike detection')
 
 
 class MountainSort5(ProcessorBase):
@@ -40,6 +41,7 @@ class MountainSort5(ProcessorBase):
         electrical_series_path = context.electrical_series_path
         output_units_name = context.output_units_name
         detect_threshold = context.detect_threshold
+        channel_radius = context.channel_radius
 
         # Important: use of local cache causes severe slowdowns on dandihub
         # cache = lindi.LocalCache(cache_dir='lindi_cache')
@@ -75,7 +77,6 @@ class MountainSort5(ProcessorBase):
                 recording_binary = make_float32_recording(recording_whitened, dirname='recording_float32')
 
                 print("Setting up sorting parameters")
-                scheme1_detect_channel_radius = None
                 detect_time_radius_msec = 0.5
                 detect_sign = -1
                 snippet_T1 = 20
@@ -83,22 +84,31 @@ class MountainSort5(ProcessorBase):
                 snippet_mask_radius = None
                 npca_per_channel = 3
                 npca_per_subdivision = 10
-                scheme1_sorting_parameters = ms5.Scheme1SortingParameters(
-                    detect_threshold=detect_threshold,
-                    detect_channel_radius=scheme1_detect_channel_radius,
+                training_duration_sec = min(300, recording.get_num_frames() / recording.get_sampling_frequency())
+                scheme2_sorting_parameters = ms5.Scheme2SortingParameters(
+                    phase1_detect_channel_radius=channel_radius,
+                    detect_channel_radius=channel_radius,
+                    phase1_detect_threshold=detect_threshold,
+                    phase1_detect_time_radius_msec=detect_time_radius_msec,
                     detect_time_radius_msec=detect_time_radius_msec,
+                    phase1_npca_per_channel=npca_per_channel,
+                    phase1_npca_per_subdivision=npca_per_subdivision,
                     detect_sign=detect_sign,
+                    detect_threshold=detect_threshold,
                     snippet_T1=snippet_T1,
                     snippet_T2=snippet_T2,
                     snippet_mask_radius=snippet_mask_radius,
-                    npca_per_channel=npca_per_channel,
-                    npca_per_subdivision=npca_per_subdivision,
+                    max_num_snippets_per_training_batch=200,
+                    classifier_npca=None,  # None means uses the default for the number of channels
+                    training_duration_sec=training_duration_sec,
+                    training_recording_sampling_mode='uniform',
+                    classification_chunk_sec=None
                 )
 
                 print("Sorting scheme 1")
-                sorting = ms5.sorting_scheme1(
+                sorting = ms5.sorting_scheme2(
                     recording=recording_binary,
-                    sorting_parameters=scheme1_sorting_parameters,
+                    sorting_parameters=scheme2_sorting_parameters,
                 )
                 assert isinstance(sorting, si.BaseSorting)
                 print('Unit IDs:', sorting.get_unit_ids())
