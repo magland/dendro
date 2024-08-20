@@ -115,20 +115,17 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                         zstd_level=zstd_level
                     )
                     print(f'Using quantization scale factor: {scale_factor}')
+                    print('Creating codec')
+                    codec = QFCCodec(
+                        quant_scale_factor=scale_factor,
+                        dtype='float32',
+                        segment_length=int(recording_binary.get_sampling_frequency() * 1),
+                        compression_method=compression_method,
+                        zlib_level=zlib_level,
+                        zstd_level=zstd_level
+                    )
                 else:
-                    noise_level = estimate_noise_level(traces0)
-                    scale_factor = qfc_estimate_quant_scale_factor(traces0, target_residual_stdev=noise_level * 0.05)
-                    print(f'Noise level: {noise_level}, using quantization scale factor: {scale_factor}')
-
-                print('Creating codec')
-                codec = QFCCodec(
-                    quant_scale_factor=scale_factor,
-                    dtype='float32',
-                    segment_length=int(recording_binary.get_sampling_frequency() * 1),
-                    compression_method=compression_method,
-                    zlib_level=zlib_level,
-                    zstd_level=zstd_level
-                )
+                    codec = 'gzip'
 
                 electrical_series_name = electrical_series_path.split('/')[-1]
                 electrical_series = nwbfile.acquisition[electrical_series_name]  # type: ignore
@@ -142,14 +139,18 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                 )
 
                 print(f'Creating new electrical series: {output_electrical_series_name}')
+                num_samples_per_chunk = recording.get_sampling_frequency() * 1
+                while num_samples_per_chunk * recording.get_num_channels() * 2 < 15e6:
+                    num_samples_per_chunk += recording.get_sampling_frequency() * 1
+                data = pynwb.H5DataIO(
+                    # TODO: figure out a different way to do this because we don't want to load the entire recording into memory
+                    recording_binary.get_traces(),  # type: ignore
+                    chunks=(int(num_samples_per_chunk), recording.get_num_channels()),
+                    compression=codec
+                )
                 electrical_series_pre = ElectricalSeries(
                     name=output_electrical_series_name,
-                    data=pynwb.H5DataIO(
-                        # TODO: figure out a different way to do this because we don't want to load the entire recording into memory
-                        recording_binary.get_traces(),  # type: ignore
-                        chunks=(int(recording.get_sampling_frequency() * 1), recording.get_num_channels()),
-                        compression=codec
-                    ),
+                    data=data,
                     electrodes=new_electrodes,
                     starting_time=0.0,  # timestamp of the first sample in seconds relative to the session start time
                     rate=recording_binary.get_sampling_frequency(),
