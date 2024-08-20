@@ -12,7 +12,11 @@ import spikeinterface.preprocessing as spre
 
 url1 = 'https://api.dandiarchive.org/api/assets/c04f6b30-82bf-40e1-9210-34f0bcd8be24/download/'
 
+# QFC compressed with compression ration 12
+url2 = 'https://tempory.net/f/pairio/f/hello_world_service/hello_neurosift/prepare_ephys_spike_sorting_dataset/RRtLoqV38HNCukjyYzSw/output/pre.nwb.lindi.tar'
+
 def benchmark_download_100mb():
+    # Downloading 100 MB of data
     with TimeIt(label='Download 100 MB') as tt:
         num_bytes = 100_000_000
         download_data(url1, num_bytes)
@@ -22,6 +26,7 @@ def benchmark_download_100mb():
 
 
 def benchmark_download_1gb():
+    # Downloading 1 GB of data
     with TimeIt(label='Download 1 GB') as tt:
         num_bytes = 1_000_000_000
         download_data(url1, num_bytes)
@@ -31,6 +36,7 @@ def benchmark_download_1gb():
 
 
 def benchmark_load_ephys_from_nwb():
+    # Load ephys from remote NWB file
     with TimeIt(label='Load ephys from NWB'):
         f = lindi.LindiH5pyFile.from_hdf5_file(url1)
         d = f['acquisition/ElectricalSeriesAp/data']
@@ -42,6 +48,7 @@ def benchmark_load_ephys_from_nwb():
 
 
 def benchmark_write_float32_recording():
+    # Write float32 recording - from remote NWB file
     with TimeIt(label='Write float32 recording'):
         channel_index_range = [101, 165]
         num_timepoints = 30000 * 60
@@ -63,6 +70,7 @@ def benchmark_write_float32_recording():
 
 
 def benchmark_write_filtered_recording():
+    # Write filtered recording - from remote NWB file
     with TimeIt(label='Write filtered recording'):
         channel_index_range = [101, 165]
         num_timepoints = 30000 * 60
@@ -119,6 +127,24 @@ def benchmark_write_filtered_recording_2():
         )
 
 
+def benchmark_write_float32_recording_from_qfc_nwb():
+    # Write float32 recording - from remote NWB file - qfc compressed
+    with TimeIt(label='Write float32 recording - qfc compressed'):
+        num_timepoints = 30000 * 60
+        f = lindi.LindiH5pyFile.from_lindi_file(url2)
+        recording = NwbRecordingExtractor(
+            h5py_file=f,
+            electrical_series_path='acquisition/ElectricalSeriesAp_pre'
+        )
+        recording = recording.frame_slice(start_frame=0, end_frame=num_timepoints)
+        if os.path.exists('float32_recording'):
+            shutil.rmtree('float32_recording')
+        make_float32_recording(
+            recording=recording,
+            dirname='float32_recording'
+        )
+
+
 def download_data(url, num_bytes):
     headers = {'Range': f'bytes=0-{num_bytes - 1}'}
     req = urllib.request.Request(url, headers=headers)
@@ -149,6 +175,7 @@ benchmarks = [
     ('write_float32_recording', benchmark_write_float32_recording),
     ('write_filtered_recording', benchmark_write_filtered_recording),
     ('write_filtered_recording_2', benchmark_write_filtered_recording_2),
+    ('write_float32_recording_from_qfc_nwb', benchmark_write_float32_recording_from_qfc_nwb),
 ]
 
 if __name__ == '__main__':
