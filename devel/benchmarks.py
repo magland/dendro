@@ -8,6 +8,9 @@ import numpy as np
 from helpers.nwbextractors import NwbRecordingExtractor
 from helpers.make_float32_recording import make_float32_recording
 import spikeinterface.preprocessing as spre
+from qfc.codecs import QFCCodec
+
+QFCCodec.register_codec()
 
 
 url1 = 'https://api.dandiarchive.org/api/assets/c04f6b30-82bf-40e1-9210-34f0bcd8be24/download/'
