@@ -73,10 +73,8 @@ const JobsView: FunctionComponent<JobsViewProps> = ({
   }, []);
   if (!jobs) {
     return (
-        // Leave some room so that the page doesn't jump around as much when the jobs are loaded
-        <div style={{height: 500}}>
-            Loading jobs
-        </div>
+      // Leave some room so that the page doesn't jump around as much when the jobs are loaded
+      <div style={{ height: 500 }}>Loading jobs</div>
     );
   }
   return (

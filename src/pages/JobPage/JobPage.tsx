@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Hyperlink } from "@fi-sci/misc";
-import {
-  FunctionComponent,
-  useCallback
-} from "react";
+import { FunctionComponent, useCallback } from "react";
 import { useLogin } from "../../LoginContext/LoginContext";
 import { useJob } from "../../hooks";
 import useRoute from "../../useRoute";

@@ -266,11 +266,9 @@ export const setServiceInfoHandler = allowCors(
         return;
       }
       if (!userIsAdminForService(service, userId)) {
-        res
-          .status(401)
-          .json({
-            error: `User ${userId} is not authorized to modify this service.`,
-          });
+        res.status(401).json({
+          error: `User ${userId} is not authorized to modify this service.`,
+        });
         return;
       }
       const update: { [key: string]: any } = {};
@@ -490,11 +488,9 @@ export const createJobHandler = allowCors(
         return;
       }
       if (!userIsAllowedToCreateJobsForService(service, rr.userId)) {
-        res
-          .status(401)
-          .json({
-            error: "This user is not allowed to create jobs for this service",
-          });
+        res.status(401).json({
+          error: "This user is not allowed to create jobs for this service",
+        });
         return;
       }
       const app = await fetchServiceApp(
@@ -502,21 +498,17 @@ export const createJobHandler = allowCors(
         rr.jobDefinition.appName,
       );
       if (!app) {
-        res
-          .status(400)
-          .json({
-            error: `Service app not found: ${rr.jobDefinition.appName}`,
-          });
+        res.status(400).json({
+          error: `Service app not found: ${rr.jobDefinition.appName}`,
+        });
         return;
       }
       try {
         validateJobDefinitionForServiceApp(rr.jobDefinition, app);
       } catch (err) {
-        res
-          .status(400)
-          .json({
-            error: `Job definition is not compatible with app: ${err.message}`,
-          });
+        res.status(400).json({
+          error: `Job definition is not compatible with app: ${err.message}`,
+        });
         return;
       }
 
@@ -767,11 +759,9 @@ export const deleteJobsHandler = allowCors(
           return;
         }
         if (!userIsAllowedToDeleteJobsForService(service, userId)) {
-          res
-            .status(401)
-            .json({
-              error: `This user is not allowed to delete jobs for service ${serviceName}`,
-            });
+          res.status(401).json({
+            error: `This user is not allowed to delete jobs for service ${serviceName}`,
+          });
           return;
         }
       }
@@ -823,11 +813,9 @@ export const findJobsHandler = allowCors(
         okayToProceed = true;
       }
       if (!okayToProceed) {
-        res
-          .status(400)
-          .json({
-            error: "Not enough info provided in request for query for jobs",
-          });
+        res.status(400).json({
+          error: "Not enough info provided in request for query for jobs",
+        });
         return;
       }
       const query: { [key: string]: any } = {};
@@ -886,12 +874,10 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
       }
       const computeClientPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
       if (computeClient.computeClientPrivateKey !== computeClientPrivateKey) {
-        res
-          .status(401)
-          .json({
-            error:
-              "Unauthorized: incorrect or missing compute client private key",
-          });
+        res.status(401).json({
+          error:
+            "Unauthorized: incorrect or missing compute client private key",
+        });
         return;
       }
       await updateComputeClient(rr.computeClientId, {
@@ -920,11 +906,9 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
         if (
           !userIsAllowedToProcessJobsForService(service, computeClient.userId)
         ) {
-          res
-            .status(401)
-            .json({
-              error: `This compute client is not allowed to process jobs for service: ${serviceName}`,
-            });
+          res.status(401).json({
+            error: `This compute client is not allowed to process jobs for service: ${serviceName}`,
+          });
           return;
         }
         const query: { [key: string]: any } = {
@@ -1054,20 +1038,16 @@ export const getJobHandler = allowCors(
       }
       if (rr.includePrivateKey) {
         if (!rr.computeClientId) {
-          res
-            .status(400)
-            .json({
-              error:
-                "computeClientId must be provided if includePrivateKey is true",
-            });
+          res.status(400).json({
+            error:
+              "computeClientId must be provided if includePrivateKey is true",
+          });
           return;
         }
         if (job.computeClientId !== rr.computeClientId) {
-          res
-            .status(401)
-            .json({
-              error: "Mismatch between computeClientId in request and job",
-            });
+          res.status(401).json({
+            error: "Mismatch between computeClientId in request and job",
+          });
           return;
         }
         const authorizationToken = req.headers.authorization?.split(" ")[1]; // Extract the token
@@ -1158,11 +1138,9 @@ export const setJobStatusHandler = allowCors(
         return;
       }
       if (job.jobPrivateKey !== jobPrivateKey) {
-        res
-          .status(401)
-          .json({
-            error: "Unauthorized: incorrect or missing job private key",
-          });
+        res.status(401).json({
+          error: "Unauthorized: incorrect or missing job private key",
+        });
         return;
       }
       const computeClientId = rr.computeClientId;
@@ -1174,40 +1152,32 @@ export const setJobStatusHandler = allowCors(
       const computeClientUserId = computeClient.userId;
       if (job.computeClientId) {
         if (job.computeClientId !== computeClientId) {
-          res
-            .status(401)
-            .json({
-              error: "Mismatch between computeClientId in request and job",
-            });
+          res.status(401).json({
+            error: "Mismatch between computeClientId in request and job",
+          });
           return;
         }
       } else {
         if (job.status !== "pending") {
-          res
-            .status(400)
-            .json({
-              error:
-                "Job is not in pending status and the compute client is not set",
-            });
+          res.status(400).json({
+            error:
+              "Job is not in pending status and the compute client is not set",
+          });
           return;
         }
         if (rr.status !== "starting") {
-          res
-            .status(400)
-            .json({
-              error:
-                "Trying to set job to a status other than starting when compute client is not set",
-            });
+          res.status(400).json({
+            error:
+              "Trying to set job to a status other than starting when compute client is not set",
+          });
           return;
         }
       }
       if (rr.status === "starting") {
         if (job.status !== "pending") {
-          res
-            .status(400)
-            .json({
-              error: `Trying to start job. Job is not in pending status. Status is ${job.status}`,
-            });
+          res.status(400).json({
+            error: `Trying to start job. Job is not in pending status. Status is ${job.status}`,
+          });
           return;
         }
         const service = await fetchService(job.serviceName);
@@ -1218,12 +1188,10 @@ export const setJobStatusHandler = allowCors(
         if (
           !userIsAllowedToProcessJobsForService(service, computeClientUserId)
         ) {
-          res
-            .status(401)
-            .json({
-              error:
-                "This compute client is not allowed to process jobs for this service",
-            });
+          res.status(401).json({
+            error:
+              "This compute client is not allowed to process jobs for this service",
+          });
           return;
         }
         await atomicUpdateJob(rr.jobId, "pending", {
@@ -1354,11 +1322,9 @@ export const getSignedUploadUrlHandler = allowCors(
       }
       const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
       if (job.jobPrivateKey !== jobPrivateKey) {
-        res
-          .status(401)
-          .json({
-            error: "Unauthorized: incorrect or missing job private key",
-          });
+        res.status(401).json({
+          error: "Unauthorized: incorrect or missing job private key",
+        });
         return;
       }
       let url: string;
@@ -1480,11 +1446,9 @@ export const finalizeMultipartUploadHandler = allowCors(
       }
       const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
       if (job.jobPrivateKey !== jobPrivateKey) {
-        res
-          .status(401)
-          .json({
-            error: "Unauthorized: incorrect or missing job private key",
-          });
+        res.status(401).json({
+          error: "Unauthorized: incorrect or missing job private key",
+        });
         return;
       }
       const url = rr.url;
@@ -1523,11 +1487,9 @@ export const cancelMultipartUploadHandler = allowCors(
       }
       const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
       if (job.jobPrivateKey !== jobPrivateKey) {
-        res
-          .status(401)
-          .json({
-            error: "Unauthorized: incorrect or missing job private key",
-          });
+        res.status(401).json({
+          error: "Unauthorized: incorrect or missing job private key",
+        });
         return;
       }
       const url = rr.url;
@@ -1748,11 +1710,9 @@ export const setComputeClientInfoHandler = allowCors(
           if (
             !userIsAllowedToProcessJobsForService(service, computeClient.userId)
           ) {
-            res
-              .status(401)
-              .json({
-                error: `This compute client is not allowed to process jobs for service: ${serviceName}`,
-              });
+            res.status(401).json({
+              error: `This compute client is not allowed to process jobs for service: ${serviceName}`,
+            });
             return;
           }
         }
@@ -1919,11 +1879,9 @@ export const getServiceAppsHandler = allowCors(
     try {
       if (rr.appName) {
         if (rr.serviceName) {
-          res
-            .status(400)
-            .json({
-              error: "Cannot specify both appName and serviceName in request",
-            });
+          res.status(400).json({
+            error: "Cannot specify both appName and serviceName in request",
+          });
           return;
         }
         const apps = await fetchServiceAppsForAppName(rr.appName);
@@ -1940,11 +1898,9 @@ export const getServiceAppsHandler = allowCors(
         };
         res.status(200).json(resp);
       } else {
-        res
-          .status(400)
-          .json({
-            error: "Must specify either appName or serviceName in request",
-          });
+        res.status(400).json({
+          error: "Must specify either appName or serviceName in request",
+        });
         return;
       }
     } catch (e) {
@@ -1977,12 +1933,10 @@ export const getPubsubSubscriptionHandler = allowCors(
         return;
       }
       if (computeClient.computeClientPrivateKey !== computeClientPrivateKey) {
-        res
-          .status(401)
-          .json({
-            error:
-              "Unauthorized: incorrect or missing compute client private key",
-          });
+        res.status(401).json({
+          error:
+            "Unauthorized: incorrect or missing compute client private key",
+        });
         return;
       }
       await updateComputeClient(computeClientId, {

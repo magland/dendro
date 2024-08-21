@@ -333,9 +333,11 @@ const InputsOutputsParametersView: FunctionComponent<
   );
 };
 
-const LinkToJobFromInputFile: FunctionComponent<{ url: string }> = ({ url }) => {
+const LinkToJobFromInputFile: FunctionComponent<{ url: string }> = ({
+  url,
+}) => {
   const job = useJobProducingOutput(url);
-  if (!job) return <></>
+  if (!job) return <></>;
 
   return (
     <a
@@ -345,8 +347,8 @@ const LinkToJobFromInputFile: FunctionComponent<{ url: string }> = ({ url }) => 
     >
       open job
     </a>
-  )
-}
+  );
+};
 
 const formatValue = (value: any) => {
   if (value === null) return "null";

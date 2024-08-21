@@ -17,9 +17,9 @@ import {
   isDendroJobDefinition,
 } from "../../types";
 import useRoute from "../../useRoute";
-import { JobView } from "../JobPage/JobPage";
 import EditJobDefinitionWindow from "./EditJobDefinitionWindow/EditJobDefinitionWindow";
 import submitJob, { findJobByDefinition, getJob } from "./submitJob";
+import JobView from "../JobPage/JobView";
 
 type PlaygroundPageProps = {
   width: number;
