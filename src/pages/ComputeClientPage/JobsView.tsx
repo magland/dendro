@@ -32,6 +32,9 @@ const JobsView: FunctionComponent<JobsViewProps> = ({
 }) => {
   const [maxNumJobs, setMaxNumJobs] = useState(pageSize);
   const [filter, setFilter] = useState<JobFilter>({});
+  useEffect(() => {
+    setMaxNumJobs(pageSize);
+  }, [filter]);
   const { jobs, deleteJobs, refreshJobs } = useJobs({
     computeClientId,
     serviceName,
@@ -69,7 +72,12 @@ const JobsView: FunctionComponent<JobsViewProps> = ({
     setFilter((f) => ({ ...f, processorName: undefined }));
   }, []);
   if (!jobs) {
-    return <div>Loading jobs</div>;
+    return (
+        // Leave some room so that the page doesn't jump around as much when the jobs are loaded
+        <div style={{height: 500}}>
+            Loading jobs
+        </div>
+    );
   }
   return (
     <div>
