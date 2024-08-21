@@ -20,9 +20,9 @@ Let's run a simple example job using remote public resources.
 
 First, you'll need a Pairio API key.
 
-* Visit [https://pairio.vercel.app/settings](https://pairio.vercel.app/settings) and log in using GitHub.
-* Click "Regenerate API key" and copy the key.
-* Set the environtment variable `PAIRIO_API_KEY` to the key you copied. For example, in bash:
+- Visit [https://pairio.vercel.app/settings](https://pairio.vercel.app/settings) and log in using GitHub.
+- Click "Regenerate API key" and copy the key.
+- Set the environtment variable `PAIRIO_API_KEY` to the key you copied. For example, in bash:
 
 ```bash
 export PAIRIO_API_KEY=your-api-key
@@ -80,11 +80,11 @@ The `required_resources` is self-explanatory. This determines whether the job ca
 
 Then `submit_job` is the function that actually queues the Pairio job in the central database (or returns an existing job). Here's an explanation of the arguments:
 
-* `service_name` is the name of the service that will run the job. A service is a piece of the Pairio network that has a collection of available Apps, a collection of compute clients, and a list of privileged users. In this case the service is `hello_world_service`, which is a public service (with limited resources) that anyone can use.
-* `job_definition` is the job definition.
-* `required_resources` is the required resources.
-* `tags` is a list of tags that can be used to filter jobs.
-* `rerun_failing` is a boolean that determines whether to rerun the job if a failing job with the same job definition already exists. If this is set to False (the default) the failing job will be returned.
+- `service_name` is the name of the service that will run the job. A service is a piece of the Pairio network that has a collection of available Apps, a collection of compute clients, and a list of privileged users. In this case the service is `hello_world_service`, which is a public service (with limited resources) that anyone can use.
+- `job_definition` is the job definition.
+- `required_resources` is the required resources.
+- `tags` is a list of tags that can be used to filter jobs.
+- `rerun_failing` is a boolean that determines whether to rerun the job if a failing job with the same job definition already exists. If this is set to False (the default) the failing job will be returned.
 
 Other arguments to `submit_job` include `skip_cache` and `delete_failing`.
 
@@ -229,7 +229,7 @@ Click on that second link and you should see the output file "output.json" which
 
 [Neurosift](https://neurosift.app) is a web-based tool designed for visualizing NWB files, particularly those hosted in the [DANDI Archive](https://dandiarchive.org/). While many of Neurosift’s visualizations are processed client-side and require minimal computational resources, certain visualizations necessitate more intensive data processing that must be handled server-side. The integration of Neurosift with Pairio enables the offloading of these computationally demanding tasks to Pairio’s distributed computing environment.
 
-Upon submitting a job to Pairio via the Neurosift interface, users can monitor its progress directly within Neurosift. Once completed, the visualization’s output is automatically downloaded to the user’s browser for rendering. Because Pairio caches the results of these jobs, subsequent identical requests *by any user* will be served from the cache, without the need to recompute the visualization.
+Upon submitting a job to Pairio via the Neurosift interface, users can monitor its progress directly within Neurosift. Once completed, the visualization’s output is automatically downloaded to the user’s browser for rendering. Because Pairio caches the results of these jobs, subsequent identical requests _by any user_ will be served from the cache, without the need to recompute the visualization.
 
 For example, Neurosift users can generate and view [CEBRA emeddings](https://cebra.ai/) for any Units table in an NWB file. [See this example](https://neurosift.app/?p=/nwb&dandisetId=000129&dandisetVersion=draft&url=https://api.dandiarchive.org/api/assets/2ae6bf3c-788b-4ece-8c01-4b4a5680b25b/download/&tab=view:CEBRA|/units). The source code for this example can be found in [apps/hello_cebra](apps/hello_cebra). Because the job was already run, the results are served from the cache, but you can also submit a new job with a different set of parameters.
 

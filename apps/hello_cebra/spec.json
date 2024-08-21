@@ -1,58 +1,58 @@
 {
-    "name": "hello_cebra",
-    "description": "Example CEBRA processors",
-    "processors": [
+  "name": "hello_cebra",
+  "description": "Example CEBRA processors",
+  "processors": [
+    {
+      "name": "cebra_nwb_embedding_5",
+      "description": "Create a CEBRA embedding from a units table in an NWB file",
+      "label": "cebra_nwb_embedding_5",
+      "image": "magland/pairio-hello-cebra:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
         {
-            "name": "cebra_nwb_embedding_5",
-            "description": "Create a CEBRA embedding from a units table in an NWB file",
-            "label": "cebra_nwb_embedding_5",
-            "image": "magland/pairio-hello-cebra:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "Output embedding in .lindi.tar format"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "units_path",
-                    "type": "str",
-                    "description": "Path to the units table in the NWB file",
-                    "defaultValue": "units"
-                },
-                {
-                    "name": "max_iterations",
-                    "type": "int",
-                    "description": "Maximum number of iterations",
-                    "defaultValue": 1000
-                },
-                {
-                    "name": "batch_size",
-                    "type": "int",
-                    "description": "Batch size",
-                    "defaultValue": 1000
-                },
-                {
-                    "name": "bin_size_msec",
-                    "type": "float",
-                    "description": "Bin size in milliseconds",
-                    "defaultValue": 20
-                },
-                {
-                    "name": "output_dimensions",
-                    "type": "int",
-                    "description": "Output dimensions",
-                    "defaultValue": 10
-                }
-            ],
-            "attributes": []
+          "name": "input",
+          "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
         }
-    ]
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "Output embedding in .lindi.tar format"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "units_path",
+          "type": "str",
+          "description": "Path to the units table in the NWB file",
+          "defaultValue": "units"
+        },
+        {
+          "name": "max_iterations",
+          "type": "int",
+          "description": "Maximum number of iterations",
+          "defaultValue": 1000
+        },
+        {
+          "name": "batch_size",
+          "type": "int",
+          "description": "Batch size",
+          "defaultValue": 1000
+        },
+        {
+          "name": "bin_size_msec",
+          "type": "float",
+          "description": "Bin size in milliseconds",
+          "defaultValue": 20
+        },
+        {
+          "name": "output_dimensions",
+          "type": "int",
+          "description": "Output dimensions",
+          "defaultValue": 10
+        }
+      ],
+      "attributes": []
+    }
+  ]
 }

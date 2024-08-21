@@ -13,10 +13,16 @@ const HomePage: FunctionComponent<Props> = () => {
   const { setRoute } = useRoute();
   const { recentServices } = useRecentServices();
   return (
-    <div style={{padding: 30}}>
+    <div style={{ padding: 30 }}>
       <h3>Pairio: Dendro Prototype 3</h3>
       <p>
-        <a href="https://github.com/magland/pairio" target="_blank" rel="noopener noreferrer">Read more...</a>
+        <a
+          href="https://github.com/magland/pairio"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Read more...
+        </a>
       </p>
       <div>
         <LoginButton />
@@ -24,35 +30,52 @@ const HomePage: FunctionComponent<Props> = () => {
       <hr />
       <div>
         <div>
-          <Hyperlink onClick={() => {
-            setRoute({page: 'services'})
-          }}>Services</Hyperlink>
+          <Hyperlink
+            onClick={() => {
+              setRoute({ page: "services" });
+            }}
+          >
+            Services
+          </Hyperlink>
         </div>
       </div>
-      {recentServices.length > 0 && <div>
-        Recent: {
-          recentServices.map(serviceName => (
+      {recentServices.length > 0 && (
+        <div>
+          Recent:{" "}
+          {recentServices.map((serviceName) => (
             <span key={serviceName}>
-              <Hyperlink onClick={() => {
-                setRoute({page: 'service', serviceName})
-              }}>{serviceName}</Hyperlink>
+              <Hyperlink
+                onClick={() => {
+                  setRoute({ page: "service", serviceName });
+                }}
+              >
+                {serviceName}
+              </Hyperlink>
               &nbsp;
             </span>
-          ))
-        }
-      </div>}
+          ))}
+        </div>
+      )}
       <hr />
       <div>
-        <Hyperlink onClick={() => {
-          setRoute({page: 'settings'})
-        }}>Settings</Hyperlink>
+        <Hyperlink
+          onClick={() => {
+            setRoute({ page: "settings" });
+          }}
+        >
+          Settings
+        </Hyperlink>
       </div>
       <hr />
-      <Hyperlink onClick={() => {
-        setRoute({page: 'playground'})
-      }}>Playground</Hyperlink>
+      <Hyperlink
+        onClick={() => {
+          setRoute({ page: "playground" });
+        }}
+      >
+        Playground
+      </Hyperlink>
     </div>
-  )
+  );
 };
 
 const useRecentServices = () => {
@@ -60,54 +83,51 @@ const useRecentServices = () => {
   useEffect(() => {
     const update = () => {
       try {
-        const x = localStorage.getItem('recent_services');
+        const x = localStorage.getItem("recent_services");
         if (x) {
           const y = JSON.parse(x);
           assertListOfStrings(y);
           setRecentServices(y);
         }
-      }
-      catch (err) {
+      } catch (err) {
         console.warn(err);
       }
     };
     const timeout = setTimeout(update, 1000);
     return () => {
       clearTimeout(timeout);
-    }
+    };
   }, []);
 
   return { recentServices };
-}
+};
 
 export const reportRecentService = (serviceName: string) => {
   let recentServices: string[] = [];
   try {
-    const x = localStorage.getItem('recent_services');
+    const x = localStorage.getItem("recent_services");
     if (x) {
       recentServices = JSON.parse(x);
       assertListOfStrings(recentServices);
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.warn(err);
   }
-  recentServices = recentServices.filter(name => (name !== serviceName));
+  recentServices = recentServices.filter((name) => name !== serviceName);
   recentServices.unshift(serviceName);
   recentServices = recentServices.slice(0, 10);
-  localStorage.setItem('recent_services', JSON.stringify(recentServices));
-}
+  localStorage.setItem("recent_services", JSON.stringify(recentServices));
+};
 
 const assertListOfStrings = (x: any) => {
   if (!Array.isArray(x)) {
-    throw new Error('Expected array');
+    throw new Error("Expected array");
   }
   for (const i in x) {
-    if (typeof x[i] !== 'string') {
-      throw new Error('Expected string');
+    if (typeof x[i] !== "string") {
+      throw new Error("Expected string");
     }
   }
-}
-
+};
 
 export default HomePage;

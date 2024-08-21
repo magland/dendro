@@ -1,38 +1,38 @@
 {
-    "name": "hello_kilosort4",
-    "description": "Hello Kilosort4",
-    "processors": [
+  "name": "hello_kilosort4",
+  "description": "Hello Kilosort4",
+  "processors": [
+    {
+      "name": "kilosort4",
+      "description": "Run spike sorting using Kilosort4",
+      "label": "kilosort4",
+      "image": "magland/pairio-hello-kilosort4:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
         {
-            "name": "kilosort4",
-            "description": "Run spike sorting using Kilosort4",
-            "label": "kilosort4",
-            "image": "magland/pairio-hello-kilosort4:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "Input NWB file in .nwb.lindi.tar format"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "New NWB file in .nwb.lindi.tar format"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "electrical_series_path",
-                    "type": "str",
-                    "description": "Path to the electrical series object in the NWB file"
-                },
-                {
-                    "name": "output_units_name",
-                    "type": "str",
-                    "description": "Name of the output units object"
-                }
-            ],
-            "attributes": []
+          "name": "input",
+          "description": "Input NWB file in .nwb.lindi.tar format"
         }
-    ]
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "New NWB file in .nwb.lindi.tar format"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "electrical_series_path",
+          "type": "str",
+          "description": "Path to the electrical series object in the NWB file"
+        },
+        {
+          "name": "output_units_name",
+          "type": "str",
+          "description": "Name of the output units object"
+        }
+      ],
+      "attributes": []
+    }
+  ]
 }

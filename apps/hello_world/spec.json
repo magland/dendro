@@ -1,75 +1,75 @@
 {
-    "name": "hello_world",
-    "description": "A simple hello world app",
-    "processors": [
+  "name": "hello_world",
+  "description": "A simple hello world app",
+  "processors": [
+    {
+      "name": "hello_world_1",
+      "description": "Prints \"Hello, {name}!\"",
+      "label": "hello_world_1",
+      "image": "magland/pairio-hello-world:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [],
+      "outputs": [],
+      "parameters": [
         {
-            "name": "hello_world_1",
-            "description": "Prints \"Hello, {name}!\"",
-            "label": "hello_world_1",
-            "image": "magland/pairio-hello-world:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [],
-            "outputs": [],
-            "parameters": [
-                {
-                    "name": "name",
-                    "type": "str",
-                    "description": "The name to say hello to",
-                    "defaultValue": "world"
-                }
-            ],
-            "attributes": []
-        },
-        {
-            "name": "hello_world_2",
-            "description": "Outputs a text file with \"Hello, {name}!\" in it",
-            "label": "hello_world_2",
-            "image": "magland/pairio-hello-world:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "The output text file"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "name",
-                    "type": "str",
-                    "description": "The name to say hello to",
-                    "defaultValue": "world"
-                }
-            ],
-            "attributes": []
-        },
-        {
-            "name": "count_characters",
-            "description": "Counts the number of characters in a text file",
-            "label": "count_characters",
-            "image": "magland/pairio-hello-world:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "The input text file"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "The output JSON file"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "include_whitespace",
-                    "type": "bool",
-                    "description": "Whether to include whitespace in the count",
-                    "defaultValue": true
-                }
-            ],
-            "attributes": []
+          "name": "name",
+          "type": "str",
+          "description": "The name to say hello to",
+          "defaultValue": "world"
         }
-    ]
+      ],
+      "attributes": []
+    },
+    {
+      "name": "hello_world_2",
+      "description": "Outputs a text file with \"Hello, {name}!\" in it",
+      "label": "hello_world_2",
+      "image": "magland/pairio-hello-world:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "The output text file"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "str",
+          "description": "The name to say hello to",
+          "defaultValue": "world"
+        }
+      ],
+      "attributes": []
+    },
+    {
+      "name": "count_characters",
+      "description": "Counts the number of characters in a text file",
+      "label": "count_characters",
+      "image": "magland/pairio-hello-world:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
+        {
+          "name": "input",
+          "description": "The input text file"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "The output JSON file"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "include_whitespace",
+          "type": "bool",
+          "description": "Whether to include whitespace in the count",
+          "defaultValue": true
+        }
+      ],
+      "attributes": []
+    }
+  ]
 }
