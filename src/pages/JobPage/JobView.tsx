@@ -18,6 +18,7 @@ import { ExpandableSection } from "../PlaygroundPage/ExpandableSection";
 import ResourceUtilizationView from "./ResourceUtilizationView/ResourceUtilizationView";
 import formatByteCount from "./formatByteCount";
 import { useJobProducingOutput } from "./useJobProducingOutput";
+import useRoute from "../../useRoute";
 
 type JobViewProps = {
   job: DendroJob;
@@ -283,6 +284,7 @@ const InputsOutputsParametersView: FunctionComponent<
           <th>Type</th>
           <th>Value / URL</th>
           <th>Size</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -325,6 +327,11 @@ const InputsOutputsParametersView: FunctionComponent<
                 )}
               </td>
               <td>{row.size ? formatByteCount(row.size) : ""}</td>
+              <td>
+                {row.type === "input" && row.url && (
+                  <LinkToJobFromInputFile url={row.url} />
+                )}
+              </td>
             </tr>
           );
         })}
@@ -337,16 +344,19 @@ const LinkToJobFromInputFile: FunctionComponent<{ url: string }> = ({
   url,
 }) => {
   const job = useJobProducingOutput(url);
+
+  const { setRoute } = useRoute()
+
   if (!job) return <></>;
 
   return (
-    <a
-      href={`https://dendro.vercel.app/job/${job.jobId}`}
-      target="_blank"
-      rel="noopener noreferrer"
+    <Hyperlink
+      onClick={() => {
+        setRoute({ page: "job", jobId: job.jobId });
+      }}
     >
-      open job
-    </a>
+      Open job
+    </Hyperlink>
   );
 };
 
