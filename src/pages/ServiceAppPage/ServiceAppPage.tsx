@@ -3,7 +3,7 @@ import { Hyperlink } from "@fi-sci/misc";
 import { FunctionComponent, useMemo } from "react";
 import useRoute from "../../useRoute";
 import { useServiceApp } from "../../hooks";
-import { PairioAppProcessor } from "../../types";
+import { DendroAppProcessor } from "../../types";
 import ServiceNameComponent from "../../components/ServiceNameComponent";
 import ServiceAppNameComponent from "../../components/ServiceAppNameComponent";
 
@@ -86,7 +86,7 @@ const ServiceAppPage: FunctionComponent<ServiceAppPageProps> = () => {
 };
 
 type ProcessorViewProps = {
-  processor: PairioAppProcessor;
+  processor: DendroAppProcessor;
 };
 
 type ProcessorViewRow = {

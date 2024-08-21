@@ -6,7 +6,7 @@
       "name": "units_summary_1",
       "description": "Compute autocorrelograms for a units table in an NWB file",
       "label": "units_summary_1",
-      "image": "magland/pairio-hello-neurosift:0.1.0",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
       "executable": "/app/main.py",
       "inputs": [
         {
@@ -46,7 +46,7 @@
       "name": "ephys_summary_1",
       "description": "Compute summary information for an electrophysiology dataset",
       "label": "ephys_summary_1",
-      "image": "magland/pairio-hello-neurosift:0.1.0",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
       "executable": "/app/main.py",
       "inputs": [
         {
@@ -83,7 +83,7 @@
       "name": "avi_to_mp4",
       "description": "Convert an .avi file to an .mp4 file",
       "label": "avi_to_mp4",
-      "image": "magland/pairio-hello-neurosift:0.1.0",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
       "executable": "/app/main.py",
       "inputs": [
         {
@@ -115,7 +115,7 @@
       "name": "ephys_preprocess",
       "description": "Run preprocessing on an electrophysiology dataset",
       "label": "ephys_preprocess",
-      "image": "magland/pairio-hello-neurosift:0.1.0",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
       "executable": "/app/main.py",
       "inputs": [
         {
@@ -142,7 +142,7 @@
       "name": "prepare_ephys_spike_sorting_dataset",
       "description": "Run preprocessing on an electrophysiology dataset in preparation for spike sorting",
       "label": "prepare_ephys_spike_sorting_dataset",
-      "image": "magland/pairio-hello-neurosift:0.1.0",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
       "executable": "/app/main.py",
       "inputs": [
         {
@@ -199,7 +199,7 @@
       "name": "mountainsort5",
       "description": "Run spike sorting using MountainSort5",
       "label": "mountainsort5",
-      "image": "magland/pairio-hello-neurosift:0.1.0",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
       "executable": "/app/main.py",
       "inputs": [
         {
@@ -241,7 +241,7 @@
       "name": "spike_sorting_post_processing",
       "description": "Run post processing on an electrophysiology dataset after spike sorting and add columns to the units table",
       "label": "spike_sorting_post_processing",
-      "image": "magland/pairio-hello-neurosift:0.1.0",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
       "executable": "/app/main.py",
       "inputs": [
         {

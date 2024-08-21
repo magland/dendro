@@ -20,7 +20,7 @@ export const SetupLogin: FunctionComponent<
   );
   useEffect(() => {
     const check = () => {
-      const xx = localStorage.getItem("pairio_github_access_token");
+      const xx = localStorage.getItem("dendro_github_access_token");
       if (!xx) {
         setGitHubAccessToken(null);
         return;
@@ -79,7 +79,7 @@ export const SetupLogin: FunctionComponent<
       userId,
       githubAccessToken,
       clearGithubAccessToken: () => {
-        localStorage.removeItem("pairio_github_access_token");
+        localStorage.removeItem("dendro_github_access_token");
         setGitHubAccessToken(null);
         setUserId(null);
       },

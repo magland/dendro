@@ -1,28 +1,28 @@
 import os
-from pairio.client import submit_job, PairioJobDefinition, PairioJobRequiredResources, PairioJobOutputFile, PairioJobParameter
+from dendro.client import submit_job, DendroJobDefinition, DendroJobRequiredResources, DendroJobOutputFile, DendroJobParameter
 
 
 service_name = os.getenv('PAIRIO_SERVICE_NAME', 'hello_world_service')
 
 def main():
-    job_def = PairioJobDefinition(
+    job_def = DendroJobDefinition(
         appName='hello_world',
         processorName='hello_world_2',
         inputFiles=[],
         outputFiles=[
-            PairioJobOutputFile(
+            DendroJobOutputFile(
                 name='output',
                 fileBaseName='output.txt'
             )
         ],
         parameters=[
-            PairioJobParameter(
+            DendroJobParameter(
                 name='name',
                 value='world'
             )
         ]
     )
-    required_resources = PairioJobRequiredResources(
+    required_resources = DendroJobRequiredResources(
         numCpus=1,
         numGpus=0,
         memoryGb=4,

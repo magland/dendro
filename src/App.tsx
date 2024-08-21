@@ -66,7 +66,7 @@ const SetAccessTokenComponent = () => {
   }
   useEffect(() => {
     localStorage.setItem(
-      "pairio_github_access_token",
+      "dendro_github_access_token",
       JSON.stringify({ accessToken: route.accessToken }),
     );
     setRoute({

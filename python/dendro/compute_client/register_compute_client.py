@@ -15,11 +15,11 @@ def register_compute_client(*,
     except ImportError:
         raise ImportError('The pubnub package is not installed. You should use "pip install pubnub" to install it.')
 
-    config_fname = os.path.join(dir, 'pairio-compute-client.yaml')
+    config_fname = os.path.join(dir, 'dendro-compute-client.yaml')
     if os.path.exists(config_fname):
         raise Exception(f'This directory is already registered as a compute client. To re-register, delete the file {config_fname}.')
 
-    url = f'https://pairio.vercel.app/register_compute_client/{service_name}/{compute_client_name}'
+    url = f'https://dendro.vercel.app/register_compute_client/{service_name}/{compute_client_name}'
 
     print('')
     print(url)
@@ -46,11 +46,11 @@ def register_compute_client(*,
 
     print('')
     print('The compute client has been registered.')
-    config_url = f'https://pairio.vercel.app/compute_client/{compute_client_id}'
+    config_url = f'https://dendro.vercel.app/compute_client/{compute_client_id}'
     print('')
     print(f'You can configure it here: {config_url}')
     print('')
-    print('Then you can start it by running "pairio start-compute-client" in this directory')
+    print('Then you can start it by running "dendro start-compute-client" in this directory')
 
 
 def decode_base64(data):

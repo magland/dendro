@@ -1,5 +1,5 @@
 import numpy as np
-from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class MountainSort5Context(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb.lindi.tar format')
@@ -14,7 +14,7 @@ class MountainSort5(ProcessorBase):
     name = 'mountainsort5'
     description = 'Run spike sorting using MountainSort5'
     label = 'mountainsort5'
-    image = 'magland/pairio-hello-neurosift:0.1.0'
+    image = 'magland/dendro-hello-neurosift:0.1.0'
     executable = '/app/main.py'
     attributes = {}
 

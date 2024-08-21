@@ -1,6 +1,6 @@
 from typing import List
 import numpy as np
-from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class PrepareEphysSpikeSortingDatasetContext(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
@@ -18,7 +18,7 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
     name = 'prepare_ephys_spike_sorting_dataset'
     description = 'Run preprocessing on an electrophysiology dataset in preparation for spike sorting'
     label = 'prepare_ephys_spike_sorting_dataset'
-    image = 'magland/pairio-hello-neurosift:0.1.0'
+    image = 'magland/dendro-hello-neurosift:0.1.0'
     executable = '/app/main.py'
     attributes = {}
 

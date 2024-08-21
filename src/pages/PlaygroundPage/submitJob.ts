@@ -2,22 +2,22 @@ import {
   CreateJobRequest,
   FindJobByDefinitionRequest,
   GetJobRequest,
-  PairioJob,
-  PairioJobDefinition,
-  PairioJobRequiredResources,
+  DendroJob,
+  DendroJobDefinition,
+  DendroJobRequiredResources,
   isCreateJobResponse,
   isGetJobResponse,
 } from "../../types";
 
 const submitJob = async (o: {
-  jobDefinition: PairioJobDefinition;
-  pairioApiKey?: string;
+  jobDefinition: DendroJobDefinition;
+  dendroApiKey?: string;
   serviceName: string;
-  requiredResources: PairioJobRequiredResources;
-}): Promise<PairioJob> => {
-  const { jobDefinition, pairioApiKey, serviceName, requiredResources } = o;
-  if (!pairioApiKey) {
-    throw new Error("pairioApiKey is required");
+  requiredResources: DendroJobRequiredResources;
+}): Promise<DendroJob> => {
+  const { jobDefinition, dendroApiKey, serviceName, requiredResources } = o;
+  if (!dendroApiKey) {
+    throw new Error("dendroApiKey is required");
   }
 
   const req: CreateJobRequest = {
@@ -36,7 +36,7 @@ const submitJob = async (o: {
   };
   console.info("jobDefinition", jobDefinition);
   const headers = {
-    Authorization: `Bearer: ${pairioApiKey}`,
+    Authorization: `Bearer: ${dendroApiKey}`,
   };
   const url = "/api/createJob";
   const resp = await fetch(url, {
@@ -59,9 +59,9 @@ const submitJob = async (o: {
 };
 
 export const findJobByDefinition = async (o: {
-  jobDefinition: PairioJobDefinition;
+  jobDefinition: DendroJobDefinition;
   serviceName: string;
-}): Promise<PairioJob | undefined> => {
+}): Promise<DendroJob | undefined> => {
   const { jobDefinition, serviceName } = o;
   const url = "/api/findJobByDefinition";
   const req: FindJobByDefinitionRequest = {
@@ -87,7 +87,7 @@ export const findJobByDefinition = async (o: {
   }
 };
 
-export const getJob = async (o: { jobId: string }): Promise<PairioJob> => {
+export const getJob = async (o: { jobId: string }): Promise<DendroJob> => {
   const { jobId } = o;
   const req: GetJobRequest = {
     type: "getJobRequest",

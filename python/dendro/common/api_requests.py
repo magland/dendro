@@ -2,11 +2,11 @@ import os
 import requests
 from typing import Union, Literal
 from typing import List
-from .pairio_types import PairioServiceApp
-from .PairioJob import PairioJob
-from ..common.pairio_types import PairioJobDefinition, PairioJobRequiredResources, PairioJobSecret
+from .dendro_types import DendroServiceApp
+from .DendroJob import DendroJob
+from ..common.dendro_types import DendroJobDefinition, DendroJobRequiredResources, DendroJobSecret
 
-pairio_api_url = os.getenv('PAIRIO_API_URL', 'https://pairio.vercel.app')
+dendro_api_url = os.getenv('DENDRO_API_URL', 'https://dendro.vercel.app')
 
 def get_service_app(*,
     service_name: str,
@@ -20,7 +20,7 @@ def get_service_app(*,
 
     # export type GetServiceAppResponse = {
     #   type: 'getServiceAppResponse'
-    #   serviceApp: PairioServiceApp
+    #   serviceApp: DendroServiceApp
     # }
 
     req = {
@@ -36,7 +36,7 @@ def get_service_app(*,
     if resp['type'] != 'getServiceAppResponse':
         raise Exception('Unexpected response for getServiceAppRequest')
     app = resp['serviceApp']
-    app = PairioServiceApp(**app)
+    app = DendroServiceApp(**app)
     return app
 
 
@@ -52,7 +52,7 @@ def set_job_status(
     #   type: 'setJobStatusRequest'
     #   jobId: string
     #   computeClientId: string
-    #   status: PairioJobStatus
+    #   status: DendroJobStatus
     #   error?: string
     # }
     req = {
@@ -94,9 +94,9 @@ def get_runnable_jobs_for_compute_client(
         headers=headers
     )
     runnable_jobs = resp['runnableJobs']
-    runnable_jobs = [PairioJob(**job) for job in runnable_jobs]
+    runnable_jobs = [DendroJob(**job) for job in runnable_jobs]
     running_jobs = resp['runningJobs']
-    running_jobs = [PairioJob(**job) for job in running_jobs]
+    running_jobs = [DendroJob(**job) for job in running_jobs]
     return runnable_jobs, running_jobs
 
 
@@ -110,10 +110,10 @@ def get_runnable_jobs_for_compute_client(
 #
 # export type GetJobResponse = {
 #   type: 'getJobResponse'
-#   job?: PairioJob
+#   job?: DendroJob
 # }
 
-def get_job(*, job_id: str) -> Union[PairioJob, None]:
+def get_job(*, job_id: str) -> Union[DendroJob, None]:
     """Get a job status from the dendro API"""
     url_path = '/api/getJob'
     req = {
@@ -128,7 +128,7 @@ def get_job(*, job_id: str) -> Union[PairioJob, None]:
     job = res.get('job')
     if not job:
         return None
-    job = PairioJob(**job)
+    job = DendroJob(**job)
     return job
 
 
@@ -291,9 +291,9 @@ def create_job(
     service_name: str,
     batch_id: str,
     tags: List[str],
-    job_definition: PairioJobDefinition,
-    required_resources: PairioJobRequiredResources,
-    secrets: List[PairioJobSecret],
+    job_definition: DendroJobDefinition,
+    required_resources: DendroJobRequiredResources,
+    secrets: List[DendroJobSecret],
     user_api_key: str,
     job_dependencies: List[str] = [],
     skip_cache: bool = False,
@@ -325,7 +325,7 @@ def create_job(
     if resp['type'] != 'createJobResponse':
         raise Exception('Unexpected response for createJobRequest')
     job = resp['job']
-    job = PairioJob(**job)
+    job = DendroJob(**job)
     return job
 
 
@@ -335,7 +335,7 @@ def _post_api_request(*,
     headers: Union[dict, None] = None
 ):
     assert url_path.startswith('/api')
-    url = f'{pairio_api_url}{url_path}'
+    url = f'{dendro_api_url}{url_path}'
     try:
         resp = requests.post(url, headers=headers, json=data, timeout=60)
     except Exception as e:

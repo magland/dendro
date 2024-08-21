@@ -12,7 +12,7 @@ import useRoute from "../../useRoute";
 import ComputeClientsView from "./ComputeClientsView";
 import ServiceAppsView from "./ServiceAppsView";
 import JobsView from "../ComputeClientPage/JobsView";
-import { PairioService, PairioServiceUser } from "../../types";
+import { DendroService, DendroServiceUser } from "../../types";
 import { Add, Delete } from "@mui/icons-material";
 import { reportRecentService } from "../HomePage/HomePage";
 import UserIdComponent from "../../components/UserIdComponent";
@@ -37,7 +37,7 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({
   const [editingUsers, setEditingUsers] = useState(false);
 
   const setUsers = useCallback(
-    async (users: PairioServiceUser[]) => {
+    async (users: DendroServiceUser[]) => {
       await setServiceInfo({ users });
     },
     [setServiceInfo],
@@ -57,7 +57,7 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({
   //             throw new Error('App name does not match')
   //         }
   //         const processors = x.processors
-  //         if (!isArrayOf(isPairioAppProcessor)(processors)) {
+  //         if (!isArrayOf(isDendroAppProcessor)(processors)) {
   //             throw new Error('Invalid processors')
   //         }
   //         const description = x.description
@@ -188,15 +188,15 @@ const ServicePage: FunctionComponent<ServicePageProps> = ({
 // }
 
 type EditUsersControlProps = {
-  service: PairioService;
-  onSetUsers: (users: PairioServiceUser[]) => Promise<void>;
+  service: DendroService;
+  onSetUsers: (users: DendroServiceUser[]) => Promise<void>;
 };
 
 const EditUsersControl: FunctionComponent<EditUsersControlProps> = ({
   service,
   onSetUsers,
 }) => {
-  const [localEditUsers, setLocalEditUsers] = useState<PairioServiceUser[]>(
+  const [localEditUsers, setLocalEditUsers] = useState<DendroServiceUser[]>(
     service.users,
   );
   useEffect(() => {

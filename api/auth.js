@@ -26,6 +26,6 @@ export default async (req, res) => {
   // For example, writing to a repository specified by the user.
 
   res.redirect(
-    `https://pairio.vercel.app/set_access_token?access_token=${accessToken}`,
+    `https://dendro.vercel.app/set_access_token?access_token=${accessToken}`,
   );
 };

@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { useJob } from "../../hooks";
-import { PairioJob } from "../../types";
+import { DendroJob } from "../../types";
 import useRoute from "../../useRoute";
 import { timeAgoString } from "../../timeStrings";
 import ServiceNameComponent from "../../components/ServiceNameComponent";
@@ -71,7 +71,7 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
 };
 
 type JobViewProps = {
-  job: PairioJob;
+  job: DendroJob;
   refreshJob: () => void;
   deleteJob?: () => void;
 };
@@ -205,7 +205,7 @@ export const JobView: FunctionComponent<JobViewProps> = ({
 };
 
 type ResourceUtilizationViewProps = {
-  job: PairioJob;
+  job: DendroJob;
 };
 
 const ResourceUtilizationSection: FunctionComponent<ResourceUtilizationViewProps> = ({
@@ -225,7 +225,7 @@ const ResourceUtilizationSection: FunctionComponent<ResourceUtilizationViewProps
 };
 
 type ConsoleOutputViewProps = {
-  job: PairioJob;
+  job: DendroJob;
 };
 
 const ConsoleOutputView: FunctionComponent<ConsoleOutputViewProps> = ({
@@ -283,7 +283,7 @@ const useRemoteText = (url: string) => {
 };
 
 type InputsOutputsParametersViewProps = {
-  job: PairioJob;
+  job: DendroJob;
 };
 
 type InputsOutputsParametersViewRow = {

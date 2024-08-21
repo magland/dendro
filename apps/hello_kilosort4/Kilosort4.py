@@ -1,4 +1,4 @@
-from pairio.sdk import (
+from dendro.sdk import (
     ProcessorBase,
     BaseModel,
     Field,
@@ -18,7 +18,7 @@ class Kilosort4(ProcessorBase):
     name = "kilosort4"
     description = "Run spike sorting using Kilosort4"
     label = "kilosort4"
-    image = "magland/pairio-hello-kilosort4:0.1.0"
+    image = "magland/dendro-hello-kilosort4:0.1.0"
     executable = "/app/main.py"
     attributes = {}
 

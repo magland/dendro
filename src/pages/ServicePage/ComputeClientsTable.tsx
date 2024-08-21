@@ -3,10 +3,10 @@ import ComputeClientNameComponent from "../../components/ComputeClientNameCompon
 import ServiceNameComponent from "../../components/ServiceNameComponent";
 import UserIdComponent from "../../components/UserIdComponent";
 import { timeAgoString } from "../../timeStrings";
-import { PairioComputeClient } from "../../types";
+import { DendroComputeClient } from "../../types";
 
 type ComputeClientsTableProps = {
-  computeClients: PairioComputeClient[];
+  computeClients: DendroComputeClient[];
 };
 
 const ComputeClientsTable: FunctionComponent<ComputeClientsTableProps> = ({

@@ -1,10 +1,10 @@
 import { FunctionComponent, useCallback, useEffect, useMemo, useState } from "react"
 import LogPlot from "./LogPlot"
 import { Hyperlink } from "@fi-sci/misc";
-import { PairioJob } from "../../../types";
+import { DendroJob } from "../../../types";
 
 type ResourceUtilizationViewProps = {
-    job: PairioJob
+    job: DendroJob
     displayJobId: boolean
 }
 
@@ -51,7 +51,7 @@ type ResourceUtilizationLogLine = {
     } | null
 }
 
-const useResourceUtilizationLog = (job: PairioJob) => {
+const useResourceUtilizationLog = (job: DendroJob) => {
     const [resourceUtilizationLogText, setResourceUtilizationLogText] = useState<string | undefined>()
     const [refreshCode, setRefreshCode] = useState(0)
     const refreshResourceUtilizationLog = useCallback(() => {

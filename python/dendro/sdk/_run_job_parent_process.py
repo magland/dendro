@@ -8,30 +8,30 @@ import shutil
 from ..common.api_requests import set_job_status
 
 
-# This function is called internally by the compute resource daemon through the pairio CLI
+# This function is called internally by the compute resource daemon through the dendro CLI
 # * Sets the job status to running in the database via the API
 # * Runs the job in a separate process by calling the app executable with the appropriate env vars
 # * Launches detached processes to monitor the console output, resource utilization, and job status
 # * Finally, sets the job status to completed or failed in the database via the API
 
 if os.environ.get('PAIRIO_JOB_WORKING_DIR', None) is None:
-    pairio_internal_folder = '_pairio'
+    dendro_internal_folder = '_dendro'
 else:
-    pairio_internal_folder = os.environ['PAIRIO_JOB_WORKING_DIR'] + '/_pairio'
+    dendro_internal_folder = os.environ['PAIRIO_JOB_WORKING_DIR'] + '/_dendro'
 
 def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_executable: str, job_timeout_sec: Union[int, None], compute_client_id: str):
     _run_job_timer = time.time()
 
-    if os.path.exists(pairio_internal_folder):
-        shutil.rmtree(pairio_internal_folder)
-    os.mkdir(pairio_internal_folder)
-    console_out_fname = os.path.join(pairio_internal_folder, 'console_output.txt')
-    cancel_out_fname = os.path.join(pairio_internal_folder, 'cancel.txt')
-    console_out_monitor_output_fname = os.path.join(pairio_internal_folder, 'console_output_monitor_output.txt')
-    resource_utilization_monitor_output_fname = os.path.join(pairio_internal_folder, 'resource_utilization_monitor_output.txt')
-    job_status_monitor_output_fname = os.path.join(pairio_internal_folder, 'job_status_monitor_output.txt')
+    if os.path.exists(dendro_internal_folder):
+        shutil.rmtree(dendro_internal_folder)
+    os.mkdir(dendro_internal_folder)
+    console_out_fname = os.path.join(dendro_internal_folder, 'console_output.txt')
+    cancel_out_fname = os.path.join(dendro_internal_folder, 'cancel.txt')
+    console_out_monitor_output_fname = os.path.join(dendro_internal_folder, 'console_output_monitor_output.txt')
+    resource_utilization_monitor_output_fname = os.path.join(dendro_internal_folder, 'resource_utilization_monitor_output.txt')
+    job_status_monitor_output_fname = os.path.join(dendro_internal_folder, 'job_status_monitor_output.txt')
 
-    # set the job status to running by calling the remote pairio API
+    # set the job status to running by calling the remote dendro API
     _debug_log(f'Running job {job_id}')
     set_job_status(
         job_id=job_id,
@@ -50,7 +50,7 @@ def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_exec
         error_message = '' # if we fail, this will be set to the exception message
         try:
             # start the console output monitor
-            cmd = f'pairio internal-job-monitor console_output --parent-pid {os.getpid()}'
+            cmd = f'dendro internal-job-monitor console_output --parent-pid {os.getpid()}'
             env = {
                 'JOB_ID': job_id,
                 'JOB_PRIVATE_KEY': job_private_key,
@@ -59,7 +59,7 @@ def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_exec
             _launch_detached_process(cmd=cmd, env=env, stdout=console_out_monitor_output_file, stderr=subprocess.STDOUT)
 
             # start the resource utilization monitor
-            cmd = f'pairio internal-job-monitor resource_utilization --parent-pid {os.getpid()}'
+            cmd = f'dendro internal-job-monitor resource_utilization --parent-pid {os.getpid()}'
             env = {
                 'JOB_ID': job_id,
                 'JOB_PRIVATE_KEY': job_private_key
@@ -67,7 +67,7 @@ def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_exec
             _launch_detached_process(cmd=cmd, env=env, stdout=resource_utilization_monitor_output_file, stderr=subprocess.STDOUT)
 
             # start the status check monitor
-            cmd = f'pairio internal-job-monitor job_status --parent-pid {os.getpid()}'
+            cmd = f'dendro internal-job-monitor job_status --parent-pid {os.getpid()}'
             env = {
                 'JOB_ID': job_id,
                 'JOB_PRIVATE_KEY': job_private_key,
@@ -132,27 +132,27 @@ def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_exec
                 except Exception: # pylint: disable=broad-except
                     pass
 
-            pairio_job_cleanup_dir = os.environ.get('PAIRIO_JOB_CLEANUP_DIR', None)
-            if pairio_job_cleanup_dir is not None:
-                _debug_log(f'Cleaning up PAIRIO_JOB_CLEANUP_DIR: {pairio_job_cleanup_dir}')
+            dendro_job_cleanup_dir = os.environ.get('PAIRIO_JOB_CLEANUP_DIR', None)
+            if dendro_job_cleanup_dir is not None:
+                _debug_log(f'Cleaning up PAIRIO_JOB_CLEANUP_DIR: {dendro_job_cleanup_dir}')
                 try:
                     # delete files in the cleanup dir but do not delete the cleanup dir itself
-                    # and also don't delete the internal log folder _pairio
+                    # and also don't delete the internal log folder _dendro
                     def _delete_files_in_dir(dir: str):
                         for fname in os.listdir(dir):
                             fpath = os.path.join(dir, fname)
                             if os.path.isdir(fpath):
-                                if fname == '_pairio':
+                                if fname == '_dendro':
                                     # don't delete the internal log folder
                                     continue
                                 _delete_files_in_dir(fpath)
                             else:
-                                if fname.startswith('_pairio'):
-                                    # don't delete pairio system files
+                                if fname.startswith('_dendro'):
+                                    # don't delete dendro system files
                                     continue
                                 _debug_log(f'Deleting {fpath}')
                                 os.remove(fpath)
-                    _delete_files_in_dir(pairio_job_cleanup_dir)
+                    _delete_files_in_dir(dendro_job_cleanup_dir)
                 except Exception as e:
                     _debug_log(f'WARNING: problem cleaning up PAIRIO_JOB_CLEANUP_DIR: {str(e)}')
             else:
@@ -172,7 +172,7 @@ def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_exec
     # get the output file sizes
     # this is important for the case of skipCloudUpload=True
     _debug_log('Reading output file sizes')
-    output_file_sizes_fname = f'{pairio_internal_folder}/output_file_sizes.json'
+    output_file_sizes_fname = f'{dendro_internal_folder}/output_file_sizes.json'
     output_file_sizes = None
     if os.path.exists(output_file_sizes_fname):
         with open(output_file_sizes_fname, 'r') as f:
@@ -199,7 +199,7 @@ def _launch_job_child_process(*, job_id: str, job_private_key: str, processor_ex
         **env,
         'JOB_ID': job_id,
         'JOB_PRIVATE_KEY': job_private_key,
-        'COMPUTE_CLIENT_ID': 'pairio_compute_client_id',
+        'COMPUTE_CLIENT_ID': 'dendro_compute_client_id',
         'JOB_INTERNAL': '1',
         'PYTHONUNBUFFERED': '1'
     }
@@ -250,7 +250,7 @@ def _finalize_job(*, job_id: str, job_private_key: str, succeeded: bool, error_m
                 error=error_message
             )
     except Exception as e: # pylint: disable=broad-except
-        # This is unfortunate - we completed the job, but somehow failed to update the status in the pairio system - maybe there was a network error (maybe we should retry?)
+        # This is unfortunate - we completed the job, but somehow failed to update the status in the dendro system - maybe there was a network error (maybe we should retry?)
         _debug_log('WARNING: problem setting final job status: ' + str(e))
         print('WARNING: problem setting final job status: ' + str(e))
 
@@ -275,7 +275,7 @@ def _debug_log(msg: str):
     timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
     msg2 = f'{timestamp} {msg}'
     print(msg2)
-    # write to pairio-job.log
+    # write to dendro-job.log
     # this will be written to the working directory, which should be in the job dir
-    with open(f'{pairio_internal_folder}/pairio-job.log', 'a', encoding='utf-8') as f:
+    with open(f'{dendro_internal_folder}/dendro-job.log', 'a', encoding='utf-8') as f:
         f.write(msg2 + '\n')

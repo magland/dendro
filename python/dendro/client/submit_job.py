@@ -1,23 +1,23 @@
 import os
 from typing import List
 from ..common.api_requests import create_job
-from ..common.pairio_types import PairioJobDefinition, PairioJobRequiredResources
-from ..common.PairioJob import SpecialJobOutput
+from ..common.dendro_types import DendroJobDefinition, DendroJobRequiredResources
+from ..common.DendroJob import SpecialJobOutput
 
 
 def submit_job(
     *,
     service_name: str,
-    job_definition: PairioJobDefinition,
-    required_resources: PairioJobRequiredResources,
+    job_definition: DendroJobDefinition,
+    required_resources: DendroJobRequiredResources,
     tags: List[str] = [],
     skip_cache: bool = False,
     rerun_failing: bool = False,
     delete_failing: bool = False
 ):
-    user_api_key = os.environ.get('PAIRIO_API_KEY', None)
+    user_api_key = os.environ.get('DENDRO_API_KEY', None)
     if user_api_key is None:
-        raise Exception('PAIRIO_API_KEY environment variable must be set')
+        raise Exception('DENDRO_API_KEY environment variable must be set')
     job_dependencies = []
     # resolve the inputs that are job output file results
     for input_file in job_definition.inputFiles:

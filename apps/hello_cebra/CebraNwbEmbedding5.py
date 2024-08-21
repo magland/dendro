@@ -1,4 +1,4 @@
-from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class CebraNwbEmbedding5Context(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
@@ -13,7 +13,7 @@ class CebraNwbEmbedding5(ProcessorBase):
     name = 'cebra_nwb_embedding_5'
     description = 'Create a CEBRA embedding from a units table in an NWB file'
     label = 'cebra_nwb_embedding_5'
-    image = 'magland/pairio-hello-cebra:0.1.0'
+    image = 'magland/dendro-hello-cebra:0.1.0'
     executable = '/app/main.py'
     attributes = {}
 

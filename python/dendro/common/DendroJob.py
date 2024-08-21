@@ -15,43 +15,43 @@ class ComputeClientComputeSlot(BaseModel):
     multiplicity: int
 
 
-class PairioJobInputFile(BaseModel):
+class DendroJobInputFile(BaseModel):
     name: str
     fileBaseName: str
     url: str
 
 
-class PairioJobOutputFile(BaseModel):
+class DendroJobOutputFile(BaseModel):
     name: str
     fileBaseName: str
 
 
-class PairioJobParameter(BaseModel):
+class DendroJobParameter(BaseModel):
     name: str
     value: Union[str, int, float, bool, List[str], List[int], List[float], List[bool], None]
 
 
-class PairioJobRequiredResources(BaseModel):
+class DendroJobRequiredResources(BaseModel):
     numCpus: int
     numGpus: int
     memoryGb: float
     timeSec: float
 
 
-class PairioJobSecret(BaseModel):
+class DendroJobSecret(BaseModel):
     name: str
     value: str
 
 
-class PairioJobDefinition(BaseModel):
+class DendroJobDefinition(BaseModel):
     appName: str
     processorName: str
-    inputFiles: List[PairioJobInputFile]
-    outputFiles: List[PairioJobOutputFile]
-    parameters: List[PairioJobParameter]
+    inputFiles: List[DendroJobInputFile]
+    outputFiles: List[DendroJobOutputFile]
+    parameters: List[DendroJobParameter]
     cacheBust: Union[str, None] = None  # Note: it is very important to set exclude_none=True when serializing this model
 
-class PairioJobOutputFileResult(BaseModel):
+class DendroJobOutputFileResult(BaseModel):
     name: str
     fileBaseName: str
     url: str
@@ -65,22 +65,22 @@ class SpecialJobOutput(BaseModel):
     url: str
     size: Union[int, None]
 
-class PairioJob(BaseModel):
+class DendroJob(BaseModel):
     jobId: str
     jobPrivateKey: Union[str, None] = None
     serviceName: str
     userId: str
     batchId: str
     tags: List[str]
-    jobDefinition: PairioJobDefinition
+    jobDefinition: DendroJobDefinition
     jobDefinitionHash: str
     jobDependencies: List[str]
-    requiredResources: PairioJobRequiredResources
+    requiredResources: DendroJobRequiredResources
     targetComputeClientIds: Union[List[str], None] = None
-    secrets: Union[List[PairioJobSecret], None] = None
+    secrets: Union[List[DendroJobSecret], None] = None
     inputFileUrlList: List[str]
     outputFileUrlList: List[str]
-    outputFileResults: List[PairioJobOutputFileResult]
+    outputFileResults: List[DendroJobOutputFileResult]
     consoleOutputUrl: str
     resourceUtilizationLogUrl: str
     timestampCreatedSec: float
@@ -98,7 +98,7 @@ class PairioJob(BaseModel):
 
     @property
     def job_url(self):
-        return f'https://pairio.vercel.app/job/{self.jobId}'
+        return f'https://dendro.vercel.app/job/{self.jobId}'
 
     def get_output(self, name: str):
         for output in self.outputFileResults:
@@ -135,7 +135,7 @@ class PairioJob(BaseModel):
             job = resp.get('job')
             if not job:
                 raise Exception(f'Job not found: {self.jobId}')
-            job = PairioJob(**job)
+            job = DendroJob(**job)
             fields_to_copy = [
                 'outputFileResults',
                 'timestampCreatedSec',
@@ -195,48 +195,48 @@ class PairioJob(BaseModel):
 #   multiplicity: number
 # }
 
-# // PairioJobInputFile
-# export type PairioJobInputFile = {
+# // DendroJobInputFile
+# export type DendroJobInputFile = {
 #   name: string
 #   fileBaseName: string
 #   url: string
 # }
 
-# // PairioJobOutputFile
-# export type PairioJobOutputFile = {
+# // DendroJobOutputFile
+# export type DendroJobOutputFile = {
 #   name: string
 #   fileBaseName: string
 #   url: string
 # }
 
-# // PairioJobParameter
-# export type PairioJobParameter = {
+# // DendroJobParameter
+# export type DendroJobParameter = {
 #   name: string
 #   value: string | number | boolean | string[] | number[] | boolean[] | null // null means undefined
 # }
 
-# // PairioJobRequiredResources
-# export type PairioJobRequiredResources = {
+# // DendroJobRequiredResources
+# export type DendroJobRequiredResources = {
 #   numCpus: number
 #   numGpus: number
 #   memoryGb: number
 #   timeSec: number
 # }
 
-# // PairioJobSecret
-# export type PairioJobSecret = {
+# // DendroJobSecret
+# export type DendroJobSecret = {
 #   name: string
 #   value: string
 # }
 
-# // PairioJobStatus
-# export type PairioJobStatus = 'pending' | 'starting' | 'running' | 'completed' | 'failed'
+# // DendroJobStatus
+# export type DendroJobStatus = 'pending' | 'starting' | 'running' | 'completed' | 'failed'
 
-# // PairioJobDefinition
-# export type PairioJobDefinition = {
+# // DendroJobDefinition
+# export type DendroJobDefinition = {
 #   appName: string
 #   processorName: string
-#   inputFiles: PairioJobInputFile[]
-#   outputFiles: PairioJobOutputFile[]
-#   parameters: PairioJobParameter[]
+#   inputFiles: DendroJobInputFile[]
+#   outputFiles: DendroJobOutputFile[]
+#   parameters: DendroJobParameter[]
 # }

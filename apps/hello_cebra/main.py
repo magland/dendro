@@ -1,4 +1,4 @@
-from pairio.sdk import App
+from dendro.sdk import App
 from CebraNwbEmbedding5 import CebraNwbEmbedding5
 
 app = App(

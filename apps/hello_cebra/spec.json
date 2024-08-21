@@ -6,7 +6,7 @@
       "name": "cebra_nwb_embedding_5",
       "description": "Create a CEBRA embedding from a units table in an NWB file",
       "label": "cebra_nwb_embedding_5",
-      "image": "magland/pairio-hello-cebra:0.1.0",
+      "image": "magland/dendro-hello-cebra:0.1.0",
       "executable": "/app/main.py",
       "inputs": [
         {

@@ -131,7 +131,7 @@ const ComputeClientPage: FunctionComponent<ComputeClientPageProps> = () => {
       </table>
       <hr />
       To run your compute client, change to the compute client directory and run
-      "pairio start-compute-client" and leave the terminal open. On a remote
+      "dendro start-compute-client" and leave the terminal open. On a remote
       machine, you may want to use tmux or screen.
       <hr />
       {/* <div>

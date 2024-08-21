@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PairioJobDefinition } from "../../../types";
+import { DendroJobDefinition } from "../../../types";
 
-export type PairioJobDefinitionAction =
+export type DendroJobDefinitionAction =
   | {
       type: "setInputFile";
       name: string;
@@ -22,13 +22,13 @@ export type PairioJobDefinitionAction =
     }
   | {
       type: "setJobDefinition";
-      jobDefinition: PairioJobDefinition;
+      jobDefinition: DendroJobDefinition;
     };
 
-export const pairioJobDefinitionReducer = (
-  state: PairioJobDefinition,
-  action: PairioJobDefinitionAction,
-): PairioJobDefinition => {
+export const dendroJobDefinitionReducer = (
+  state: DendroJobDefinition,
+  action: DendroJobDefinitionAction,
+): DendroJobDefinition => {
   switch (action.type) {
     case "setInputFile":
       // check if no change

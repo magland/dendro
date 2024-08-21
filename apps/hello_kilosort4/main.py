@@ -1,4 +1,4 @@
-from pairio.sdk import App
+from dendro.sdk import App
 from Kilosort4 import Kilosort4
 
 app = App(

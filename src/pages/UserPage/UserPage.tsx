@@ -21,7 +21,7 @@ const UserPage: FunctionComponent<UserPageProps> = () => {
             setRoute({ page: "home" });
           }}
         >
-          Pairio home
+          Dendro home
         </Hyperlink>
       </div>
       <hr />

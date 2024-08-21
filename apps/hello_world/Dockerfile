@@ -1,6 +1,6 @@
 FROM python:3.9
 
-# Install pairio from github
+# Install dendro from github
 RUN mkdir -p /src
 WORKDIR /src
 RUN git clone https://github.com/magland/pairio \

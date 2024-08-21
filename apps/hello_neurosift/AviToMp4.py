@@ -1,5 +1,5 @@
 import os
-from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class AviToMp4Context(BaseModel):
     input: InputFile = Field(description='Input .avi file')
@@ -12,7 +12,7 @@ class AviToMp4Processor(ProcessorBase):
     name = 'avi_to_mp4'
     description = 'Convert an .avi file to an .mp4 file'
     label = 'avi_to_mp4'
-    image = 'magland/pairio-hello-neurosift:0.1.0'
+    image = 'magland/dendro-hello-neurosift:0.1.0'
     executable = '/app/main.py'
     attributes = {}
 

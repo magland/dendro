@@ -1,6 +1,6 @@
 import { Hyperlink } from "@fi-sci/misc";
 import { FunctionComponent } from "react";
-import { PairioJob } from "../../types";
+import { DendroJob } from "../../types";
 import useRoute from "../../useRoute";
 import { timeAgoString } from "../../timeStrings";
 import ServiceNameComponent from "../../components/ServiceNameComponent";
@@ -9,7 +9,7 @@ import UserIdComponent from "../../components/UserIdComponent";
 import ComputeClientNameComponent from "../../components/ComputeClientNameComponent";
 
 type JobsTableProps = {
-  jobs: PairioJob[];
+  jobs: DendroJob[];
   selectedJobIds?: string[];
   onSelectedJobIdsChanged?: (selectedJobIds: string[]) => void;
 };

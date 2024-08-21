@@ -6,7 +6,7 @@ const allowCors =
     const allowedOrigins = [
       "http://localhost:3000",
       "http://localhost:4200",
-      "https://pairio.vercel.app",
+      "https://dendro.vercel.app",
       "https://neurosift.app",
     ];
     const origin = req.headers.origin || "";

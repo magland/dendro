@@ -3,7 +3,7 @@ import { useLogin } from "./LoginContext/LoginContext";
 import UserIdComponent from "./components/UserIdComponent";
 
 const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-const redirectUri = "https://pairio.vercel.app/api/auth";
+const redirectUri = "https://dendro.vercel.app/api/auth";
 export const loginUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=repo`;
 
 const LoginButton: React.FC = () => {

@@ -4,10 +4,10 @@ import json
 from .AppProcessor import AppProcessor
 from ._load_spec_from_uri import _load_spec_from_uri
 from .ProcessorBase import ProcessorBase
-from ..common.pairio_types import PairioAppSpecification, PairioAppProcessor
+from ..common.dendro_types import DendroAppSpecification, DendroAppProcessor
 
 
-class PairioAppException(Exception):
+class DendroAppException(Exception):
     pass
 
 class App:
@@ -18,7 +18,7 @@ class App:
         *,
         description: str
     ) -> None:
-        """Construct a new Pairio App
+        """Construct a new Dendro App
 
         Args:
             app_name (str): The name of the app
@@ -68,7 +68,7 @@ class App:
             from ._run_job_child_process import _run_job_child_process
             return _run_job_child_process(job_id=JOB_ID, job_private_key=JOB_PRIVATE_KEY, processors=self._processors)
 
-        # In this mode we run the job, including the top-level interactions with the pairio API, such as setting the status and the console output, and checking whether the job has been canceled/deleted
+        # In this mode we run the job, including the top-level interactions with the dendro API, such as setting the status and the console output, and checking whether the job has been canceled/deleted
         if PROCESSOR_EXECUTABLE is None:
             raise KeyError('PROCESSOR_EXECUTABLE is not set')
 
@@ -87,7 +87,7 @@ class App:
         for processor in self._processors:
             processor_spec = processor.get_spec()
             # validate the processor spec
-            PairioAppProcessor(**processor_spec)
+            DendroAppProcessor(**processor_spec)
             processors.append(
                 processor_spec
             )
@@ -98,7 +98,7 @@ class App:
         }
         # Validate the spec
         try:
-            PairioAppSpecification(**spec)
+            DendroAppSpecification(**spec)
         except Exception as e:
             raise Exception(f'Error validating spec:\n {e}')
         return spec

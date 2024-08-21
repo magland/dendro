@@ -8,7 +8,7 @@ RUN pip install scipy pynwb
 # Install mountainsort5
 RUN pip install mountainsort5==0.5.6
 
-# Install pairio from github
+# Install dendro from github
 RUN mkdir -p /src
 WORKDIR /src
 RUN git clone https://github.com/magland/pairio \

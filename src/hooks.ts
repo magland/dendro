@@ -18,11 +18,11 @@ import {
   GetServiceAppsRequest,
   GetServiceRequest,
   GetServicesRequest,
-  PairioComputeClient,
-  PairioJob,
-  PairioService,
-  PairioServiceApp,
-  PairioServiceUser,
+  DendroComputeClient,
+  DendroJob,
+  DendroService,
+  DendroServiceApp,
+  DendroServiceUser,
   PingComputeClientsRequest,
   SetComputeClientInfoRequest,
   SetServiceAppInfoRequest,
@@ -41,22 +41,22 @@ import {
   isGetServiceAppsResponse,
   isGetServiceResponse,
   isGetServicesResponse,
-  isPairioAppSpecification,
+  isDendroAppSpecification,
   isPingComputeClientsResponse,
   isSetComputeClientInfoResponse,
   isSetServiceAppInfoResponse,
   isSetServiceInfoResponse,
-  PairioJobStatus,
+  DendroJobStatus,
 } from "./types";
 
 const isLocalHost = window.location.hostname === "localhost";
 const apiUrl = isLocalHost
   ? `http://${window.location.hostname}:${window.location.port}`
-  : "https://pairio.vercel.app";
+  : "https://dendro.vercel.app";
 
 export const useServices = () => {
   const { userId, githubAccessToken } = useLogin();
-  const [services, setServices] = useState<PairioService[] | undefined>(
+  const [services, setServices] = useState<DendroService[] | undefined>(
     undefined,
   );
   const [refreshCode, setRefreshCode] = useState(0);
@@ -112,7 +112,7 @@ export const useServices = () => {
 
 export const useService = (serviceName: string) => {
   const { githubAccessToken, userId } = useLogin();
-  const [service, setService] = useState<PairioService | undefined>(undefined);
+  const [service, setService] = useState<DendroService | undefined>(undefined);
   const [refreshCode, setRefreshCode] = useState(0);
   const refreshService = useCallback(() => {
     setRefreshCode((c) => c + 1);
@@ -155,7 +155,7 @@ export const useService = (serviceName: string) => {
   }, [serviceName, githubAccessToken]);
 
   const setServiceInfo = useMemo(
-    () => async (o: { users: PairioServiceUser[] }) => {
+    () => async (o: { users: DendroServiceUser[] }) => {
       const { users } = o;
       if (!githubAccessToken) return;
       const req: SetServiceInfoRequest = {
@@ -208,11 +208,11 @@ export const useService = (serviceName: string) => {
     () => async (o: { sourceUri: string }) => {
       if (!githubAccessToken) return;
       const spec = await loadJsonFromUri(o.sourceUri);
-      if (!isPairioAppSpecification(spec)) {
+      if (!isDendroAppSpecification(spec)) {
         console.warn(spec);
         throw Error("Invalid app specification");
       }
-      const serviceApp: PairioServiceApp = {
+      const serviceApp: DendroServiceApp = {
         serviceName,
         appName: spec.name,
         appSpecificationUri: o.sourceUri,
@@ -249,7 +249,7 @@ export const useService = (serviceName: string) => {
 
 export const useComputeClients = (serviceName: string) => {
   const [computeClients, setComputeClients] = useState<
-    PairioComputeClient[] | undefined
+    DendroComputeClient[] | undefined
   >(undefined);
   const [refreshCode, setRefreshCode] = useState(0);
   const pingFirst = useRef(false);
@@ -304,7 +304,7 @@ export const useComputeClients = (serviceName: string) => {
 
 export const useServiceApps = (serviceName: string) => {
   const [serviceApps, setServiceApps] = useState<
-    PairioServiceApp[] | undefined
+    DendroServiceApp[] | undefined
   >(undefined);
   const [refreshCode, setRefreshCode] = useState(0);
   const refreshServiceApps = useCallback(() => {
@@ -337,7 +337,7 @@ export const useServiceApps = (serviceName: string) => {
 export const useComputeClient = (computeClientId: string) => {
   const { githubAccessToken } = useLogin();
   const [computeClient, setComputeClient] = useState<
-    PairioComputeClient | undefined
+    DendroComputeClient | undefined
   >(undefined);
   const [refreshCode, setRefreshCode] = useState(0);
   const refreshComputeClient = useCallback(() => {
@@ -429,7 +429,7 @@ export const useJobs = (o: {
   serviceName?: string;
   appName?: string;
   processorName?: string;
-  status?: PairioJobStatus;
+  status?: DendroJobStatus;
   maxNumJobs: number;
 }) => {
   const {
@@ -440,7 +440,7 @@ export const useJobs = (o: {
     status,
     maxNumJobs,
   } = o;
-  const [jobs, setJobs] = useState<PairioJob[] | undefined>(undefined);
+  const [jobs, setJobs] = useState<DendroJob[] | undefined>(undefined);
   const [refreshCode, setRefreshCode] = useState(0);
   const { userId, githubAccessToken } = useLogin();
   const refreshJobs = useCallback(() => {
@@ -503,7 +503,7 @@ export const useJobs = (o: {
 };
 
 export const useServiceApp = (serviceName: string, appName: string) => {
-  const [serviceApp, setServiceApp] = useState<PairioServiceApp | undefined>(
+  const [serviceApp, setServiceApp] = useState<DendroServiceApp | undefined>(
     undefined,
   );
   const [refreshCode, setRefreshCode] = useState(0);
@@ -538,7 +538,7 @@ export const useServiceApp = (serviceName: string, appName: string) => {
     if (!serviceApp.appSpecificationUri) return;
     if (!githubAccessToken) return;
     const spec = await loadJsonFromUri(serviceApp.appSpecificationUri);
-    if (!isPairioAppSpecification(spec)) {
+    if (!isDendroAppSpecification(spec)) {
       console.warn(spec);
       throw Error("Invalid app specification");
     }
@@ -565,7 +565,7 @@ export const useServiceApp = (serviceName: string, appName: string) => {
 };
 
 export const useJob = (jobId: string) => {
-  const [job, setJob] = useState<PairioJob | undefined>(undefined);
+  const [job, setJob] = useState<DendroJob | undefined>(undefined);
   const [refreshCode, setRefreshCode] = useState(0);
   const { githubAccessToken, userId } = useLogin();
   const refreshJob = useCallback(() => {

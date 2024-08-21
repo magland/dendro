@@ -3,7 +3,7 @@ import JobsTable from "./JobsTable";
 import { useJobs } from "../../hooks";
 import { SmallIconButton } from "@fi-sci/misc";
 import { Delete, Refresh } from "@mui/icons-material";
-import { PairioJobStatus } from "../../types";
+import { DendroJobStatus } from "../../types";
 
 type JobsViewProps = {
   serviceName?: string;
@@ -11,12 +11,12 @@ type JobsViewProps = {
 };
 
 type JobFilter = {
-  status?: PairioJobStatus;
+  status?: DendroJobStatus;
   appName?: string;
   processorName?: string;
 };
 
-const pairioJobStatusOptions = [
+const dendroJobStatusOptions = [
   "pending",
   "starting",
   "running",
@@ -164,12 +164,12 @@ const FilterSelector: FunctionComponent<FilterSelectorProps> = ({
         <select
           value={filter.status || ""}
           onChange={(e) => {
-            const status = e.target.value as PairioJobStatus;
+            const status = e.target.value as DendroJobStatus;
             setFilter({ ...filter, status });
           }}
         >
           <option value={""}>[Status]</option>
-          {pairioJobStatusOptions.map((status) => (
+          {dendroJobStatusOptions.map((status) => (
             <option key={status} value={status}>
               {status}
             </option>

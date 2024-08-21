@@ -1,5 +1,5 @@
 import json
-from pairio.sdk import App, ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import App, ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 app = App(
     app_name='hello_world',
@@ -13,7 +13,7 @@ class HelloWorld1Processor(ProcessorBase):
     name = 'hello_world_1'
     description = 'Prints "Hello, {name}!"'
     label = 'hello_world_1'
-    image = 'magland/pairio-hello-world:0.1.0'
+    image = 'magland/dendro-hello-world:0.1.0'
     executable = '/app/main.py'
     attributes = {}
 
@@ -32,7 +32,7 @@ class HelloWorld2Processor(ProcessorBase):
     name = 'hello_world_2'
     description = 'Outputs a text file with "Hello, {name}!" in it'
     label = 'hello_world_2'
-    image = 'magland/pairio-hello-world:0.1.0'
+    image = 'magland/dendro-hello-world:0.1.0'
     executable = '/app/main.py'
     attributes = {}
 
@@ -55,7 +55,7 @@ class CountCharactersProcessor(ProcessorBase):
     name = 'count_characters'
     description = 'Counts the number of characters in a text file'
     label = 'count_characters'
-    image = 'magland/pairio-hello-world:0.1.0'
+    image = 'magland/dendro-hello-world:0.1.0'
     executable = '/app/main.py'
     attributes = {}
 

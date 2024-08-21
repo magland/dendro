@@ -7,7 +7,7 @@ from .. import BaseModel
 from .ProcessorBase import ProcessorBase
 from .InputFile import InputFile
 from .OutputFile import OutputFile
-from ..common.pairio_types import PairioAppProcessorInputFile, PairioAppProcessorOutputFile, PairioAppProcessorParameter, PairioAppProcessor, PairioAppProcessorAttribute
+from ..common.dendro_types import DendroAppProcessorInputFile, DendroAppProcessorOutputFile, DendroAppProcessorParameter, DendroAppProcessor, DendroAppProcessorAttribute
 
 @dataclass
 class AppProcessorInput:
@@ -23,7 +23,7 @@ class AppProcessorInput:
         if self.list:
             ret['list'] = True
         # validate
-        PairioAppProcessorInputFile(**ret)
+        DendroAppProcessorInputFile(**ret)
         return ret
     @staticmethod
     def from_spec(spec):
@@ -45,7 +45,7 @@ class AppProcessorOutput:
             'description': self.description
         }
         # validate
-        PairioAppProcessorOutputFile(**ret)
+        DendroAppProcessorOutputFile(**ret)
         return ret
     @staticmethod
     def from_spec(spec):
@@ -74,7 +74,7 @@ class AppProcessorParameter:
         if self.options is not None:
             ret['options'] = self.options
         # validate
-        PairioAppProcessorParameter(**ret)
+        DendroAppProcessorParameter(**ret)
         return ret
     @staticmethod
     def from_spec(spec):
@@ -99,7 +99,7 @@ class AppProcessorAttribute:
             'value': self.value
         }
         # validate
-        PairioAppProcessorAttribute(**ret)
+        DendroAppProcessorAttribute(**ret)
         return ret
     @staticmethod
     def from_spec(spec):
@@ -151,7 +151,7 @@ class AppProcessor:
             'attributes': [a.get_spec() for a in self._attributes]
         }
         # validate
-        PairioAppProcessor(**ret)
+        DendroAppProcessor(**ret)
         return ret
     @staticmethod
     def from_spec(spec):

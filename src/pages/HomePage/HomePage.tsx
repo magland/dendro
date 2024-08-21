@@ -14,7 +14,7 @@ const HomePage: FunctionComponent<Props> = () => {
   const { recentServices } = useRecentServices();
   return (
     <div style={{ padding: 30 }}>
-      <h3>Pairio: Dendro Prototype 3</h3>
+      <h3>Dendro: Dendro Prototype 3</h3>
       <p>
         <a
           href="https://github.com/magland/pairio"

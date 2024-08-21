@@ -1,5 +1,5 @@
 import time
-from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class UnitsSummary1Context(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
@@ -13,7 +13,7 @@ class UnitsSummary1(ProcessorBase):
     name = 'units_summary_1'
     description = 'Compute autocorrelograms for a units table in an NWB file'
     label = 'units_summary_1'
-    image = 'magland/pairio-hello-neurosift:0.1.0'
+    image = 'magland/dendro-hello-neurosift:0.1.0'
     executable = '/app/main.py'
     attributes = {}
 

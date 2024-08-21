@@ -1,19 +1,19 @@
 from setuptools import setup, find_packages
 
 # read version from dendro/version.txt
-with open('pairio/version.txt') as f:
+with open('dendro/version.txt') as f:
     __version__ = f.read().strip()
 
 setup(
-    name='pairio',
+    name='dendro',
     version=__version__,
-    author="Jeremy Magland, Luiz Tauffer",
+    author="Jeremy Magland, Luiz Tauffer, Alessio Buccino, Ben Dichter",
     author_email="jmagland@flatironinstitute.org",
     url="https://github.com/magland/pairio",
     description="",
     packages=find_packages(),
     include_package_data=True,
-    package_data={'pairio': ['version.txt']},
+    package_data={'dendro': ['version.txt']},
     install_requires=[
         'click',
         'simplejson',
@@ -30,7 +30,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "pairio=pairio.cli:main",
+            "dendro=dendro.cli:main",
         ],
     }
 )

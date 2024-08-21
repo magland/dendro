@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List
 
-from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 
 class SpikeSortingPostProcessingContext(BaseModel):
@@ -32,7 +32,7 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
     name = "spike_sorting_post_processing"
     description = "Run post processing on an electrophysiology dataset after spike sorting and add columns to the units table"
     label = "spike_sorting_post_processing"
-    image = "magland/pairio-hello-neurosift:0.1.0"
+    image = "magland/dendro-hello-neurosift:0.1.0"
     executable = "/app/main.py"
     attributes = {}
 

@@ -8,9 +8,9 @@ def start_compute_client(
     dir: str,
     exit_when_idle: bool
 ):
-    config_fname = os.path.join(dir, 'pairio-compute-client.yaml')
+    config_fname = os.path.join(dir, 'dendro-compute-client.yaml')
     if not os.path.exists(config_fname):
-        raise Exception('This directory is not registered as a compute client. To register, run "pairio register-compute-client" in this directory.')
+        raise Exception('This directory is not registered as a compute client. To register, run "dendro register-compute-client" in this directory.')
 
     with open(config_fname, 'r', encoding='utf8') as f:
         config = yaml.safe_load(f)

@@ -1,4 +1,4 @@
-from pairio.sdk import App
+from dendro.sdk import App
 from UnitsSummary1 import UnitsSummary1
 from EphysSummary1 import EphysSummary1
 from AviToMp4 import AviToMp4Processor

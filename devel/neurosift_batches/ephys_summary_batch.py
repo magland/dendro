@@ -4,7 +4,7 @@ import urllib.request
 import urllib.error
 import h5py
 import lindi
-from pairio.client import submit_job, PairioJobDefinition, PairioJobRequiredResources, PairioJobParameter, PairioJobInputFile, PairioJobOutputFile
+from dendro.client import submit_job, DendroJobDefinition, DendroJobRequiredResources, DendroJobParameter, DendroJobInputFile, DendroJobOutputFile
 
 def ephys_summary_batch(dandiset_id: str):
     parsed_url = da.parse_dandi_url(f"https://dandiarchive.org/dandiset/{dandiset_id}")
@@ -81,38 +81,38 @@ def process_electrical_series(lindi_json_url: str, electrical_series_path: str):
     segment_start_time_sec = 0
     segment_duration_sec = 60
     tags = ['neurosift', 'EphysSummary']
-    job_def = PairioJobDefinition(
+    job_def = DendroJobDefinition(
         appName=app_name,
         processorName=processor_name,
         inputFiles=[
-            PairioJobInputFile(
+            DendroJobInputFile(
                 name='input',
                 fileBaseName='input.lindi.json',
                 url=lindi_json_url
             )
         ],
         outputFiles=[
-            PairioJobOutputFile(
+            DendroJobOutputFile(
                 name='output',
                 fileBaseName='ephys_summary.lindi.json'
             )
         ],
         parameters=[
-            PairioJobParameter(
+            DendroJobParameter(
                 name='electrical_series_path',
                 value=electrical_series_path
             ),
-            PairioJobParameter(
+            DendroJobParameter(
                 name='segment_start_time_sec',
                 value=segment_start_time_sec
             ),
-            PairioJobParameter(
+            DendroJobParameter(
                 name='segment_duration_sec',
                 value=segment_duration_sec
             )
         ]
     )
-    required_resources = PairioJobRequiredResources(
+    required_resources = DendroJobRequiredResources(
         numCpus=2,
         numGpus=0,
         memoryGb=4,

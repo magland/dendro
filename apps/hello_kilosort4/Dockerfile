@@ -5,7 +5,7 @@ RUN pip install spikeinterface==0.100.8
 # don't install all the SI dependencies... instead manually specify the ones we need
 RUN pip install scipy pynwb
 
-# Install pairio from github
+# Install dendro from github
 RUN mkdir -p /src
 WORKDIR /src
 RUN git clone https://github.com/magland/pairio \

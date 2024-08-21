@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import lindi
-from pairio.client import submit_job, PairioJobRequiredResources, PairioJobDefinition, PairioJobInputFile, PairioJobOutputFile, PairioJobParameter
+from dendro.client import submit_job, DendroJobRequiredResources, DendroJobDefinition, DendroJobInputFile, DendroJobOutputFile, DendroJobParameter
 
 
 def nwb_cebra(
@@ -11,46 +11,46 @@ def nwb_cebra(
     batch_size: int = 1000,
     bin_size_msec: int = 50,
     output_dimensions: int = 10,
-    required_resources: PairioJobRequiredResources = PairioJobRequiredResources(
+    required_resources: DendroJobRequiredResources = DendroJobRequiredResources(
         numCpus=4,
         numGpus=0,
         memoryGb=8,
         timeSec=60 * 50
     )
 ):
-    if not os.getenv('PAIRIO_API_KEY'):
-        raise Exception('PAIRIO_API_KEY environment variable must be set')
+    if not os.getenv('DENDRO_API_KEY'):
+        raise Exception('DENDRO_API_KEY environment variable must be set')
     service_name = os.getenv('PAIRIO_SERVICE_NAME', 'hello_world_service')
-    job_def = PairioJobDefinition(
+    job_def = DendroJobDefinition(
         appName='hello_cebra',
         processorName='cebra_nwb_embedding_5',
         inputFiles=[
-            PairioJobInputFile(
+            DendroJobInputFile(
                 name='input',
                 fileBaseName='input.nwb',
                 url=nwb_url
             )
         ],
         outputFiles=[
-            PairioJobOutputFile(
+            DendroJobOutputFile(
                 name='output',
                 fileBaseName='embedding.h5'
             )
         ],
         parameters=[
-            PairioJobParameter(
+            DendroJobParameter(
                 name='max_iterations',
                 value=max_iterations
             ),
-            PairioJobParameter(
+            DendroJobParameter(
                 name='batch_size',
                 value=batch_size
             ),
-            PairioJobParameter(
+            DendroJobParameter(
                 name='bin_size_msec',
                 value=bin_size_msec
             ),
-            PairioJobParameter(
+            DendroJobParameter(
                 name='output_dimensions',
                 value=output_dimensions
             )

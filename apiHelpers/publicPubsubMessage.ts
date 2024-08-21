@@ -3,7 +3,7 @@ const publishPubsubMessage = async (channel: string, message: any) => {
   const pub_key = process.env.PUBNUB_PUBLISH_KEY;
   if (!sub_key) throw Error("Missing VITE_PUBNUB_SUBSCRIBE_KEY");
   if (!pub_key) throw Error("Missing PUBNUB_PUBLISH_KEY");
-  const uuid = "pairio";
+  const uuid = "dendro";
   // payload is url encoded json
   const payload = JSON.stringify(message);
   const payload_encoded = encodeURIComponent(payload);

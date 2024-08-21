@@ -10,11 +10,11 @@ import {
 } from "react";
 import { useServiceApp, useServiceApps, useServices } from "../../hooks";
 import {
-  PairioAppProcessorOutputFile,
-  PairioJob,
-  PairioJobDefinition,
-  PairioJobRequiredResources,
-  isPairioJobDefinition,
+  DendroAppProcessorOutputFile,
+  DendroJob,
+  DendroJobDefinition,
+  DendroJobRequiredResources,
+  isDendroJobDefinition,
 } from "../../types";
 import useRoute from "../../useRoute";
 import { JobView } from "../JobPage/JobPage";
@@ -27,12 +27,12 @@ type PlaygroundPageProps = {
 };
 
 type PlaygroundState = {
-  pairioApiKey?: string;
+  dendroApiKey?: string;
 };
 
 type PlaygroundAction = {
   type: "set_string";
-  key: "pairioApiKey";
+  key: "dendroApiKey";
   value: string | undefined;
 };
 
@@ -52,7 +52,7 @@ const playgroundReducer = (
   }
 };
 
-const defaultRequiredResources: PairioJobRequiredResources = {
+const defaultRequiredResources: DendroJobRequiredResources = {
   numCpus: 1,
   numGpus: 0,
   memoryGb: 4,
@@ -93,7 +93,7 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({
   } = route;
   const [state, dispatch] = useReducer(playgroundReducer, undefined);
   useLocalStorage(state, dispatch);
-  const [job, setJob] = useState<PairioJob | undefined>(undefined);
+  const [job, setJob] = useState<DendroJob | undefined>(undefined);
   const setJobId = useCallback(
     (jobId: string | undefined) => {
       setRoute({ ...route, jobId });
@@ -116,15 +116,15 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({
   }, [jobId, job]);
 
   const [requiredResources, setRequiredResources] =
-    useState<PairioJobRequiredResources>(defaultRequiredResources);
+    useState<DendroJobRequiredResources>(defaultRequiredResources);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmitJob = useCallback(
     async (o: { noSubmit: boolean }) => {
       try {
-        const pairioApiKey = state?.pairioApiKey;
-        if (!o.noSubmit && !pairioApiKey) {
-          throw Error("Pairio API key is not set");
+        const dendroApiKey = state?.dendroApiKey;
+        if (!o.noSubmit && !dendroApiKey) {
+          throw Error("Dendro API key is not set");
         }
         if (!serviceName) {
           throw Error("Unexpected: no serviceName");
@@ -138,7 +138,7 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({
         if (!o.noSubmit) {
           const j = await submitJob({
             jobDefinition: jobDefinitionFromRoute,
-            pairioApiKey,
+            dendroApiKey,
             serviceName,
             requiredResources,
           });
@@ -159,7 +159,7 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({
       }
     },
     [
-      state?.pairioApiKey,
+      state?.dendroApiKey,
       jobDefinitionFromRoute,
       serviceName,
       appName,
@@ -197,20 +197,20 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({
   return (
     <div style={{ position: "absolute", width, height, overflowY: "auto" }}>
       <div style={{ padding: 20 }}>
-        <h1>Pairio Playground</h1>
+        <h1>Dendro Playground</h1>
         <p>
           PAIRIO API KEY:&nbsp;
-          <PairioApiKeyInput
-            value={state.pairioApiKey}
-            onChange={(pairioApiKey) => {
+          <DendroApiKeyInput
+            value={state.dendroApiKey}
+            onChange={(dendroApiKey) => {
               dispatch({
                 type: "set_string",
-                key: "pairioApiKey",
-                value: pairioApiKey,
+                key: "dendroApiKey",
+                value: dendroApiKey,
               });
             }}
           />
-          {!state.pairioApiKey && (
+          {!state.dendroApiKey && (
             <span>
               &nbsp;
               <Hyperlink
@@ -520,8 +520,8 @@ type JobDefinitionSelectorProps = {
   serviceName: string;
   appName: string;
   processorName: string;
-  jobDefinitionFromRoute?: PairioJobDefinition;
-  onChange: (jobDefinition: PairioJobDefinition) => void;
+  jobDefinitionFromRoute?: DendroJobDefinition;
+  onChange: (jobDefinition: DendroJobDefinition) => void;
 };
 
 const JobDefinitionSelector: FunctionComponent<JobDefinitionSelectorProps> = ({
@@ -531,7 +531,7 @@ const JobDefinitionSelector: FunctionComponent<JobDefinitionSelectorProps> = ({
   jobDefinitionFromRoute,
   onChange,
 }) => {
-  const jobDefinitionFromRoute2 = isPairioJobDefinition(jobDefinitionFromRoute)
+  const jobDefinitionFromRoute2 = isDendroJobDefinition(jobDefinitionFromRoute)
     ? jobDefinitionFromRoute
     : undefined;
   const { serviceApp } = useServiceApp(serviceName, appName);
@@ -547,7 +547,7 @@ const JobDefinitionSelector: FunctionComponent<JobDefinitionSelectorProps> = ({
   const jobDefinition = useMemo(() => {
     if (!serviceApp) return undefined;
     if (!processor) return undefined;
-    const jd: PairioJobDefinition = {
+    const jd: DendroJobDefinition = {
       appName,
       processorName,
       inputFiles: [],
@@ -610,8 +610,8 @@ const JobDefinitionSelector: FunctionComponent<JobDefinitionSelectorProps> = ({
 };
 
 const jobDefinitionsMatch = (
-  jd1: PairioJobDefinition | undefined,
-  jd2: PairioJobDefinition | undefined,
+  jd1: DendroJobDefinition | undefined,
+  jd2: DendroJobDefinition | undefined,
 ) => {
   if (jd1 === undefined || jd2 === undefined) {
     return jd1 === jd2;
@@ -626,31 +626,31 @@ const useLocalStorage = (
   dispatch: (action: PlaygroundAction) => void,
 ) => {
   useEffect(() => {
-    const json = localStorage.getItem("pairio-playground-state");
+    const json = localStorage.getItem("dendro-playground-state");
     if (!json) {
-      dispatch({ type: "set_string", key: "pairioApiKey", value: undefined });
+      dispatch({ type: "set_string", key: "dendroApiKey", value: undefined });
       return;
     }
     const obj = JSON.parse(json);
-    if (typeof obj.pairioApiKey === "string") {
+    if (typeof obj.dendroApiKey === "string") {
       dispatch({
         type: "set_string",
-        key: "pairioApiKey",
-        value: obj.pairioApiKey,
+        key: "dendroApiKey",
+        value: obj.dendroApiKey,
       });
       return;
     }
-    dispatch({ type: "set_string", key: "pairioApiKey", value: undefined });
+    dispatch({ type: "set_string", key: "dendroApiKey", value: undefined });
   }, [dispatch]);
   useEffect(() => {
     if (!state) return;
-    localStorage.setItem("pairio-playground-state", JSON.stringify(state));
+    localStorage.setItem("dendro-playground-state", JSON.stringify(state));
   }, [state]);
 };
 
 type RequiredResourcesSelectorProps = {
-  requiredResources: PairioJobRequiredResources;
-  onChange: (requiredResources: PairioJobRequiredResources) => void;
+  requiredResources: DendroJobRequiredResources;
+  onChange: (requiredResources: DendroJobRequiredResources) => void;
   onOkay: () => void;
   onCancel: () => void;
 };
@@ -747,12 +747,12 @@ const InputNumber: FunctionComponent<InputNumberProps> = ({
   );
 };
 
-type PairioApiKeyInputProps = {
+type DendroApiKeyInputProps = {
   value?: string;
   onChange: (value: string) => void;
 };
 
-const PairioApiKeyInput: FunctionComponent<PairioApiKeyInputProps> = ({
+const DendroApiKeyInput: FunctionComponent<DendroApiKeyInputProps> = ({
   value,
   onChange,
 }) => {
@@ -765,7 +765,7 @@ const PairioApiKeyInput: FunctionComponent<PairioApiKeyInputProps> = ({
   );
 };
 
-const normalizeJobDefinition = (jobDefinition: PairioJobDefinition) => {
+const normalizeJobDefinition = (jobDefinition: DendroJobDefinition) => {
   return {
     ...jobDefinition,
     inputFiles: orderByName(jobDefinition.inputFiles),
@@ -792,7 +792,7 @@ export const JSONStringifyDeterministic = (
   return JSON.stringify(obj, allKeys, space);
 };
 
-const determineDefaultFileBaseName = (oo: PairioAppProcessorOutputFile) => {
+const determineDefaultFileBaseName = (oo: DendroAppProcessorOutputFile) => {
   const words = oo.description.split(" ");
   if (words.includes(".h5")) {
     return `${oo.name}.h5`;

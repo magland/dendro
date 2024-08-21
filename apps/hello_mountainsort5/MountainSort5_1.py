@@ -1,4 +1,4 @@
-from pairio.sdk import (
+from dendro.sdk import (
     ProcessorBase,
     BaseModel,
     Field,
@@ -27,7 +27,7 @@ class MountainSort5_1(ProcessorBase):
     name = "mountainsort5_1"
     description = "Run MountainSort5 on an electrophysiology dataset"
     label = "mountainsort5_1"
-    image = "magland/pairio-hello-mountainsort5:0.1.0"
+    image = "magland/dendro-hello-mountainsort5:0.1.0"
     executable = "/app/main.py"
     attributes = {}
 

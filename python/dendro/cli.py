@@ -17,7 +17,7 @@ def register_compute_client(
     service_name: Union[str, None]
 ):
     if service_name is None:
-        service_name = input('Enter the name of the pairio service: ')
+        service_name = input('Enter the name of the dendro service: ')
     if compute_client_name is None:
         default_compute_client_name = socket.gethostname()
         compute_client_name = input(f'Enter a unique name for the compute client [{default_compute_client_name}]: ')

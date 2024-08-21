@@ -1,5 +1,5 @@
 import time
-from pairio.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
 class EphysPreprocessContext(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
@@ -11,7 +11,7 @@ class EphysPreprocess(ProcessorBase):
     name = 'ephys_preprocess'
     description = 'Run preprocessing on an electrophysiology dataset'
     label = 'ephys_preprocess'
-    image = 'magland/pairio-hello-neurosift:0.1.0'
+    image = 'magland/dendro-hello-neurosift:0.1.0'
     executable = '/app/main.py'
     attributes = {}
 

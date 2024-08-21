@@ -49,7 +49,7 @@ const SettingsPage: FunctionComponent<SettingsPageProps> = () => {
           setRoute({ page: "home" });
         }}
       >
-        Go to Pairio home
+        Go to Dendro home
       </Hyperlink>
       <hr />
       {!userId && <p>You are not logged in. Log in to access settings.</p>}
@@ -60,7 +60,7 @@ const SettingsPage: FunctionComponent<SettingsPageProps> = () => {
         <p style={{ maxWidth: 500 }}>
           An API key is required to submit jobs. Keep your API key secret. If
           you generate a new API key, the old key will no longer work. You may
-          want to set a PAIRIO_API_KEY environment variable on your system.
+          want to set a DENDRO_API_KEY environment variable on your system.
         </p>
       )}
       {userId && !resettingApiKey && (

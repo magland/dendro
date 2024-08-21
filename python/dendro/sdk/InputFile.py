@@ -42,7 +42,7 @@ class InputFile(BaseModel):
             return
         else:
             # We don't have a destination file path and we don't have a cache
-            temp_file_path = tempfile.mktemp(prefix='pairio_input_file_')
+            temp_file_path = tempfile.mktemp(prefix='dendro_input_file_')
             print(f'Downloading {url} to {temp_file_path}')
             _download_file(url, temp_file_path)
             self.local_file_name = temp_file_path

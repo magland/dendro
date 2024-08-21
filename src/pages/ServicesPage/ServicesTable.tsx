@@ -1,10 +1,10 @@
 import { FunctionComponent } from "react";
 import ServiceNameComponent from "../../components/ServiceNameComponent";
 import UserIdComponent from "../../components/UserIdComponent";
-import { PairioService } from "../../types";
+import { DendroService } from "../../types";
 
 type ServicesTableProps = {
-  services: PairioService[];
+  services: DendroService[];
 };
 
 const ServicesTable: FunctionComponent<ServicesTableProps> = ({ services }) => {

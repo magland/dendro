@@ -1,5 +1,5 @@
 from typing import List
-from ..common.PairioJob import PairioJob
+from ..common.DendroJob import DendroJob
 from ..common.api_requests import set_job_status
 
 
@@ -17,11 +17,11 @@ class JobManager:
         self._attempted_to_start_job_ids = set()
         self._attempted_to_fail_job_ids = set()
 
-    def handle_jobs(self, jobs: List[PairioJob]):
+    def handle_jobs(self, jobs: List[DendroJob]):
         for job in jobs:
             self._start_job(job)
 
-    def _start_job(self, job: PairioJob):
+    def _start_job(self, job: DendroJob):
         job_id = job.jobId
         if job_id in self._attempted_to_start_job_ids or job_id in self._attempted_to_fail_job_ids:
             return '' # see above comment about why this is necessary
@@ -47,7 +47,7 @@ class JobManager:
     def do_work(self):
         pass
 
-    def _fail_job(self, job: PairioJob, error: str):
+    def _fail_job(self, job: DendroJob, error: str):
         job_id = job.jobId
         if job_id in self._attempted_to_fail_job_ids:
             return '' # see above comment about why this is necessary

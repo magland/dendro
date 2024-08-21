@@ -11,30 +11,30 @@ import {
   validateObject,
 } from "@fi-sci/misc";
 
-// PairioService
-export type PairioService = {
+// DendroService
+export type DendroService = {
   serviceName: string;
   userId: string;
-  users: PairioServiceUser[];
+  users: DendroServiceUser[];
 };
 
-export const isPairioService = (x: any): x is PairioService => {
+export const isDendroService = (x: any): x is DendroService => {
   return validateObject(x, {
     serviceName: isString,
     userId: isString,
-    users: isArrayOf(isPairioServiceUser),
+    users: isArrayOf(isDendroServiceUser),
   });
 };
 
-// PairioServiceUser
-export type PairioServiceUser = {
+// DendroServiceUser
+export type DendroServiceUser = {
   userId: string;
   admin: boolean;
   createJobs: boolean;
   processJobs: boolean;
 };
 
-export const isPairioServiceUser = (x: any): x is PairioServiceUser => {
+export const isDendroServiceUser = (x: any): x is DendroServiceUser => {
   return validateObject(x, {
     userId: isString,
     admin: isBoolean,
@@ -43,27 +43,27 @@ export const isPairioServiceUser = (x: any): x is PairioServiceUser => {
   });
 };
 
-// PairioServiceApp
-export type PairioServiceApp = {
+// DendroServiceApp
+export type DendroServiceApp = {
   serviceName: string;
   appName: string;
   appSpecificationUri: string;
   appSpecificationCommit: string;
-  appSpecification: PairioAppSpecification;
+  appSpecification: DendroAppSpecification;
 };
 
-export const isPairioServiceApp = (x: any): x is PairioServiceApp => {
+export const isDendroServiceApp = (x: any): x is DendroServiceApp => {
   return validateObject(x, {
     serviceName: isString,
     appName: isString,
     appSpecificationUri: isString,
     appSpecificationCommit: isString,
-    appSpecification: isPairioAppSpecification,
+    appSpecification: isDendroAppSpecification,
   });
 };
 
-// PairioComputeClient
-export type PairioComputeClient = {
+// DendroComputeClient
+export type DendroComputeClient = {
   serviceNames: string[];
   computeClientId: string;
   computeClientPrivateKey: string | null;
@@ -75,7 +75,7 @@ export type PairioComputeClient = {
   timestampLastActiveSec?: number;
 };
 
-export const isPairioComputeClient = (x: any): x is PairioComputeClient => {
+export const isDendroComputeClient = (x: any): x is DendroComputeClient => {
   return validateObject(x, {
     serviceNames: isArrayOf(isString),
     computeClientId: isString,
@@ -90,15 +90,15 @@ export const isPairioComputeClient = (x: any): x is PairioComputeClient => {
   });
 };
 
-// PairioAppProcessorAttribute
-export type PairioAppProcessorAttribute = {
+// DendroAppProcessorAttribute
+export type DendroAppProcessorAttribute = {
   name: string;
   value: string | number | boolean | string[] | number[] | boolean[];
 };
 
-export const isPairioAppProcessorAttribute = (
+export const isDendroAppProcessorAttribute = (
   x: any,
-): x is PairioAppProcessorAttribute => {
+): x is DendroAppProcessorAttribute => {
   return validateObject(x, {
     name: isString,
     value: isOneOf([
@@ -112,20 +112,20 @@ export const isPairioAppProcessorAttribute = (
   });
 };
 
-// PairioAppProcessor
-export type PairioAppProcessor = {
+// DendroAppProcessor
+export type DendroAppProcessor = {
   name: string;
   description: string;
   label: string;
   image: string;
   executable: string;
-  inputs: PairioAppProcessorInputFile[];
-  outputs: PairioAppProcessorOutputFile[];
-  parameters: PairioAppProcessorParameter[];
-  attributes: PairioAppProcessorAttribute[];
+  inputs: DendroAppProcessorInputFile[];
+  outputs: DendroAppProcessorOutputFile[];
+  parameters: DendroAppProcessorParameter[];
+  attributes: DendroAppProcessorAttribute[];
 };
 
-export const isPairioAppProcessor = (x: any): x is PairioAppProcessor => {
+export const isDendroAppProcessor = (x: any): x is DendroAppProcessor => {
   return validateObject(
     x,
     {
@@ -134,44 +134,44 @@ export const isPairioAppProcessor = (x: any): x is PairioAppProcessor => {
       label: isString,
       image: isString,
       executable: isString,
-      inputs: isArrayOf(isPairioAppProcessorInputFile),
-      outputs: isArrayOf(isPairioAppProcessorOutputFile),
-      parameters: isArrayOf(isPairioAppProcessorParameter),
-      attributes: isArrayOf(isPairioAppProcessorAttribute),
+      inputs: isArrayOf(isDendroAppProcessorInputFile),
+      outputs: isArrayOf(isDendroAppProcessorOutputFile),
+      parameters: isArrayOf(isDendroAppProcessorParameter),
+      attributes: isArrayOf(isDendroAppProcessorAttribute),
     },
     { callback: console.log },
   );
 };
 
-// PairioAppSpecification
-export type PairioAppSpecification = {
+// DendroAppSpecification
+export type DendroAppSpecification = {
   name: string;
   description: string;
-  processors: PairioAppProcessor[];
+  processors: DendroAppProcessor[];
 };
 
-export const isPairioAppSpecification = (
+export const isDendroAppSpecification = (
   x: any,
-): x is PairioAppSpecification => {
+): x is DendroAppSpecification => {
   return validateObject(
     x,
     {
       name: isString,
       description: isString,
-      processors: isArrayOf(isPairioAppProcessor),
+      processors: isArrayOf(isDendroAppProcessor),
     },
     { callback: console.log },
   );
 };
 
-// PairioJobInputFile
-export type PairioJobInputFile = {
+// DendroJobInputFile
+export type DendroJobInputFile = {
   name: string;
   fileBaseName: string;
   url: string;
 };
 
-export const isPairioJobInputFile = (x: any): x is PairioJobInputFile => {
+export const isDendroJobInputFile = (x: any): x is DendroJobInputFile => {
   return validateObject(x, {
     name: isString,
     fileBaseName: isString,
@@ -179,26 +179,26 @@ export const isPairioJobInputFile = (x: any): x is PairioJobInputFile => {
   });
 };
 
-// PairioJobOutputFile
-export type PairioJobOutputFile = {
+// DendroJobOutputFile
+export type DendroJobOutputFile = {
   name: string;
   fileBaseName: string;
 };
 
-export const isPairioJobOutputFile = (x: any): x is PairioJobOutputFile => {
+export const isDendroJobOutputFile = (x: any): x is DendroJobOutputFile => {
   return validateObject(x, {
     name: isString,
     fileBaseName: isString,
   });
 };
 
-// PairioJobParameter
-export type PairioJobParameter = {
+// DendroJobParameter
+export type DendroJobParameter = {
   name: string;
   value: string | number | boolean | string[] | number[] | boolean[] | null; // null means undefined
 };
 
-export const isPairioJobParameter = (x: any): x is PairioJobParameter => {
+export const isDendroJobParameter = (x: any): x is DendroJobParameter => {
   return validateObject(x, {
     name: isString,
     value: isOneOf([
@@ -213,17 +213,17 @@ export const isPairioJobParameter = (x: any): x is PairioJobParameter => {
   });
 };
 
-// PairioJobRequiredResources
-export type PairioJobRequiredResources = {
+// DendroJobRequiredResources
+export type DendroJobRequiredResources = {
   numCpus: number;
   numGpus: number;
   memoryGb: number;
   timeSec: number;
 };
 
-export const isPairioJobRequiredResources = (
+export const isDendroJobRequiredResources = (
   x: any,
-): x is PairioJobRequiredResources => {
+): x is DendroJobRequiredResources => {
   return validateObject(x, {
     numCpus: isNumber,
     numGpus: isNumber,
@@ -232,64 +232,64 @@ export const isPairioJobRequiredResources = (
   });
 };
 
-// PairioJobSecret
-export type PairioJobSecret = {
+// DendroJobSecret
+export type DendroJobSecret = {
   name: string;
   value: string;
 };
 
-export const isPairioJobSecret = (x: any): x is PairioJobSecret => {
+export const isDendroJobSecret = (x: any): x is DendroJobSecret => {
   return validateObject(x, {
     name: isString,
     value: isString,
   });
 };
 
-// PairioJobStatus
-export type PairioJobStatus =
+// DendroJobStatus
+export type DendroJobStatus =
   | "pending"
   | "starting"
   | "running"
   | "completed"
   | "failed";
 
-export const isPairioJobStatus = (x: any): x is PairioJobStatus => {
+export const isDendroJobStatus = (x: any): x is DendroJobStatus => {
   return isOneOf(
     ["pending", "starting", "running", "completed", "failed"].map(isEqualTo),
   )(x);
 };
 
-// PairioJobDefinition
-export type PairioJobDefinition = {
+// DendroJobDefinition
+export type DendroJobDefinition = {
   appName: string;
   processorName: string;
-  inputFiles: PairioJobInputFile[];
-  outputFiles: PairioJobOutputFile[];
-  parameters: PairioJobParameter[];
+  inputFiles: DendroJobInputFile[];
+  outputFiles: DendroJobOutputFile[];
+  parameters: DendroJobParameter[];
   cacheBust?: string;
 };
 
-export const isPairioJobDefinition = (x: any): x is PairioJobDefinition => {
+export const isDendroJobDefinition = (x: any): x is DendroJobDefinition => {
   return validateObject(x, {
     appName: isString,
     processorName: isString,
-    inputFiles: isArrayOf(isPairioJobInputFile),
-    outputFiles: isArrayOf(isPairioJobOutputFile),
-    parameters: isArrayOf(isPairioJobParameter),
+    inputFiles: isArrayOf(isDendroJobInputFile),
+    outputFiles: isArrayOf(isDendroJobOutputFile),
+    parameters: isArrayOf(isDendroJobParameter),
     cacheBust: optional(isString),
   });
 };
 
-export type PairioJobOutputFileResult = {
+export type DendroJobOutputFileResult = {
   name: string;
   fileBaseName: string;
   url: string;
   size: number | null;
 };
 
-export const isPairioJobOutputFileResult = (
+export const isDendroJobOutputFileResult = (
   x: any,
-): x is PairioJobOutputFileResult => {
+): x is DendroJobOutputFileResult => {
   return validateObject(x, {
     name: isString,
     fileBaseName: isString,
@@ -298,38 +298,38 @@ export const isPairioJobOutputFileResult = (
   });
 };
 
-export type PairioJobOtherFileOutput = {
+export type DendroJobOtherFileOutput = {
   name: string;
   url: string;
 };
 
-export const isPairioJobOtherFileOutput = (
+export const isDendroJobOtherFileOutput = (
   x: any,
-): x is PairioJobOtherFileOutput => {
+): x is DendroJobOtherFileOutput => {
   return validateObject(x, {
     name: isString,
     url: isString,
   });
 };
 
-// PairioJob
-export type PairioJob = {
+// DendroJob
+export type DendroJob = {
   jobId: string;
   jobPrivateKey: string | null;
   serviceName: string;
   userId: string;
   batchId: string;
   tags: string[];
-  jobDefinition: PairioJobDefinition;
+  jobDefinition: DendroJobDefinition;
   jobDefinitionHash: string;
   jobDependencies: string[];
-  requiredResources: PairioJobRequiredResources;
+  requiredResources: DendroJobRequiredResources;
   targetComputeClientIds?: string[] | null;
-  secrets: PairioJobSecret[] | null;
+  secrets: DendroJobSecret[] | null;
   inputFileUrlList: string[];
   outputFileUrlList: string[];
-  outputFileResults: PairioJobOutputFileResult[];
-  otherFileOutputs?: PairioJobOtherFileOutput[];
+  outputFileResults: DendroJobOutputFileResult[];
+  otherFileOutputs?: DendroJobOtherFileOutput[];
   consoleOutputUrl: string;
   resourceUtilizationLogUrl: string;
   timestampCreatedSec: number;
@@ -337,7 +337,7 @@ export type PairioJob = {
   timestampStartedSec: number | null;
   timestampFinishedSec: number | null;
   canceled: boolean;
-  status: PairioJobStatus;
+  status: DendroJobStatus;
   isRunnable: boolean;
   error?: string | null;
   computeClientId: string | null;
@@ -346,7 +346,7 @@ export type PairioJob = {
   imageUri: string | null;
 };
 
-export const isPairioJob = (x: any): x is PairioJob => {
+export const isDendroJob = (x: any): x is DendroJob => {
   return validateObject(x, {
     jobId: isString,
     jobPrivateKey: isOneOf([isString, isNull]),
@@ -354,16 +354,16 @@ export const isPairioJob = (x: any): x is PairioJob => {
     userId: isString,
     batchId: isString,
     tags: isArrayOf(isString),
-    jobDefinition: isPairioJobDefinition,
+    jobDefinition: isDendroJobDefinition,
     jobDefinitionHash: isString,
     jobDependencies: isArrayOf(isString),
-    requiredResources: isPairioJobRequiredResources,
+    requiredResources: isDendroJobRequiredResources,
     targetComputeClientIds: optional(isOneOf([isArrayOf(isString), isNull])),
-    secrets: isOneOf([isArrayOf(isPairioJobSecret), isNull]),
+    secrets: isOneOf([isArrayOf(isDendroJobSecret), isNull]),
     inputFileUrlList: isArrayOf(isString),
     outputFileUrlList: isArrayOf(isString),
-    outputFileResults: isArrayOf(isPairioJobOutputFileResult),
-    otherFileOutputs: optional(isArrayOf(isPairioJobOtherFileOutput)),
+    outputFileResults: isArrayOf(isDendroJobOutputFileResult),
+    otherFileOutputs: optional(isArrayOf(isDendroJobOtherFileOutput)),
     consoleOutputUrl: isString,
     resourceUtilizationLogUrl: isString,
     timestampCreatedSec: isNumber,
@@ -371,7 +371,7 @@ export const isPairioJob = (x: any): x is PairioJob => {
     timestampStartedSec: isOneOf([isNumber, isNull]),
     timestampFinishedSec: isOneOf([isNumber, isNull]),
     canceled: isBoolean,
-    status: isPairioJobStatus,
+    status: isDendroJobStatus,
     isRunnable: isBoolean,
     error: optional(isOneOf([isString, isNull])),
     computeClientId: isOneOf([isString, isNull]),
@@ -381,16 +381,16 @@ export const isPairioJob = (x: any): x is PairioJob => {
   });
 };
 
-// PairioAppProcessorInputFile
-export type PairioAppProcessorInputFile = {
+// DendroAppProcessorInputFile
+export type DendroAppProcessorInputFile = {
   name: string;
   description: string;
   list?: boolean;
 };
 
-export const isPairioAppProcessorInputFile = (
+export const isDendroAppProcessorInputFile = (
   x: any,
-): x is PairioAppProcessorInputFile => {
+): x is DendroAppProcessorInputFile => {
   return validateObject(x, {
     name: isString,
     description: isString,
@@ -398,23 +398,23 @@ export const isPairioAppProcessorInputFile = (
   });
 };
 
-// PairioAppProcessorOutputFile
-export type PairioAppProcessorOutputFile = {
+// DendroAppProcessorOutputFile
+export type DendroAppProcessorOutputFile = {
   name: string;
   description: string;
 };
 
-export const isPairioAppProcessorOutputFile = (
+export const isDendroAppProcessorOutputFile = (
   x: any,
-): x is PairioAppProcessorOutputFile => {
+): x is DendroAppProcessorOutputFile => {
   return validateObject(x, {
     name: isString,
     description: isString,
   });
 };
 
-// PairioAppProcessorParameterTypes
-export type PairioAppProcessorParameterTypes =
+// DendroAppProcessorParameterTypes
+export type DendroAppProcessorParameterTypes =
   | "str"
   | "int"
   | "float"
@@ -427,9 +427,9 @@ export type PairioAppProcessorParameterTypes =
   | "Optional[float]"
   | "Optional[bool]";
 
-export const isPairioAppProcessorParameterTypes = (
+export const isDendroAppProcessorParameterTypes = (
   x: any,
-): x is PairioAppProcessorParameterTypes => {
+): x is DendroAppProcessorParameterTypes => {
   return isOneOf(
     [
       "str",
@@ -447,23 +447,23 @@ export const isPairioAppProcessorParameterTypes = (
   )(x);
 };
 
-// PairioAppProcessorParameter
-export type PairioAppProcessorParameter = {
+// DendroAppProcessorParameter
+export type DendroAppProcessorParameter = {
   name: string;
-  type: PairioAppProcessorParameterTypes;
+  type: DendroAppProcessorParameterTypes;
   description: string;
   defaultValue?: string | number | boolean | string[] | number[];
   options?: any[];
 };
 
-export const isPairioAppProcessorParameter = (
+export const isDendroAppProcessorParameter = (
   x: any,
-): x is PairioAppProcessorParameter => {
+): x is DendroAppProcessorParameter => {
   return validateObject(
     x,
     {
       name: isString,
-      type: isPairioAppProcessorParameterTypes,
+      type: isDendroAppProcessorParameterTypes,
       description: isString,
       defaultValue: optional(
         isOneOf([
@@ -509,15 +509,15 @@ export const isComputeClientComputeSlot = (
   });
 };
 
-// PairioUser
-export type PairioUser = {
+// DendroUser
+export type DendroUser = {
   userId: string;
   name: string;
   email: string;
   apiKey: string | null;
 };
 
-export const isPairioUser = (x: any): x is PairioUser => {
+export const isDendroUser = (x: any): x is DendroUser => {
   return validateObject(x, {
     userId: isString,
     name: isString,
@@ -645,13 +645,13 @@ export const isGetServiceRequest = (x: any): x is GetServiceRequest => {
 
 export type GetServiceResponse = {
   type: "getServiceResponse";
-  service: PairioService;
+  service: DendroService;
 };
 
 export const isGetServiceResponse = (x: any): x is GetServiceResponse => {
   return validateObject(x, {
     type: isEqualTo("getServiceResponse"),
-    service: isPairioService,
+    service: isDendroService,
   });
 };
 
@@ -670,13 +670,13 @@ export const isGetServicesRequest = (x: any): x is GetServicesRequest => {
 
 export type GetServicesResponse = {
   type: "getServicesResponse";
-  services: PairioService[];
+  services: DendroService[];
 };
 
 export const isGetServicesResponse = (x: any): x is GetServicesResponse => {
   return validateObject(x, {
     type: isEqualTo("getServicesResponse"),
-    services: isArrayOf(isPairioService),
+    services: isArrayOf(isDendroService),
   });
 };
 
@@ -707,14 +707,14 @@ export const isDeleteServiceResponse = (x: any): x is DeleteServiceResponse => {
 export type SetServiceInfoRequest = {
   type: "setServiceInfoRequest";
   serviceName: string;
-  users?: PairioServiceUser[];
+  users?: DendroServiceUser[];
 };
 
 export const isSetServiceInfoRequest = (x: any): x is SetServiceInfoRequest => {
   return validateObject(x, {
     type: isEqualTo("setServiceInfoRequest"),
     serviceName: isString,
-    users: optional(isArrayOf(isPairioServiceUser)),
+    users: optional(isArrayOf(isDendroServiceUser)),
   });
 };
 
@@ -737,10 +737,10 @@ export type CreateJobRequest = {
   userId: string;
   batchId: string;
   tags: string[];
-  jobDefinition: PairioJobDefinition;
-  requiredResources: PairioJobRequiredResources;
+  jobDefinition: DendroJobDefinition;
+  requiredResources: DendroJobRequiredResources;
   targetComputeClientIds?: string[];
-  secrets: PairioJobSecret[];
+  secrets: DendroJobSecret[];
   jobDependencies: string[];
   skipCache?: boolean;
   rerunFailing?: boolean;
@@ -754,10 +754,10 @@ export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
     userId: isString,
     batchId: isString,
     tags: isArrayOf(isString),
-    jobDefinition: isPairioJobDefinition,
-    requiredResources: isPairioJobRequiredResources,
+    jobDefinition: isDendroJobDefinition,
+    requiredResources: isDendroJobRequiredResources,
     targetComputeClientIds: optional(isArrayOf(isString)),
-    secrets: isArrayOf(isPairioJobSecret),
+    secrets: isArrayOf(isDendroJobSecret),
     jobDependencies: isArrayOf(isString),
     skipCache: optional(isBoolean),
     rerunFailing: optional(isBoolean),
@@ -767,13 +767,13 @@ export const isCreateJobRequest = (x: any): x is CreateJobRequest => {
 
 export type CreateJobResponse = {
   type: "createJobResponse";
-  job: PairioJob;
+  job: DendroJob;
 };
 
 export const isCreateJobResponse = (x: any): x is CreateJobResponse => {
   return validateObject(x, {
     type: isEqualTo("createJobResponse"),
-    job: isPairioJob,
+    job: isDendroJob,
   });
 };
 
@@ -781,7 +781,7 @@ export const isCreateJobResponse = (x: any): x is CreateJobResponse => {
 export type FindJobByDefinitionRequest = {
   type: "findJobByDefinitionRequest";
   serviceName: string;
-  jobDefinition: PairioJobDefinition;
+  jobDefinition: DendroJobDefinition;
 };
 
 export const isFindJobByDefinitionRequest = (
@@ -790,14 +790,14 @@ export const isFindJobByDefinitionRequest = (
   return validateObject(x, {
     type: isEqualTo("findJobByDefinitionRequest"),
     serviceName: isString,
-    jobDefinition: isPairioJobDefinition,
+    jobDefinition: isDendroJobDefinition,
   });
 };
 
 export type FindJobByDefinitionResponse = {
   type: "findJobByDefinitionResponse";
   found: boolean;
-  job?: PairioJob;
+  job?: DendroJob;
 };
 
 export const isFindJobByDefinitionResponse = (
@@ -806,7 +806,7 @@ export const isFindJobByDefinitionResponse = (
   return validateObject(x, {
     type: isEqualTo("findJobByDefinitionResponse"),
     found: isBoolean,
-    job: optional(isPairioJob),
+    job: optional(isDendroJob),
   });
 };
 
@@ -848,7 +848,7 @@ export type FindJobsRequest = {
   appName?: string;
   inputFileUrl?: string;
   outputFileUrl?: string;
-  status?: PairioJobStatus | PairioJobStatus[];
+  status?: DendroJobStatus | DendroJobStatus[];
   limit?: number;
 };
 
@@ -866,7 +866,7 @@ export const isFindJobsRequest = (x: any): x is FindJobsRequest => {
     inputFileUrl: optional(isString),
     outputFileUrl: optional(isString),
     status: optional(
-      isOneOf([isPairioJobStatus, isArrayOf(isPairioJobStatus)]),
+      isOneOf([isDendroJobStatus, isArrayOf(isDendroJobStatus)]),
     ),
     limit: optional(isNumber),
   });
@@ -874,13 +874,13 @@ export const isFindJobsRequest = (x: any): x is FindJobsRequest => {
 
 export type FindJobsResponse = {
   type: "findJobsResponse";
-  jobs: PairioJob[];
+  jobs: DendroJob[];
 };
 
 export const isFindJobsResponse = (x: any): x is FindJobsResponse => {
   return validateObject(x, {
     type: isEqualTo("findJobsResponse"),
-    jobs: isArrayOf(isPairioJob),
+    jobs: isArrayOf(isDendroJob),
   });
 };
 
@@ -901,8 +901,8 @@ export const isGetRunnableJobsForComputeClientRequest = (
 
 export type GetRunnableJobsForComputeClientResponse = {
   type: "getRunnableJobsForComputeClientResponse";
-  runnableJobs: PairioJob[];
-  runningJobs: PairioJob[];
+  runnableJobs: DendroJob[];
+  runningJobs: DendroJob[];
 };
 
 export const isGetRunnableJobsForComputeClientResponse = (
@@ -910,8 +910,8 @@ export const isGetRunnableJobsForComputeClientResponse = (
 ): x is GetRunnableJobsForComputeClientResponse => {
   return validateObject(x, {
     type: isEqualTo("getRunnableJobsForComputeClientResponse"),
-    runnableJobs: isArrayOf(isPairioJob),
-    runningJobs: isArrayOf(isPairioJob),
+    runnableJobs: isArrayOf(isDendroJob),
+    runningJobs: isArrayOf(isDendroJob),
   });
 };
 
@@ -934,13 +934,13 @@ export const isGetJobRequest = (x: any): x is GetJobRequest => {
 
 export type GetJobResponse = {
   type: "getJobResponse";
-  job?: PairioJob; // undefined means job not found
+  job?: DendroJob; // undefined means job not found
 };
 
 export const isGetJobResponse = (x: any): x is GetJobResponse => {
   return validateObject(x, {
     type: isEqualTo("getJobResponse"),
-    job: optional(isPairioJob),
+    job: optional(isDendroJob),
   });
 };
 
@@ -972,7 +972,7 @@ export type SetJobStatusRequest = {
   type: "setJobStatusRequest";
   jobId: string;
   computeClientId: string;
-  status: PairioJobStatus;
+  status: DendroJobStatus;
   error?: string;
 };
 
@@ -981,7 +981,7 @@ export const isSetJobStatusRequest = (x: any): x is SetJobStatusRequest => {
     type: isEqualTo("setJobStatusRequest"),
     jobId: isString,
     computeClientId: isString,
-    status: isPairioJobStatus,
+    status: isDendroJobStatus,
     error: optional(isString),
   });
 };
@@ -1210,7 +1210,7 @@ export const isGetComputeClientRequest = (
 
 export type GetComputeClientResponse = {
   type: "getComputeClientResponse";
-  computeClient: PairioComputeClient;
+  computeClient: DendroComputeClient;
 };
 
 export const isGetComputeClientResponse = (
@@ -1218,7 +1218,7 @@ export const isGetComputeClientResponse = (
 ): x is GetComputeClientResponse => {
   return validateObject(x, {
     type: isEqualTo("getComputeClientResponse"),
-    computeClient: isPairioComputeClient,
+    computeClient: isDendroComputeClient,
   });
 };
 
@@ -1239,7 +1239,7 @@ export const isGetComputeClientsRequest = (
 
 export type GetComputeClientsResponse = {
   type: "getComputeClientsResponse";
-  computeClients: PairioComputeClient[];
+  computeClients: DendroComputeClient[];
 };
 
 export const isGetComputeClientsResponse = (
@@ -1247,7 +1247,7 @@ export const isGetComputeClientsResponse = (
 ): x is GetComputeClientsResponse => {
   return validateObject(x, {
     type: isEqualTo("getComputeClientsResponse"),
-    computeClients: isArrayOf(isPairioComputeClient),
+    computeClients: isArrayOf(isDendroComputeClient),
   });
 };
 
@@ -1291,13 +1291,13 @@ export const isSetComputeClientInfoResponse = (
 // addServiceApp
 export type AddServiceAppRequest = {
   type: "addServiceAppRequest";
-  serviceApp: PairioServiceApp;
+  serviceApp: DendroServiceApp;
 };
 
 export const isAddServiceAppRequest = (x: any): x is AddServiceAppRequest => {
   return validateObject(x, {
     type: isEqualTo("addServiceAppRequest"),
-    serviceApp: isPairioServiceApp,
+    serviceApp: isDendroServiceApp,
   });
 };
 
@@ -1318,7 +1318,7 @@ export type SetServiceAppInfoRequest = {
   appName: string;
   appSpecificationUri?: string;
   appSpecificationCommit?: string;
-  appSpecification?: PairioAppSpecification;
+  appSpecification?: DendroAppSpecification;
 };
 
 export const isSetServiceAppInfoRequest = (
@@ -1330,7 +1330,7 @@ export const isSetServiceAppInfoRequest = (
     appName: isString,
     appSpecificationUri: optional(isString),
     appSpecificationCommit: optional(isString),
-    appSpecification: optional(isPairioAppSpecification),
+    appSpecification: optional(isDendroAppSpecification),
   });
 };
 
@@ -1363,13 +1363,13 @@ export const isGetServiceAppRequest = (x: any): x is GetServiceAppRequest => {
 
 export type GetServiceAppResponse = {
   type: "getServiceAppResponse";
-  serviceApp: PairioServiceApp;
+  serviceApp: DendroServiceApp;
 };
 
 export const isGetServiceAppResponse = (x: any): x is GetServiceAppResponse => {
   return validateObject(x, {
     type: isEqualTo("getServiceAppResponse"),
-    serviceApp: isPairioServiceApp,
+    serviceApp: isDendroServiceApp,
   });
 };
 
@@ -1419,7 +1419,7 @@ export const isGetServiceAppsRequest = (x: any): x is GetServiceAppsRequest => {
 
 export type GetServiceAppsResponse = {
   type: "getServiceAppsResponse";
-  serviceApps: PairioServiceApp[];
+  serviceApps: DendroServiceApp[];
 };
 
 export const isGetServiceAppsResponse = (
@@ -1427,7 +1427,7 @@ export const isGetServiceAppsResponse = (
 ): x is GetServiceAppsResponse => {
   return validateObject(x, {
     type: isEqualTo("getServiceAppsResponse"),
-    serviceApps: isArrayOf(isPairioServiceApp),
+    serviceApps: isArrayOf(isDendroServiceApp),
   });
 };
 

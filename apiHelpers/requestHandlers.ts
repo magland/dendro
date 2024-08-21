@@ -29,13 +29,13 @@ import {
   GetServiceResponse,
   GetServicesResponse,
   GetSignedUploadUrlResponse,
-  PairioComputeClient,
-  PairioJob,
-  PairioJobDefinition,
-  PairioJobOutputFileResult,
-  PairioService,
-  PairioServiceApp,
-  PairioUser,
+  DendroComputeClient,
+  DendroJob,
+  DendroJobDefinition,
+  DendroJobOutputFileResult,
+  DendroService,
+  DendroServiceApp,
+  DendroUser,
   PingComputeClientsResponse,
   ResetUserApiKeyResponse,
   SetComputeClientInfoResponse,
@@ -67,11 +67,11 @@ import {
   isGetServiceRequest,
   isGetServicesRequest,
   isGetSignedUploadUrlRequest,
-  isPairioComputeClient,
-  isPairioJob,
-  isPairioService,
-  isPairioServiceApp,
-  isPairioUser,
+  isDendroComputeClient,
+  isDendroJob,
+  isDendroService,
+  isDendroServiceApp,
+  isDendroUser,
   isPingComputeClientsRequest,
   isResetUserApiKeyRequest,
   isSetComputeClientInfoRequest,
@@ -129,7 +129,7 @@ export const addServiceHandler = allowCors(
           .json({ error: "Service with this name already exists." });
         return;
       }
-      const newService: PairioService = {
+      const newService: DendroService = {
         serviceName,
         userId,
         users: [],
@@ -354,7 +354,7 @@ export const addUserHandler = allowCors(
       return;
     }
     try {
-      const user: PairioUser = {
+      const user: DendroUser = {
         userId: rr.userId,
         name: "",
         email: "",
@@ -391,7 +391,7 @@ export const resetUserApiKeyHandler = allowCors(
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    let user: PairioUser | null = await fetchUser(rr.userId);
+    let user: DendroUser | null = await fetchUser(rr.userId);
     if (user === null) {
       user = {
         userId: rr.userId,
@@ -560,7 +560,7 @@ export const createJobHandler = allowCors(
               await updateJob(job.jobId, { tags: newTags });
             }
             // notify the compute clients as though the status has changed
-            await publishPubsubMessage("pairio-compute-clients", {
+            await publishPubsubMessage("dendro-compute-clients", {
               type: "jobStatusChanged",
               serviceName: job.serviceName,
               jobId: job.jobId,
@@ -598,9 +598,9 @@ export const createJobHandler = allowCors(
         outputFileBaseName: "log.jsonl",
       });
 
-      const outputFileResults: PairioJobOutputFileResult[] = [];
+      const outputFileResults: DendroJobOutputFileResult[] = [];
       for (const oo of rr.jobDefinition.outputFiles) {
-        const ofr: PairioJobOutputFileResult = {
+        const ofr: DendroJobOutputFileResult = {
           name: oo.name,
           fileBaseName: oo.fileBaseName,
           url: await createOutputFileUrl({
@@ -618,7 +618,7 @@ export const createJobHandler = allowCors(
 
       const isRunnable = await checkJobRunnable(rr.jobDependencies);
 
-      const job: PairioJob = {
+      const job: DendroJob = {
         jobId,
         jobPrivateKey,
         serviceName: rr.serviceName,
@@ -651,7 +651,7 @@ export const createJobHandler = allowCors(
       };
       await insertJob(job);
 
-      await publishPubsubMessage("pairio-compute-clients", {
+      await publishPubsubMessage("dendro-compute-clients", {
         type: "newPendingJob",
         serviceName: job.serviceName,
         jobId: job.jobId,
@@ -878,7 +878,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
       return;
     }
     try {
-      const computeClient: PairioComputeClient | null =
+      const computeClient: DendroComputeClient | null =
         await fetchComputeClient(rr.computeClientId);
       if (!computeClient) {
         res.status(404).json({ error: "Compute client not found" });
@@ -910,7 +910,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
       }
 
       // we give priority to the first services in the list
-      const allRunnableReadyJobs: PairioJob[] = [];
+      const allRunnableReadyJobs: DendroJob[] = [];
       for (const serviceName of computeClient.serviceNames) {
         const service = await fetchService(serviceName);
         if (!service) {
@@ -983,9 +983,9 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
 );
 
 const computeResourceHasEnoughCapacityForJob = (
-  computeClient: PairioComputeClient,
-  job: PairioJob,
-  otherJobs: PairioJob[],
+  computeClient: DendroComputeClient,
+  job: DendroJob,
+  otherJobs: DendroJob[],
 ) => {
   const slotties = computeClient.computeSlots.map((s) => ({
     computeSlot: s,
@@ -1013,7 +1013,7 @@ const computeResourceHasEnoughCapacityForJob = (
   return false;
 };
 
-const fitsSlot = (job: PairioJob, computeSlot: ComputeClientComputeSlot) => {
+const fitsSlot = (job: DendroJob, computeSlot: ComputeClientComputeSlot) => {
   const rr = job.requiredResources;
   const cs = computeSlot;
   if (rr.numCpus > cs.numCpus) return false;
@@ -1288,7 +1288,7 @@ export const setJobStatusHandler = allowCors(
             const nowRunnable = await checkJobRunnable(j.jobDependencies);
             if (nowRunnable) {
               await updateJob(j.jobId, { isRunnable: true });
-              await publishPubsubMessage("pairio-compute-clients", {
+              await publishPubsubMessage("dendro-compute-clients", {
                 type: "jobStatusChanged",
                 serviceName: j.serviceName,
                 jobId: j.jobId,
@@ -1312,7 +1312,7 @@ export const setJobStatusHandler = allowCors(
         res.status(400).json({ error: "Invalid status" });
         return;
       }
-      await publishPubsubMessage("pairio-compute-clients", {
+      await publishPubsubMessage("dendro-compute-clients", {
         type: "jobStatusChanged",
         serviceName: job.serviceName,
         jobId: job.jobId,
@@ -1603,7 +1603,7 @@ export const createComputeClientHandler = allowCors(
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const computeClient: PairioComputeClient = {
+    const computeClient: DendroComputeClient = {
       userId: rr.userId,
       serviceNames: rr.serviceNames,
       computeClientId: generateComputeClientId(),
@@ -1740,7 +1740,7 @@ export const setComputeClientInfoHandler = allowCors(
         update["computeSlots"] = rr.computeSlots;
       if (rr.serviceNames !== undefined) {
         for (const serviceName of rr.serviceNames) {
-          const service: PairioService | null = await fetchService(serviceName);
+          const service: DendroService | null = await fetchService(serviceName);
           if (!service) {
             res.status(404).json({ error: `Service ${serviceName} not found` });
             return;
@@ -1997,7 +1997,7 @@ export const getPubsubSubscriptionHandler = allowCors(
         type: "getPubsubSubscriptionResponse",
         subscription: {
           pubnubSubscribeKey: VITE_PUBNUB_SUBSCRIBE_KEY,
-          pubnubChannel: "pairio-compute-clients", // cannot do this by service because we want to allow compute clients to subscribe to multiple services
+          pubnubChannel: "dendro-compute-clients", // cannot do this by service because we want to allow compute clients to subscribe to multiple services
           pubnubUser: computeClientId,
         },
       };
@@ -2023,7 +2023,7 @@ export const pingComputeClientsHandler = allowCors(
         type: "pingComputeClients",
         serviceName,
       };
-      await publishPubsubMessage("pairio-compute-clients", msg);
+      await publishPubsubMessage("dendro-compute-clients", msg);
       const resp: PingComputeClientsResponse = {
         type: "pingComputeClientsResponse",
       };
@@ -2066,13 +2066,13 @@ const authenticateUserUsingGitHubToken = async (
 
 const fetchService = async (
   serviceName: string,
-): Promise<PairioService | null> => {
+): Promise<DendroService | null> => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.services);
   const service = await collection.findOne({ serviceName });
   if (!service) return null;
   removeMongoId(service);
-  if (!isPairioService(service)) {
+  if (!isDendroService(service)) {
     throw Error("Invalid service in database");
   }
   return service;
@@ -2080,33 +2080,33 @@ const fetchService = async (
 
 const fetchServicesForUser = async (
   userId: string,
-): Promise<PairioService[]> => {
+): Promise<DendroService[]> => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.services);
   const services = await collection.find({ userId }).toArray();
   for (const service of services) {
     removeMongoId(service);
-    if (!isPairioService(service)) {
+    if (!isDendroService(service)) {
       throw Error("Invalid service in database");
     }
   }
-  return services.map((service: any) => service as PairioService);
+  return services.map((service: any) => service as DendroService);
 };
 
-const fetchAllServices = async (): Promise<PairioService[]> => {
+const fetchAllServices = async (): Promise<DendroService[]> => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.services);
   const services = await collection.find({}).toArray();
   for (const service of services) {
     removeMongoId(service);
-    if (!isPairioService(service)) {
+    if (!isDendroService(service)) {
       throw Error("Invalid service in database");
     }
   }
-  return services.map((service: any) => service as PairioService);
+  return services.map((service: any) => service as DendroService);
 };
 
-const insertService = async (service: PairioService) => {
+const insertService = async (service: DendroService) => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.services);
   await collection.updateOne(
@@ -2147,7 +2147,7 @@ const fetchUser = async (userId: string) => {
   const user = await collection.findOne({ userId });
   if (!user) return null;
   removeMongoId(user);
-  if (!isPairioUser(user)) {
+  if (!isDendroUser(user)) {
     throw Error("Invalid user in database");
   }
   return user;
@@ -2160,13 +2160,13 @@ const fetchUserForApiToken = async (apiKey: string) => {
   const user = await collection.findOne({ apiKey });
   if (!user) return null;
   removeMongoId(user);
-  if (!isPairioUser(user)) {
+  if (!isDendroUser(user)) {
     throw Error("Invalid user in database");
   }
   return user;
 };
 
-const insertUser = async (user: PairioUser) => {
+const insertUser = async (user: DendroUser) => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.users);
   await collection.updateOne(
@@ -2195,7 +2195,7 @@ const updateUser = async (userId: string, update: any) => {
   );
 };
 
-const insertServiceApp = async (app: PairioServiceApp) => {
+const insertServiceApp = async (app: DendroServiceApp) => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.serviceApps);
   await collection.insertOne(app);
@@ -2207,7 +2207,7 @@ const fetchServiceApp = async (serviceName: string, appName: string) => {
   const app = await collection.findOne({ serviceName, appName });
   if (!app) return null;
   removeMongoId(app);
-  if (!isPairioServiceApp(app)) {
+  if (!isDendroServiceApp(app)) {
     console.warn("invalid app:", app);
     await collection.deleteOne({
       serviceName: app.serviceName,
@@ -2224,11 +2224,11 @@ const fetchServiceAppsForAppName = async (appName: string) => {
   const apps = await collection.find({ appName }).toArray();
   for (const app of apps) {
     removeMongoId(app);
-    if (!isPairioServiceApp(app)) {
+    if (!isDendroServiceApp(app)) {
       throw Error("Invalid service app in database");
     }
   }
-  return apps.map((app: any) => app as PairioServiceApp);
+  return apps.map((app: any) => app as DendroServiceApp);
 };
 
 const fetchServiceAppsForServiceName = async (serviceName: string) => {
@@ -2237,11 +2237,11 @@ const fetchServiceAppsForServiceName = async (serviceName: string) => {
   const apps = await collection.find({ serviceName }).toArray();
   for (const app of apps) {
     removeMongoId(app);
-    if (!isPairioServiceApp(app)) {
+    if (!isDendroServiceApp(app)) {
       throw Error("Invalid service app in database");
     }
   }
-  return apps.map((app: any) => app as PairioServiceApp);
+  return apps.map((app: any) => app as DendroServiceApp);
 };
 
 const updateServiceApp = async (
@@ -2279,7 +2279,7 @@ const fetchJob = async (jobId: string) => {
   const job = await collection.findOne({ jobId });
   if (!job) return null;
   removeMongoId(job);
-  if (!isPairioJob(job)) {
+  if (!isDendroJob(job)) {
     console.warn("invalid job:", job);
     await collection.deleteOne({ jobId: job.jobId });
     throw Error("Invalid job in database");
@@ -2293,13 +2293,13 @@ const fetchJobs = async (pipeline: any[] | undefined) => {
   const jobs = await collection.aggregate(pipeline).toArray();
   for (const job of jobs) {
     removeMongoId(job);
-    if (!isPairioJob(job)) {
+    if (!isDendroJob(job)) {
       console.warn("invalid job:", job);
       await collection.deleteOne({ jobId: job.jobId });
       throw Error("Invalid job in database");
     }
   }
-  return jobs.map((job: any) => job as PairioJob);
+  return jobs.map((job: any) => job as DendroJob);
 };
 
 const fetchDeletedJobs = async (pipeline: any[] | undefined) => {
@@ -2308,22 +2308,22 @@ const fetchDeletedJobs = async (pipeline: any[] | undefined) => {
   const jobs = await collection.aggregate(pipeline).toArray();
   for (const job of jobs) {
     removeMongoId(job);
-    if (!isPairioJob(job)) {
+    if (!isDendroJob(job)) {
       console.warn("invalid job:", job);
       await collection.deleteOne({ jobId: job.jobId });
       throw Error("Invalid job in database");
     }
   }
-  return jobs.map((job: any) => job as PairioJob);
+  return jobs.map((job: any) => job as DendroJob);
 };
 
-const fetchOneJobByJobId = async (jobId: string): Promise<PairioJob | null> => {
+const fetchOneJobByJobId = async (jobId: string): Promise<DendroJob | null> => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.jobs);
   const job = await collection.findOne({ jobId });
   if (!job) return null;
   removeMongoId(job);
-  if (!isPairioJob(job)) {
+  if (!isDendroJob(job)) {
     console.warn("invalid job:", job);
     await collection.deleteOne({ jobId: job.jobId });
     throw Error("Invalid job in database");
@@ -2389,7 +2389,7 @@ const atomicUpdateJob = async (
   }
 };
 
-const insertJob = async (job: PairioJob) => {
+const insertJob = async (job: DendroJob) => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.jobs);
   await collection.insertOne(job);
@@ -2415,7 +2415,7 @@ const deleteJobs = async (o: { jobIds: string[] }) => {
   await collection.deleteMany({ jobId: { $in: o.jobIds } });
 };
 
-const insertComputeClient = async (computeClient: PairioComputeClient) => {
+const insertComputeClient = async (computeClient: DendroComputeClient) => {
   const client = await getMongoClient();
   const collection = client
     .db(dbName)
@@ -2431,7 +2431,7 @@ const fetchComputeClient = async (computeClientId: string) => {
   const computeClient = await collection.findOne({ computeClientId });
   if (!computeClient) return null;
   removeMongoId(computeClient);
-  if (!isPairioComputeClient(computeClient)) {
+  if (!isDendroComputeClient(computeClient)) {
     await collection.deleteOne({ computeClientId });
     throw Error("Invalid compute client in database");
   }
@@ -2448,7 +2448,7 @@ const fetchComputeClientsForService = async (serviceName: string) => {
     .toArray();
   for (const computeClient of computeClients) {
     removeMongoId(computeClient);
-    if (!isPairioComputeClient(computeClient)) {
+    if (!isDendroComputeClient(computeClient)) {
       await collection.deleteOne({
         computeClientId: computeClient.computeClientId,
       });
@@ -2456,7 +2456,7 @@ const fetchComputeClientsForService = async (serviceName: string) => {
     }
   }
   return computeClients.map(
-    (computeClient: any) => computeClient as PairioComputeClient,
+    (computeClient: any) => computeClient as DendroComputeClient,
   );
 };
 
@@ -2557,7 +2557,7 @@ const createSignedUploadUrl = async (o: {
   userId: string;
 }) => {
   const { url, size, userId } = o;
-  const prefix = `https://tempory.net/f/pairio/`;
+  const prefix = `https://tempory.net/f/dendro/`;
   if (!url.startsWith(prefix)) {
     throw Error("Invalid url. Does not have proper prefix");
   }
@@ -2570,7 +2570,7 @@ const createSignedUploadUrl = async (o: {
       Authorization: `Bearer ${TEMPORY_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({
-      appName: "pairio",
+      appName: "dendro",
       filePath,
       size,
       userId,
@@ -2594,7 +2594,7 @@ const initiateMultipartUpload = async (o: {
   numParts: number;
 }) => {
   const { url, numParts } = o;
-  const prefix = `https://tempory.net/f/pairio/`;
+  const prefix = `https://tempory.net/f/dendro/`;
   if (!url.startsWith(prefix)) {
     throw Error("Invalid url. Does not have proper prefix");
   }
@@ -2607,7 +2607,7 @@ const initiateMultipartUpload = async (o: {
       Authorization: `Bearer ${TEMPORY_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({
-      appName: "pairio",
+      appName: "dendro",
       filePath,
     }),
   });
@@ -2631,7 +2631,7 @@ const initiateMultipartUpload = async (o: {
       Authorization: `Bearer ${TEMPORY_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({
-      appName: "pairio",
+      appName: "dendro",
       filePath,
       partNumbers,
       uploadId,
@@ -2663,7 +2663,7 @@ const finalizeMultipartUpload = async (o: {
   size: number;
 }) => {
   const { url, uploadId, parts, userId, size } = o;
-  const prefix = `https://tempory.net/f/pairio/`;
+  const prefix = `https://tempory.net/f/dendro/`;
   if (!url.startsWith(prefix)) {
     throw Error("Invalid url. Does not have proper prefix");
   }
@@ -2676,7 +2676,7 @@ const finalizeMultipartUpload = async (o: {
       Authorization: `Bearer ${TEMPORY_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({
-      appName: "pairio",
+      appName: "dendro",
       filePath,
       size,
       userId,
@@ -2697,7 +2697,7 @@ const finalizeMultipartUpload = async (o: {
 
 const cancelMultipartUpload = async (o: { url: string; uploadId: string }) => {
   const { url, uploadId } = o;
-  const prefix = `https://tempory.net/f/pairio/`;
+  const prefix = `https://tempory.net/f/dendro/`;
   if (!url.startsWith(prefix)) {
     throw Error("Invalid url. Does not have proper prefix");
   }
@@ -2710,7 +2710,7 @@ const cancelMultipartUpload = async (o: { url: string; uploadId: string }) => {
       Authorization: `Bearer ${TEMPORY_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({
-      appName: "pairio",
+      appName: "dendro",
       filePath,
       uploadId,
     }),
@@ -2727,7 +2727,7 @@ const cancelMultipartUpload = async (o: { url: string; uploadId: string }) => {
 };
 
 const userIsAllowedToProcessJobsForService = (
-  service: PairioService,
+  service: DendroService,
   userId: string,
 ) => {
   if (service.userId === userId) return true;
@@ -2737,7 +2737,7 @@ const userIsAllowedToProcessJobsForService = (
 };
 
 const userIsAllowedToCreateJobsForService = (
-  service: PairioService,
+  service: DendroService,
   userId: string,
 ) => {
   if (service.userId === userId) return true;
@@ -2747,7 +2747,7 @@ const userIsAllowedToCreateJobsForService = (
 };
 
 const userIsAllowedToDeleteJobsForService = (
-  service: PairioService,
+  service: DendroService,
   userId: string,
 ) => {
   if (service.userId === userId) return true;
@@ -2756,7 +2756,7 @@ const userIsAllowedToDeleteJobsForService = (
   return u.createJobs;
 };
 
-const userIsAdminForService = (service: PairioService, userId: string) => {
+const userIsAdminForService = (service: DendroService, userId: string) => {
   if (service.userId === userId) return true;
   const u = service.users.find((u) => u.userId === userId);
   if (!u) return false;
@@ -2764,8 +2764,8 @@ const userIsAdminForService = (service: PairioService, userId: string) => {
 };
 
 const validateJobDefinitionForServiceApp = (
-  jobDefinition: PairioJobDefinition,
-  app: PairioServiceApp,
+  jobDefinition: DendroJobDefinition,
+  app: DendroServiceApp,
 ) => {
   if (jobDefinition.appName !== app.appName) {
     throw Error("Mismatch between jobDefinition.appName and app.appName");
@@ -2846,7 +2846,7 @@ export const computeUserStatsHandler = allowCors(
     }
     try {
       const userId = rr.userId;
-      const computeStatsForJobs = (jobs: PairioJob[]) => {
+      const computeStatsForJobs = (jobs: DendroJob[]) => {
         let numJobs = 0;
         let cpuHours = 0;
         let gpuHours = 0;
@@ -2947,7 +2947,7 @@ const createOutputFileUrl = async (a: {
     outputName,
     outputFileBaseName,
   } = a;
-  return `https://tempory.net/f/pairio/f/${serviceName}/${appName}/${processorName}/${jobId}/${outputName}/${outputFileBaseName}`;
+  return `https://tempory.net/f/dendro/f/${serviceName}/${appName}/${processorName}/${jobId}/${outputName}/${outputFileBaseName}`;
 };
 
 const createOtherFileUrl = async (a: {
@@ -2958,7 +2958,7 @@ const createOtherFileUrl = async (a: {
   otherName: string;
 }) => {
   const { serviceName, appName, processorName, jobId, otherName } = a;
-  return `https://tempory.net/f/pairio/f/${serviceName}/${appName}/${processorName}/${jobId}/other/${otherName}`;
+  return `https://tempory.net/f/dendro/f/${serviceName}/${appName}/${processorName}/${jobId}/other/${otherName}`;
 };
 
 // Thanks: https://stackoverflow.com/questions/16167581/sort-object-properties-and-json-stringify
@@ -2988,7 +2988,7 @@ const computeSha1 = (s: string) => {
   return hash.digest("hex");
 };
 
-const normalizeJobDefinitionForHash = (jobDefinition: PairioJobDefinition) => {
+const normalizeJobDefinitionForHash = (jobDefinition: DendroJobDefinition) => {
   return {
     ...jobDefinition,
     inputFiles: orderByName(jobDefinition.inputFiles),

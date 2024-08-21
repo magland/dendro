@@ -115,7 +115,7 @@ class ComputeClientDaemon:
                 if elapsed_since_report_that_compute_client_is_running > 60 * 5:
                     print(f'Compute client is running: {self._compute_client_name}')
                     print(f'Compute client ID: {self._compute_client_id}')
-                    config_url = f'https://pairio.vercel.app/compute_client/{self._compute_client_id}'
+                    config_url = f'https://dendro.vercel.app/compute_client/{self._compute_client_id}'
                     print(f'Configure it here: {config_url}')
                     last_report_that_compute_client_is_running = time.time()
 

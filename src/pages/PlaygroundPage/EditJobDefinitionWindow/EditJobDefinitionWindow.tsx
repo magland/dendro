@@ -10,18 +10,18 @@ import {
   useState,
 } from "react";
 import {
-  PairioAppProcessor,
-  PairioAppProcessorInputFile,
-  PairioAppProcessorParameter,
-  PairioJobDefinition,
+  DendroAppProcessor,
+  DendroAppProcessorInputFile,
+  DendroAppProcessorParameter,
+  DendroJobDefinition,
 } from "../../../types";
 import { expandedFoldersReducer } from "./expandedFoldersReducer";
-import { pairioJobDefinitionReducer } from "./pairioJobDefinitionReducer";
+import { dendroJobDefinitionReducer } from "./dendroJobDefinitionReducer";
 
 type EditJobDefinitionWindowProps = {
-  jobDefinition: PairioJobDefinition;
-  setJobDefinition: (jobDefinition: PairioJobDefinition) => void;
-  processor: PairioAppProcessor;
+  jobDefinition: DendroJobDefinition;
+  setJobDefinition: (jobDefinition: DendroJobDefinition) => void;
+  processor: DendroAppProcessor;
   readOnly?: boolean;
   show?: "inputs" | "outputs" | "parameters" | "all" | "inputs+outputs";
   setValid?: (valid: boolean) => void;
@@ -76,7 +76,7 @@ const EditJobDefinitionWindow: FunctionComponent<
   const setParameterValue = useCallback(
     (name: string, value: any) => {
       setJobDefinition(
-        pairioJobDefinitionReducer(jobDefinition, {
+        dendroJobDefinitionReducer(jobDefinition, {
           type: "setParameter",
           name,
           value,
@@ -263,7 +263,7 @@ const EditJobDefinitionWindow: FunctionComponent<
               url={value}
               setUrl={(url) => {
                 setJobDefinition(
-                  pairioJobDefinitionReducer(jobDefinition, {
+                  dendroJobDefinitionReducer(jobDefinition, {
                     type: "setInputFile",
                     name: node.name,
                     url,
@@ -401,7 +401,7 @@ const GroupRow: FunctionComponent<GroupRowProps> = ({
 };
 
 type InputRowProps = {
-  inputFile: PairioAppProcessorInputFile;
+  inputFile: DendroAppProcessorInputFile;
   url: any;
   setUrl: (url: any) => void;
   setValid: (valid: boolean) => void;
@@ -473,7 +473,7 @@ const OutputRow: FunctionComponent<OutputRowProps> = ({
 };
 
 type ParameterRowProps = {
-  parameter: PairioAppProcessorParameter;
+  parameter: DendroAppProcessorParameter;
   value: any;
   setValue: (value: any) => void;
   setValid: (valid: boolean) => void;
@@ -537,7 +537,7 @@ const ParameterRow: FunctionComponent<ParameterRowProps> = ({
 };
 
 type EditParameterValueProps = {
-  parameter: PairioAppProcessorParameter;
+  parameter: DendroAppProcessorParameter;
   value: any;
   setValue: (value: any) => void;
   setValid: (valid: boolean) => void;
@@ -1109,7 +1109,7 @@ const StringListEdit: FunctionComponent<StringListEditProps> = ({
 };
 
 type DisplayParameterValueProps = {
-  parameter: PairioAppProcessorParameter;
+  parameter: DendroAppProcessorParameter;
   value: any;
 };
 
