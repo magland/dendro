@@ -18,6 +18,8 @@ import UserIdComponent from "../../components/UserIdComponent";
 import { useLogin } from "../../LoginContext/LoginContext";
 import formatByteCount from "./formatByteCount";
 import JobComponent from "../../components/JobComponent";
+import { ExpandableSection } from "../PlaygroundPage/ExpandableSection";
+import ResourceUtilizationView from "./ResourceUtilizationView/ResourceUtilizationView";
 
 type JobPageProps = {
   // none
@@ -194,9 +196,31 @@ export const JobView: FunctionComponent<JobViewProps> = ({
       <InputsOutputsParametersView job={job} />
       {deleteJob && <button onClick={deleteJob}>Delete job</button>}
       <hr />
+      <ResourceUtilizationSection job={job} />
+      <hr />
       <ConsoleOutputView job={job} />
       <hr />
     </div>
+  );
+};
+
+type ResourceUtilizationViewProps = {
+  job: PairioJob;
+};
+
+const ResourceUtilizationSection: FunctionComponent<ResourceUtilizationViewProps> = ({
+  job,
+}) => {
+  return (
+    <ExpandableSection
+      title="Resource utilization"
+      defaultExpanded={false}
+    >
+      <ResourceUtilizationView
+        displayJobId={false}
+        job={job}
+      />
+    </ExpandableSection>
   );
 };
 

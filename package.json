@@ -31,6 +31,7 @@
     "@mui/material": "^5.15.20",
     "@types/react-plotly.js": "^2.6.3",
     "js-yaml": "^4.1.0",
+    "plotly.js": "^2.34.0",
     "plotly.js-cartesian-dist": "^2.33.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
