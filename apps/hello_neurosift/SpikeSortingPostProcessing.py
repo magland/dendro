@@ -124,7 +124,9 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                 ],
                 extension_params=dict(
                     quality_metrics=qm_params,
-                    method="grid_convolution"
+                    unit_locations=dict(
+                        method="grid_convolution"
+                    )
                 ),
             )
             num_spikes = sorting.count_num_spikes_per_unit(outputs='array')
