@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
@@ -114,7 +115,14 @@ class MountainSort5(ProcessorBase):
                 print('Unit IDs:', sorting.get_unit_ids())
 
                 print('Adding units to NWB file')
-                units_table = Units(name=output_units_name, description='Units from MountainSort5')
+                dendro_job_id = os.getenv('JOB_ID', None)
+                description = 'Units from MountainSort5.'
+                if dendro_job_id is not None:
+                    description += f' dendro:{dendro_job_id}'
+                units_table = Units(
+                    name=output_units_name,
+                    description=description
+                )
                 unit_ids = sorting.get_unit_ids()
                 for i, unit_id in enumerate(unit_ids):
                     st = sorting.get_unit_spike_train(unit_id=unit_id)

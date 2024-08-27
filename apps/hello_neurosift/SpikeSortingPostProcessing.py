@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from typing import List
 
@@ -71,6 +72,13 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
             units = f[units_path]
             assert isinstance(units, lindi.LindiH5pyGroup)
 
+            dendro_job_id = os.getenv('JOB_ID', None)
+            if dendro_job_id is not None:
+                existing_description = units.attrs.get("description", "")
+                new_description = str(existing_description) + ' ' if str(existing_description) else ''
+                new_description += f"dendro:{dendro_job_id}"
+                units.attrs["description"] = new_description
+
             print("Reading NWB file")
             # with pynwb.NWBHDF5IO(file=f, mode="a") as io:
             # nwbfile = io.read()
@@ -114,7 +122,10 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                     "quality_metrics",
                     "waveforms",
                 ],
-                extension_params=dict(quality_metrics=qm_params),
+                extension_params=dict(
+                    quality_metrics=qm_params,
+                    method="grid_convolution"
+                ),
             )
             num_spikes = sorting.count_num_spikes_per_unit(outputs='array')
             peak_channels = si.get_template_extremum_channel(analyzer)

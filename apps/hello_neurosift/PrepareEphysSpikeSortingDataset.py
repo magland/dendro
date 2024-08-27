@@ -1,3 +1,4 @@
+import os
 from typing import List
 import numpy as np
 from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
@@ -148,12 +149,14 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                     chunks=(int(num_samples_per_chunk), recording.get_num_channels()),
                     compression=codec
                 )
+                dendro_job_id = os.getenv('JOB_ID', None)
                 electrical_series_pre = ElectricalSeries(
                     name=output_electrical_series_name,
                     data=data,
                     electrodes=new_electrodes,
                     starting_time=0.0,  # timestamp of the first sample in seconds relative to the session start time
                     rate=recording_binary.get_sampling_frequency(),
+                    description=f'dendro:{dendro_job_id}' if dendro_job_id else ''
                 )
                 print('Adding new electrical series to NWB file')
                 nwbfile.add_acquisition(electrical_series_pre)  # type: ignore
