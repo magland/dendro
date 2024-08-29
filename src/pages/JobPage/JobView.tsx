@@ -123,6 +123,10 @@ export const JobView: FunctionComponent<JobViewProps> = ({
             <td>{job.error}</td>
           </tr>
           <tr>
+            <td>Tags</td>
+            <td>{job.tags.join(", ")}</td>
+          </tr>
+          <tr>
             <td>Required resources</td>
             <td>
               <pre>{JSON.stringify(job.requiredResources)}</pre>
@@ -345,7 +349,7 @@ const LinkToJobFromInputFile: FunctionComponent<{ url: string }> = ({
 }) => {
   const job = useJobProducingOutput(url);
 
-  const { setRoute } = useRoute()
+  const { setRoute } = useRoute();
 
   if (!job) return <></>;
 

@@ -125,7 +125,9 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                 extension_params=dict(
                     quality_metrics=qm_params,
                     unit_locations=dict(
-                        method="grid_convolution"
+                        # See https://github.com/SpikeInterface/spikeinterface/issues/3322
+                        method="center_of_mass"
+                        # method="grid_convolution"
                     )
                 ),
             )
