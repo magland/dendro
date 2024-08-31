@@ -14,10 +14,10 @@ from ..common.api_requests import set_job_status
 # * Launches detached processes to monitor the console output, resource utilization, and job status
 # * Finally, sets the job status to completed or failed in the database via the API
 
-if os.environ.get('PAIRIO_JOB_WORKING_DIR', None) is None:
+if os.environ.get('DENDRO_JOB_WORKING_DIR', None) is None:
     dendro_internal_folder = '_dendro'
 else:
-    dendro_internal_folder = os.environ['PAIRIO_JOB_WORKING_DIR'] + '/_dendro'
+    dendro_internal_folder = os.environ['DENDRO_JOB_WORKING_DIR'] + '/_dendro'
 
 def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_executable: str, job_timeout_sec: Union[int, None], compute_client_id: str):
     _run_job_timer = time.time()
@@ -132,9 +132,9 @@ def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_exec
                 except Exception: # pylint: disable=broad-except
                     pass
 
-            dendro_job_cleanup_dir = os.environ.get('PAIRIO_JOB_CLEANUP_DIR', None)
+            dendro_job_cleanup_dir = os.environ.get('DENDRO_JOB_CLEANUP_DIR', None)
             if dendro_job_cleanup_dir is not None:
-                _debug_log(f'Cleaning up PAIRIO_JOB_CLEANUP_DIR: {dendro_job_cleanup_dir}')
+                _debug_log(f'Cleaning up DENDRO_JOB_CLEANUP_DIR: {dendro_job_cleanup_dir}')
                 try:
                     # delete files in the cleanup dir but do not delete the cleanup dir itself
                     # and also don't delete the internal log folder _dendro
@@ -154,9 +154,9 @@ def _run_job_parent_process(*, job_id: str, job_private_key: str, processor_exec
                                 os.remove(fpath)
                     _delete_files_in_dir(dendro_job_cleanup_dir)
                 except Exception as e:
-                    _debug_log(f'WARNING: problem cleaning up PAIRIO_JOB_CLEANUP_DIR: {str(e)}')
+                    _debug_log(f'WARNING: problem cleaning up DENDRO_JOB_CLEANUP_DIR: {str(e)}')
             else:
-                _debug_log('No PAIRIO_JOB_CLEANUP_DIR environment variable set. Not cleaning up.')
+                _debug_log('No DENDRO_JOB_CLEANUP_DIR environment variable set. Not cleaning up.')
 
     _debug_log('Uploading final console output')
     # this is needed because the console output monitor may get terminated before it has a chance to upload the final console output
@@ -204,14 +204,14 @@ def _launch_job_child_process(*, job_id: str, job_private_key: str, processor_ex
         'PYTHONUNBUFFERED': '1'
     }
     _debug_log(f'Running {processor_executable} (Job ID: {job_id})) (Job private key: {job_private_key})')
-    working_dir = os.environ.get('PAIRIO_JOB_WORKING_DIR', None)
+    working_dir = os.environ.get('DENDRO_JOB_WORKING_DIR', None)
     if working_dir is not None:
         if not os.path.exists(working_dir):
             # make directory including parent directories
             os.makedirs(working_dir)
         if not os.path.isdir(working_dir + '/tmp'):
             os.mkdir(working_dir + '/tmp')
-        env['PAIRIO_JOB_WORKING_DIR'] = working_dir
+        env['DENDRO_JOB_WORKING_DIR'] = working_dir
         env['TMPDIR'] = working_dir + '/tmp'
         _debug_log(f'Using working directory {working_dir}')
     _debug_log('Opening subprocess')

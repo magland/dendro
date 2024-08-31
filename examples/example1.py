@@ -2,7 +2,7 @@ import os
 from dendro.client import submit_job, DendroJobDefinition, DendroJobRequiredResources, DendroJobParameter
 
 
-service_name = os.getenv('PAIRIO_SERVICE_NAME', 'hello_world_service')
+service_name = os.getenv('DENDRO_SERVICE_NAME', 'hello_world_service')
 
 def main():
     job_def = DendroJobDefinition(

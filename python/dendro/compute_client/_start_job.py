@@ -130,8 +130,8 @@ fi
             'docker', 'run', '-it'
         ]
         cmd2.extend(['-v', f'{tmpdir}:/tmp'])
-        env_vars['PAIRIO_JOB_CLEANUP_DIR'] = '/tmp'
-        env_vars['PAIRIO_JOB_WORKING_DIR'] = '/tmp/working'
+        env_vars['DENDRO_JOB_CLEANUP_DIR'] = '/tmp'
+        env_vars['DENDRO_JOB_WORKING_DIR'] = '/tmp/working'
         cmd2.extend(['--workdir', '/tmp/working']) # the working directory will be /tmp/working
         for k, v in env_vars.items():
             cmd2.extend(['-e', f'{k}={v}'])
@@ -172,8 +172,8 @@ fi
         cmd2 = [executable, 'exec']
         cmd2.extend(['--bind', f'{tmpdir}:/tmp'])
         # The working directory should be /tmp/working so that if the container wants to write to the working directory, it will not run out of space
-        env_vars['PAIRIO_JOB_CLEANUP_DIR'] = '/tmp'
-        env_vars['PAIRIO_JOB_WORKING_DIR'] = '/tmp/working'
+        env_vars['DENDRO_JOB_CLEANUP_DIR'] = '/tmp'
+        env_vars['DENDRO_JOB_WORKING_DIR'] = '/tmp/working'
         cmd2.extend(['--pwd', '/tmp/working'])
         cmd2.extend(['--cleanenv']) # this is important to prevent singularity or apptainer from passing environment variables to the container
         cmd2.extend(['--contain']) # we don't want singularity or apptainer to mount the home or tmp directories of the host

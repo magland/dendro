@@ -199,7 +199,7 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({
       <div style={{ padding: 20 }}>
         <h1>Dendro Playground</h1>
         <p>
-          PAIRIO API KEY:&nbsp;
+          DENDRO API KEY:&nbsp;
           <DendroApiKeyInput
             value={state.dendroApiKey}
             onChange={(dendroApiKey) => {

@@ -20,7 +20,7 @@ def nwb_cebra(
 ):
     if not os.getenv('DENDRO_API_KEY'):
         raise Exception('DENDRO_API_KEY environment variable must be set')
-    service_name = os.getenv('PAIRIO_SERVICE_NAME', 'hello_world_service')
+    service_name = os.getenv('DENDRO_SERVICE_NAME', 'hello_world_service')
     job_def = DendroJobDefinition(
         appName='hello_cebra',
         processorName='cebra_nwb_embedding_5',
