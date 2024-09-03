@@ -103,15 +103,16 @@ class DendroServiceApp(BaseModel):
 #   value: string | number | boolean | string[] | number[] | boolean[]
 # }
 
-class DendroJobInputFile(BaseModel):
-    name: str
-    fileBaseName: str
-    url: Union[str, SpecialJobOutput]
-
 
 class DendroJobOutputFile(BaseModel):
     name: str
     fileBaseName: str
+
+
+class DendroJobInputFile(BaseModel):
+    name: str
+    fileBaseName: str
+    url: Union[str, SpecialJobOutput, DendroJobOutputFile]
 
 
 class DendroJobParameter(BaseModel):

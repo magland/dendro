@@ -1,7 +1,7 @@
 import os
 from typing import List
 from ..common.api_requests import create_job
-from ..common.dendro_types import DendroJobDefinition, DendroJobRequiredResources
+from ..common.dendro_types import DendroJobDefinition, DendroJobRequiredResources, DendroJobOutputFile
 from ..common.DendroJob import SpecialJobOutput
 
 
@@ -19,13 +19,21 @@ def submit_job(
     if user_api_key is None:
         raise Exception('DENDRO_API_KEY environment variable must be set')
     job_dependencies = []
+
     # resolve the inputs that are job output file results
     for input_file in job_definition.inputFiles:
         if isinstance(input_file.url, SpecialJobOutput):
-            oo = input_file.url
-            assert oo.url
-            input_file.url = oo.url
-            dependency_job_id = oo.jobId
+            special_job_output = input_file.url
+        elif isinstance(input_file.url, DendroJobOutputFile):
+            if not hasattr(input_file.url, '_special_job_output'):
+                raise Exception(f'URL not set for input file {input_file.name}. If this is a job output file, you must submit the associated job first.')
+            special_job_output = getattr(input_file.url, '_special_job_output')
+        else:
+            special_job_output = None
+        if special_job_output:
+            assert special_job_output.url
+            input_file.url = special_job_output.url
+            dependency_job_id = special_job_output.jobId
             if dependency_job_id not in job_dependencies:
                 job_dependencies.append(dependency_job_id)
 
@@ -42,4 +50,22 @@ def submit_job(
         rerun_failing=rerun_failing,
         delete_failing=delete_failing
     )
+
+    # Set attributes on the output files of the job
+    for output_file in job_definition.outputFiles:
+        special_job_output = job.get_output(output_file.name)
+        if special_job_output:
+            # In pydantic it seems that you can set an attribute that is not
+            # defined in the model as long as it begins with an underscore. And
+            # then it won't be included in .model_dump() or .dict() output. Try
+            # this:
+            # from pydantic import BaseModel
+            # class M1(BaseModel):
+            #     a: int
+            #     b: str
+            # m1 = M1(a=1, b='2')
+            # setattr(m1, '_c', 3)
+            # print(m1.model_dump())
+            setattr(output_file, '_special_job_output', special_job_output)
+
     return job

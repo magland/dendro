@@ -19,6 +19,8 @@ import ResourceUtilizationView from "./ResourceUtilizationView/ResourceUtilizati
 import formatByteCount from "./formatByteCount";
 import { useJobProducingOutput } from "./useJobProducingOutput";
 import useRoute from "../../useRoute";
+import ModalWindow, { useModalWindow } from "@fi-sci/modal-window";
+import JobPythonScriptView from "./JobPythonScriptView";
 
 type JobViewProps = {
   job: DendroJob;
@@ -31,6 +33,8 @@ export const JobView: FunctionComponent<JobViewProps> = ({
   refreshJob,
   deleteJob,
 }) => {
+  const {visible: pythonVisible, handleOpen: openPython, handleClose: closePython} = useModalWindow();
+
   return (
     <div>
       <div>
@@ -149,11 +153,16 @@ export const JobView: FunctionComponent<JobViewProps> = ({
       <hr />
       <InputsOutputsParametersView job={job} />
       {deleteJob && <button onClick={deleteJob}>Delete job</button>}
+      &nbsp;
+      <button onClick={openPython}>Python script</button>
       <hr />
       <ResourceUtilizationSection job={job} />
       <hr />
       <ConsoleOutputView job={job} />
       <hr />
+      <ModalWindow visible={pythonVisible} onClose={closePython}>
+        <JobPythonScriptView job={job} />
+      </ModalWindow>
     </div>
   );
 };

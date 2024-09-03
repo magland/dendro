@@ -5,15 +5,16 @@ from dendro.client import submit_job, DendroJobDefinition, DendroJobRequiredReso
 service_name = os.getenv('DENDRO_SERVICE_NAME', 'hello_world_service')
 
 def main():
+    file1 = DendroJobOutputFile(
+        name='output',
+        fileBaseName='output.txt'
+    )
     job_def = DendroJobDefinition(
         appName='hello_world',
         processorName='hello_world_2',
         inputFiles=[],
         outputFiles=[
-            DendroJobOutputFile(
-                name='output',
-                fileBaseName='output.txt'
-            )
+            file1
         ],
         parameters=[
             DendroJobParameter(
@@ -43,7 +44,7 @@ def main():
             DendroJobInputFile(
                 name='input',
                 fileBaseName='input.txt',
-                url=job1.get_output('output')
+                url=file1
             )
         ],
         outputFiles=[
