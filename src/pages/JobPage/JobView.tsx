@@ -34,6 +34,7 @@ export const JobView: FunctionComponent<JobViewProps> = ({
   deleteJob,
 }) => {
   const {visible: pythonVisible, handleOpen: openPython, handleClose: closePython} = useModalWindow();
+  const { visible: jobDefinitionVisible, handleOpen: openJobDefinition, handleClose: closeJobDefinition } = useModalWindow();
 
   return (
     <div>
@@ -53,7 +54,11 @@ export const JobView: FunctionComponent<JobViewProps> = ({
           </tr>
           <tr>
             <td>Job definition hash</td>
-            <td>{job.jobDefinitionHash}</td>
+            <td>
+              <Hyperlink onClick={openJobDefinition}>
+                {job.jobDefinitionHash}
+              </Hyperlink>
+            </td>
           </tr>
           <tr>
             <td>Service</td>
@@ -162,6 +167,9 @@ export const JobView: FunctionComponent<JobViewProps> = ({
       <hr />
       <ModalWindow visible={pythonVisible} onClose={closePython}>
         <JobPythonScriptView job={job} />
+      </ModalWindow>
+      <ModalWindow visible={jobDefinitionVisible} onClose={closeJobDefinition}>
+        <pre>{JSON.stringify(job.jobDefinition, null, 2)}</pre>
       </ModalWindow>
     </div>
   );
