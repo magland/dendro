@@ -33,8 +33,16 @@ export const JobView: FunctionComponent<JobViewProps> = ({
   refreshJob,
   deleteJob,
 }) => {
-  const {visible: pythonVisible, handleOpen: openPython, handleClose: closePython} = useModalWindow();
-  const { visible: jobDefinitionVisible, handleOpen: openJobDefinition, handleClose: closeJobDefinition } = useModalWindow();
+  const {
+    visible: pythonVisible,
+    handleOpen: openPython,
+    handleClose: closePython,
+  } = useModalWindow();
+  const {
+    visible: jobDefinitionVisible,
+    handleOpen: openJobDefinition,
+    handleClose: closeJobDefinition,
+  } = useModalWindow();
 
   return (
     <div>

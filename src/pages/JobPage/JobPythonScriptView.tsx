@@ -23,13 +23,21 @@ const JobPythonScriptView: FunctionComponent<JobPythonScriptViewProps> = ({
       return "# Loading job pipeline...";
     }
 
-    const specialOutputs: { jobId: string, name: string, fileBaseName: string, job_label: string, url: string }[] = [];
+    const specialOutputs: {
+      jobId: string;
+      name: string;
+      fileBaseName: string;
+      job_label: string;
+      url: string;
+    }[] = [];
     for (const job of jobs) {
       for (const output of job.outputFileResults) {
         const url = output.url;
         let isInputToAnotherJob = false;
         for (const otherJob of jobs) {
-          if (otherJob.jobDefinition.inputFiles.some((file) => file.url === url)) {
+          if (
+            otherJob.jobDefinition.inputFiles.some((file) => file.url === url)
+          ) {
             isInputToAnotherJob = true;
             break;
           }
@@ -50,26 +58,26 @@ const JobPythonScriptView: FunctionComponent<JobPythonScriptViewProps> = ({
       jobDefinition: {
         ...job.jobDefinition,
         inputFiles: job.jobDefinition.inputFiles.map((file) => {
-          const ind = specialOutputs.map(o => o.url).indexOf(file.url);
+          const ind = specialOutputs.map((o) => o.url).indexOf(file.url);
           if (ind >= 0) {
             return {
               ...file,
               output_index: ind,
             };
-          }
-          else {
+          } else {
             return file;
           }
         }),
         outputFiles: job.jobDefinition.outputFiles.map((file) => {
-          const ind = specialOutputs.map(o => `${o.jobId}|${o.name}`).indexOf(`${job.jobId}|${file.name}`);
+          const ind = specialOutputs
+            .map((o) => `${o.jobId}|${o.name}`)
+            .indexOf(`${job.jobId}|${file.name}`);
           if (ind >= 0) {
             return {
               ...file,
               output_index: ind,
             };
-          }
-          else {
+          } else {
             return file;
           }
         }),
@@ -79,7 +87,10 @@ const JobPythonScriptView: FunctionComponent<JobPythonScriptViewProps> = ({
         })),
       },
     }));
-    return nunjucks.renderString(jobPythonScriptTemplate, { jobs: jobs2, specialOutputs });
+    return nunjucks.renderString(jobPythonScriptTemplate, {
+      jobs: jobs2,
+      specialOutputs,
+    });
   }, [jobs]);
   const md = useMemo(() => {
     if (jobs === null) {
@@ -127,13 +138,15 @@ const useJobPipelineForJob = (job: DendroJob) => {
       }
       allJobs.push(job);
     };
-    processJob(job).then(() => {
-      if (canceled) return;
-      setJobs(allJobs);
-    }).catch((err) => {
-      console.error(err);
-      setJobs(null);
-    });
+    processJob(job)
+      .then(() => {
+        if (canceled) return;
+        setJobs(allJobs);
+      })
+      .catch((err) => {
+        console.error(err);
+        setJobs(null);
+      });
     return () => {
       canceled = true;
     };
@@ -156,6 +169,6 @@ const getDendroJob = async (jobId: string): Promise<DendroJob> => {
     throw new Error("Job not found");
   }
   return resp.job;
-}
+};
 
 export default JobPythonScriptView;
