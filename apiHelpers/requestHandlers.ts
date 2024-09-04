@@ -83,6 +83,8 @@ import {
   FinalizeMultipartUploadResponse,
   isCancelMultipartUploadRequest,
   CancelMultipartUploadResponse,
+  isGetSignedDownloadUrlRequest,
+  GetSignedDownloadUrlResponse,
 } from "./types"; // remove .js for local dev
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
@@ -529,7 +531,7 @@ export const createJobHandler = allowCors(
           { $sort: { timestampCreatedSec: -1 } }, // get the most recent matching job
           { $limit: 1 },
         ];
-        const jobs = await fetchJobs(pipeline);
+        const jobs = await fetchJobs(pipeline, { includePrivateKey: false, includeSecrets: false });
         if (jobs.length > 0) {
           const job = jobs[0];
           if (job.status === "failed" && rr.rerunFailing) {
@@ -558,9 +560,13 @@ export const createJobHandler = allowCors(
               jobId: job.jobId,
               status: job.status,
             });
-            // hide the private key and the secrets
-            job.jobPrivateKey = null;
-            job.secrets = null;
+            // double check that the  private key and the secrets are not included
+            if (job.jobPrivateKey) {
+              throw new Error("Unexpected: job private key should be null (1)");
+            }
+            if (job.secrets) {
+              throw new Error("Unexpected: job secrets should be null (1)");
+            }
             const resp: CreateJobResponse = {
               type: "createJobResponse",
               job,
@@ -687,12 +693,16 @@ export const findJobByDefinitionHandler = allowCors(
         { $sort: { timestampCreatedSec: -1 } }, // get the most recent matching job
         { $limit: 1 },
       ];
-      const jobs = await fetchJobs(pipeline);
+      const jobs = await fetchJobs(pipeline, { includePrivateKey: false, includeSecrets: false });
       if (jobs.length > 0) {
         const job = jobs[0];
-        // hide the private key and the secrets
-        job.jobPrivateKey = null;
-        job.secrets = null;
+        // double check that the  private key and the secrets are not included
+        if (job.jobPrivateKey) {
+          throw new Error("Unexpected: job private key should be null (2)");
+        }
+        if (job.secrets) {
+          throw new Error("Unexpected: job secrets should be null (2)");
+        }
         const resp: FindJobByDefinitionResponse = {
           type: "findJobByDefinitionResponse",
           found: true,
@@ -715,7 +725,7 @@ export const findJobByDefinitionHandler = allowCors(
 
 const checkJobRunnable = async (jobDependencies: string[]) => {
   for (const jobId of jobDependencies) {
-    const job = await fetchJob(jobId);
+    const job = await fetchJob(jobId, { includePrivateKey: false, includeSecrets: false });
     if (!job) {
       return false;
     }
@@ -748,7 +758,7 @@ export const deleteJobsHandler = allowCors(
         return;
       }
       const pipeline = [{ $match: { jobId: { $in: jobIds } } }];
-      const jobs = await fetchJobs(pipeline);
+      const jobs = await fetchJobs(pipeline, { includePrivateKey: false, includeSecrets: false });
       const distinctServiceNames = Array.from(
         new Set(jobs.map((j) => j.serviceName)),
       );
@@ -839,11 +849,15 @@ export const findJobsHandler = allowCors(
       if (rr.limit) {
         pipeline.push({ $limit: limit });
       }
-      const jobs = await fetchJobs(pipeline);
-      // hide the private keys and secrets for the jobs
+      const jobs = await fetchJobs(pipeline, { includePrivateKey: false, includeSecrets: false });
+      // double check that the  private key and the secrets are not included
       for (const job of jobs) {
-        job.jobPrivateKey = null;
-        job.secrets = null;
+        if (job.jobPrivateKey) {
+          throw new Error("Unexpected: job private key should be null (3)");
+        }
+        if (job.secrets) {
+          throw new Error("Unexpected: job secrets should be null (3)");
+        }
       }
       const resp: FindJobsResponse = {
         type: "findJobsResponse",
@@ -889,10 +903,16 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
         { $sort: { timestampCreatedSec: 1 } },
         // important not to limit here, because we really need to know all the running jobs
       ];
-      const runningJobs = await fetchJobs(pipeline2);
+      // NOTE: include private keys
+      const runningJobs = await fetchJobs(pipeline2, { includePrivateKey: true, includeSecrets: false });
+      // double check that the private keys are included but not the secrets
       for (const job of runningJobs) {
-        // remove secrets, but don't remove job private keys
-        job.secrets = null;
+        if (!job.jobPrivateKey) {
+          throw new Error("Unexpected: job private key should not be null (4)");
+        }
+        if (job.secrets) {
+          throw new Error("Unexpected: job secrets should be null (4)");
+        }
       }
 
       // we give priority to the first services in the list
@@ -925,7 +945,8 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
           { $sample: { size: 200 } }, // thinking of the case of many pending jobs, but we don't want to always get the same ones (but there is a potential problem here)
           { $sort: { timestampCreatedSec: 1 } }, // handle earliest jobs first
         ];
-        let runnableJobs = await fetchJobs(pipeline);
+        // NOTE: include private keys
+        let runnableJobs = await fetchJobs(pipeline, { includePrivateKey: true, includeSecrets: false });
         // scramble the pending jobs so that we don't always get the same ones
         // and minimize conflicts between compute clients when there are many
         // pending jobs
@@ -948,9 +969,14 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
             allRunnableReadyJobs.push(pj);
           }
         }
-        // remove secrets, but don't remove job private keys
-        for (const job of allRunnableReadyJobs) {
-          job.secrets = null;
+        // double check that the private keys are included but not the secrets
+        for (const job of runnableJobs) {
+          if (!job.jobPrivateKey) {
+            throw new Error("Unexpected: job private key should not be null (5)");
+          }
+          if (job.secrets) {
+            throw new Error("Unexpected: job secrets should be null (5)");
+          }
         }
       }
       const resp: GetRunnableJobsForComputeClientResponse = {
@@ -1024,7 +1050,9 @@ export const getJobHandler = allowCors(
       return;
     }
     try {
-      const job = await fetchOneJobByJobId(rr.jobId);
+      // exclude secrets, but include private key if requested
+      // however, if requested we do a check below that the compute client is authorized
+      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: rr.includePrivateKey, includeSecrets: false });
       if (!job) {
         // job not found
         // important to return undefined rather than returning an error
@@ -1061,10 +1089,15 @@ export const getJobHandler = allowCors(
           return;
         }
       } else {
-        job.jobPrivateKey = null;
+        // double check that the private key is not included
+        if (job.jobPrivateKey) {
+          throw new Error("Unexpected: job private key should be null (6)");
+        }
       }
-      // always hide the secrets
-      job.secrets = null;
+      // double check that the secrets are not included
+      if (job.secrets) {
+        throw new Error("Unexpected: job secrets should be null (6)");
+      }
       const resp: GetJobResponse = {
         type: "getJobResponse",
         job,
@@ -1090,7 +1123,7 @@ export const cancelJobHandler = allowCors(
       return;
     }
     try {
-      const job = await fetchOneJobByJobId(rr.jobId);
+      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: false, includeSecrets: false });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -1132,7 +1165,11 @@ export const setJobStatusHandler = allowCors(
     }
     try {
       const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
-      const job = await fetchJob(rr.jobId);
+      if (!jobPrivateKey) {
+        res.status(400).json({ error: "Job private key must be provided" });
+        return;
+      }
+      const job = await fetchJob(rr.jobId, { includePrivateKey: true, includeSecrets: false });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -1251,7 +1288,7 @@ export const setJobStatusHandler = allowCors(
             },
             // do not limit
           ];
-          const jobsThatMayHaveBecomeRunnable = await fetchJobs(pipeline);
+          const jobsThatMayHaveBecomeRunnable = await fetchJobs(pipeline, { includePrivateKey: false, includeSecrets: false });
           for (const j of jobsThatMayHaveBecomeRunnable) {
             const nowRunnable = await checkJobRunnable(j.jobDependencies);
             if (nowRunnable) {
@@ -1310,7 +1347,7 @@ export const getSignedUploadUrlHandler = allowCors(
       return;
     }
     try {
-      const job = await fetchOneJobByJobId(rr.jobId);
+      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: true, includeSecrets: false });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -1321,6 +1358,10 @@ export const getSignedUploadUrlHandler = allowCors(
         return;
       }
       const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
+      if (!jobPrivateKey) {
+        res.status(400).json({ error: "Job private key must be provided" });
+        return;
+      }
       if (job.jobPrivateKey !== jobPrivateKey) {
         res.status(401).json({
           error: "Unauthorized: incorrect or missing job private key",
@@ -1439,12 +1480,16 @@ export const finalizeMultipartUploadHandler = allowCors(
       return;
     }
     try {
-      const job = await fetchOneJobByJobId(rr.jobId);
+      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: true, includeSecrets: false });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
       }
       const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
+      if (!jobPrivateKey) {
+        res.status(400).json({ error: "Job private key must be provided" });
+        return;
+      }
       if (job.jobPrivateKey !== jobPrivateKey) {
         res.status(401).json({
           error: "Unauthorized: incorrect or missing job private key",
@@ -1480,12 +1525,16 @@ export const cancelMultipartUploadHandler = allowCors(
       return;
     }
     try {
-      const job = await fetchOneJobByJobId(rr.jobId);
+      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: true, includeSecrets: false });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
       }
       const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
+      if (!jobPrivateKey) {
+        res.status(400).json({ error: "Job private key must be provided" });
+        return;
+      }
       if (job.jobPrivateKey !== jobPrivateKey) {
         res.status(401).json({
           error: "Unauthorized: incorrect or missing job private key",
@@ -1505,6 +1554,79 @@ export const cancelMultipartUploadHandler = allowCors(
     }
   },
 );
+
+// getSignedDownloadUrl handler
+export const getSignedDownloadUrlHandler = allowCors(
+  async (req: VercelRequest, res: VercelResponse) => {
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Method not allowed" });
+      return;
+    }
+    const rr = req.body;
+    if (!isGetSignedDownloadUrlRequest(rr)) {
+      res.status(400).json({ error: "Invalid request" });
+      return;
+    }
+    try {
+      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: true, includeSecrets: true });
+      if (!job) {
+        res.status(404).json({ error: "Job not found" });
+        return;
+      }
+      const computeClientId = job.computeClientId;
+      if (!computeClientId) {
+        res.status(400).json({ error: "Job does not have a compute client" });
+        return;
+      }
+      const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
+      if (!jobPrivateKey) {
+        res.status(400).json({ error: "Job private key must be provided" });
+        return;
+      }
+      if (job.jobPrivateKey !== jobPrivateKey) {
+        res.status(401).json({
+          error: "Unauthorized: incorrect or missing job private key",
+        });
+        return;
+      }
+
+      const url = rr.url;
+      let found = false;
+      for (const x of job.jobDefinition.inputFiles) {
+        if (x.url === url) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        res.status(500).json({ error: "Cannot generate signed download URL. No input file with this URL in job." });
+      }
+      let signedUrl = url;
+      if ((signedUrl.startsWith('https://api.dandiarchive.org/api/') || signedUrl.startsWith('https://api-staging.dandiarchive.org/api/'))) {
+        const s = job.secrets?.find(s => (s.name === 'DANDI_API_KEY'));
+        const DANDI_API_KEY = s ? s.value : undefined;
+        signedUrl = await resolveDandiUrl(url, { dandiApiKey: DANDI_API_KEY });
+      }
+      const resp: GetSignedDownloadUrlResponse = {
+        type: "getSignedDownloadUrlResponse",
+        signedUrl
+      };
+      res.status(200).json(resp);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message });
+    }
+  },
+);
+
+const resolveDandiUrl = async (url: string, options: { dandiApiKey?: string }) => {
+  const headers: { [key: string]: string } = {};
+  if (options.dandiApiKey) {
+    headers['Authorization'] = `token ${options.dandiApiKey}`;
+  }
+  const resp = await fetch(url, { method: 'HEAD', headers, redirect: 'follow' });
+  return resp.url;
+}
 
 // deleteComputeClient handler
 export const deleteComputeClientHandler = allowCors(
@@ -2227,7 +2349,7 @@ const deleteServiceApp = async (serviceName: string, appName: string) => {
   await collection.deleteOne({ serviceName, appName });
 };
 
-const fetchJob = async (jobId: string) => {
+const fetchJob = async (jobId: string, o: {includeSecrets: boolean, includePrivateKey: boolean}): Promise<DendroJob | null> => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.jobs);
   const job = await collection.findOne({ jobId });
@@ -2238,10 +2360,16 @@ const fetchJob = async (jobId: string) => {
     await collection.deleteOne({ jobId: job.jobId });
     throw Error("Invalid job in database");
   }
+  if (!o.includeSecrets) {
+    job.secrets = null;
+  }
+  if (!o.includePrivateKey) {
+    job.jobPrivateKey = null;
+  }
   return job;
 };
 
-const fetchJobs = async (pipeline: any[] | undefined) => {
+const fetchJobs = async (pipeline: any[] | undefined, o: {includeSecrets: boolean, includePrivateKey: boolean}) => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.jobs);
   const jobs = await collection.aggregate(pipeline).toArray();
@@ -2251,6 +2379,12 @@ const fetchJobs = async (pipeline: any[] | undefined) => {
       console.warn("invalid job:", job);
       await collection.deleteOne({ jobId: job.jobId });
       throw Error("Invalid job in database");
+    }
+    if (!o.includeSecrets) {
+      job.secrets = null;
+    }
+    if (!o.includePrivateKey) {
+      job.jobPrivateKey = null;
     }
   }
   return jobs.map((job: any) => job as DendroJob);
@@ -2271,7 +2405,7 @@ const fetchDeletedJobs = async (pipeline: any[] | undefined) => {
   return jobs.map((job: any) => job as DendroJob);
 };
 
-const fetchOneJobByJobId = async (jobId: string): Promise<DendroJob | null> => {
+const fetchOneJobByJobId = async (jobId: string, o: {includeSecrets: boolean, includePrivateKey: boolean}): Promise<DendroJob | null> => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.jobs);
   const job = await collection.findOne({ jobId });
@@ -2281,6 +2415,12 @@ const fetchOneJobByJobId = async (jobId: string): Promise<DendroJob | null> => {
     console.warn("invalid job:", job);
     await collection.deleteOne({ jobId: job.jobId });
     throw Error("Invalid job in database");
+  }
+  if (!o.includeSecrets) {
+    job.secrets = null;
+  }
+  if (!o.includePrivateKey) {
+    job.jobPrivateKey = null;
   }
   return job;
 };
@@ -2834,7 +2974,7 @@ export const computeUserStatsHandler = allowCors(
       };
       const consumedJobs = await fetchJobs([
         { $match: { userId, status: { $in: ["completed", "failed"] } } },
-      ]);
+      ], {includeSecrets: false, includePrivateKey: false});
       const consumedStats = computeStatsForJobs(consumedJobs);
       const providedJobs = await fetchJobs([
         {
@@ -2843,7 +2983,7 @@ export const computeUserStatsHandler = allowCors(
             status: { $in: ["completed", "failed"] },
           },
         },
-      ]);
+      ], {includeSecrets: false, includePrivateKey: false});
       const providedStats = computeStatsForJobs(providedJobs);
       const consumedDeletedJobs = await fetchDeletedJobs([
         { $match: { userId, status: { $in: ["completed", "failed"] } } },

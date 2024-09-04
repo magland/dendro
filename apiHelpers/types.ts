@@ -1055,6 +1055,37 @@ export const isGetSignedUploadUrlResponse = (
   });
 };
 
+// getSignedDownloadUrl
+export type GetSignedDownloadUrlRequest = {
+  type: "getSignedDownloadUrlRequest";
+  jobId: string;
+  url: string;
+};
+
+export const isGetSignedDownloadUrlRequest = (
+  x: any,
+): x is GetSignedDownloadUrlRequest => {
+  return validateObject(x, {
+    type: isEqualTo("getSignedDownloadUrlRequest"),
+    jobId: isString,
+    url: isString,
+  });
+};
+
+export type GetSignedDownloadUrlResponse = {
+  type: "getSignedDownloadUrlResponse";
+  signedUrl: string;
+};
+
+export const isGetSignedDownloadUrlResponse = (
+  x: any,
+): x is GetSignedDownloadUrlResponse => {
+  return validateObject(x, {
+    type: isEqualTo("getSignedDownloadUrlResponse"),
+    signedUrl: isString,
+  });
+};
+
 // finalizeMultipartUpload
 
 export type FinalizeMultipartUploadRequest = {

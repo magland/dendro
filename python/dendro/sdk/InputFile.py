@@ -2,6 +2,7 @@ from typing import Union
 import requests
 import tempfile
 from pydantic import BaseModel
+from .resolve_dandi_url import resolve_dandi_url
 
 
 class InputFileDownloadError(Exception):
@@ -17,8 +18,11 @@ class InputFile(BaseModel):
     job_private_key: Union[str, None] = None
 
     def get_url(self):
-        # here's where we would get the signed download url from the server using the job_id and job_private_key
-        return self.url
+        url = self.url
+        if url is not None and self.job_id is not None and self.job_private_key is not None:
+            if url.startswith('https://api.dandiarchive.org/api/') or url.startswith('https://api-staging.dandiarchive.org/api/'):
+                url = resolve_dandi_url(url, job_id=self.job_id, job_private_key=self.job_private_key)
+        return url
 
     def download(self, dest_file_path: Union[str, None] = None):
         if self.local_file_name is not None:
