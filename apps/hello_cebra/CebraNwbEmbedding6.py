@@ -131,7 +131,8 @@ class CebraNwbEmbedding6(ProcessorBase):
                 description="CEBRA embedding",
                 data=embedding,
                 starting_time=start_time_sec,
-                rate=1 / bin_size_sec
+                rate=1 / bin_size_sec,
+                unit='a.u.'
             )
 
             if 'CEBRA' not in nwbfile.processing:  # type: ignore
