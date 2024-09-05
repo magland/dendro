@@ -21,7 +21,7 @@ RUN git clone https://github.com/magland/pairio \
     && cd pairio \
     && cd python \
     && pip install -e . \
-    && echo "v28"
+    && echo "v29"
 
 # Install lindi from branch
 WORKDIR /src
