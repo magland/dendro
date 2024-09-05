@@ -126,22 +126,22 @@ class CebraNwbEmbedding6(ProcessorBase):
             with pynwb.NWBHDF5IO(file=f, mode='a') as io:
                 nwbfile = io.read()
 
-            embedding_timeseries = TimeSeries(
-                name="embedding",
-                description="CEBRA embedding",
-                data=embedding,
-                starting_time=start_time_sec,
-                rate=1 / bin_size_sec,
-                unit='a.u.'
-            )
+                embedding_timeseries = TimeSeries(
+                    name="embedding",
+                    description="CEBRA embedding",
+                    data=embedding,
+                    starting_time=start_time_sec,
+                    rate=1 / bin_size_sec,
+                    unit='a.u.'
+                )
 
-            if 'CEBRA' not in nwbfile.processing:  # type: ignore
-                cebra_module = ProcessingModule(name='CEBRA', description='CEBRA embeddings')  # type: ignore
-                nwbfile.add_processing_module(cebra_module)  # type: ignore
-            nwbfile.processing["CEBRA"].add(embedding_timeseries)  # type: ignore
+                if 'CEBRA' not in nwbfile.processing:  # type: ignore
+                    cebra_module = ProcessingModule(name='CEBRA', description='CEBRA embeddings')  # type: ignore
+                    nwbfile.add_processing_module(cebra_module)  # type: ignore
+                nwbfile.processing["CEBRA"].add(embedding_timeseries)  # type: ignore
 
-            print('Writing NWB file')
-            io.write(nwbfile)  # type: ignore
+                print('Writing NWB file')
+                io.write(nwbfile)  # type: ignore
 
         print('Uploading output file')
         context.output.upload('output.nwb.lindi.tar')
