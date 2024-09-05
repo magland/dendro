@@ -28,6 +28,9 @@ class CebraNwbEmbedding6(ProcessorBase):
         import pynwb
         from pynwb.file import ProcessingModule
         from pynwb.misc import TimeSeries
+        from qfc.codecs import QFCCodec
+
+        QFCCodec.register_codec()
 
         units_path = context.units_path
         batch_size = context.batch_size

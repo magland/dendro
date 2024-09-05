@@ -26,6 +26,9 @@ RUN git clone https://github.com/neurodatawithoutborders/lindi \
 # Install pynwb
 RUN pip install pynwb
 
+# Install qfc
+RUN pip install qfc
+
 # Copy files into the container
 COPY *.py /app/
 
