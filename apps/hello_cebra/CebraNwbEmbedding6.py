@@ -113,8 +113,12 @@ class CebraNwbEmbedding6(ProcessorBase):
         print('Creating LINDI file')
         url = input.get_url()
         assert url, 'No URL for input file'
-        with lindi.LindiH5pyFile.from_lindi_file(url) as f:
-            f.write_lindi_file('output.nwb.lindi.tar')
+        if input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi.tar'):
+            with lindi.LindiH5pyFile.from_lindi_file(url) as f:
+                f.write_lindi_file('output.nwb.lindi.tar')
+        else:
+            with lindi.LindiH5pyFile.from_hdf5_file(url) as f:
+                f.write_lindi_file('output.nwb.lindi.tar')
 
         print('Opening LINDI file')
         with lindi.LindiH5pyFile.from_lindi_file('output.nwb.lindi.tar', mode="r+") as f:
