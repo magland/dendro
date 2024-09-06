@@ -1,3 +1,4 @@
+import time
 import os
 import requests
 from typing import Union, Literal
@@ -330,6 +331,28 @@ def create_job(
 
 
 def _post_api_request(*,
+    url_path: str,
+    data: dict,
+    headers: Union[dict, None] = None
+):
+    num_retries = 4
+    retry_delay = 1
+    for i in range(num_retries):
+        try:
+            return _post_api_request_try(
+                url_path=url_path,
+                data=data,
+                headers=headers
+            )
+        except Exception as e:
+            if i == num_retries - 1:
+                raise
+            print(f'Error in client post api request for {url_path}; retrying in {retry_delay} seconds; {e}')
+            time.sleep(retry_delay)
+            retry_delay *= 2
+
+
+def _post_api_request_try(*,
     url_path: str,
     data: dict,
     headers: Union[dict, None] = None

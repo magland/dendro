@@ -1,4 +1,5 @@
 import os
+import uuid
 import numpy as np
 from typing import List
 
@@ -139,34 +140,56 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
             ]
 
             colnames.append("num_spikes")
-            units.create_dataset(
+            ds = units.create_dataset(
                 "num_spikes", data=num_spikes
             )
+            ds.attrs["description"] = "Number of spikes for each unit"
+            ds.attrs["namespace"] = "hdmf-common"
+            ds.attrs["neurodata_type"] = "VectorData"
+            ds.attrs["object_id"] = str(uuid.uuid4())
 
             colnames.append("peak_channel")
             # channel_dtype = recording.channel_ids.dtype
-            units.create_dataset(
+            ds = units.create_dataset(
                 "peak_channel",
                 data=np.array(peak_channels)
             )
+            ds.attrs["description"] = "Peak channel for each unit"
+            ds.attrs["namespace"] = "hdmf-common"
+            ds.attrs["neurodata_type"] = "VectorData"
+            ds.attrs["object_id"] = str(uuid.uuid4())
 
             # estimated unit locations
             unit_locations = analyzer.get_extension("unit_locations").get_data()  # type: ignore
             colnames.append("x")
-            units.create_dataset(
+            ds = units.create_dataset(
                 "x", data=unit_locations[:, 0], dtype=unit_locations.dtype
             )
+            ds.attrs["description"] = "Estimated x coordinate for each unit"
+            ds.attrs["namespace"] = "hdmf-common"
+            ds.attrs["neurodata_type"] = "VectorData"
+            ds.attrs["object_id"] = str(uuid.uuid4())
+
             colnames.append("y")
-            units.create_dataset(
+            ds = units.create_dataset(
                 "y", data=unit_locations[:, 1], dtype=unit_locations.dtype
             )
+            ds.attrs["description"] = "Estimated y coordinate for each unit"
+            ds.attrs["namespace"] = "hdmf-common"
+            ds.attrs["neurodata_type"] = "VectorData"
+            ds.attrs["object_id"] = str(uuid.uuid4())
+
             if unit_locations.shape[1] == 3:
                 colnames.append("z")
-                units.create_dataset(
+                ds = units.create_dataset(
                     "z",
                     data=unit_locations[:, 2],
                     dtype=unit_locations.dtype,
                 )
+                ds.attrs["description"] = "Estimated z coordinate for each unit"
+                ds.attrs["namespace"] = "hdmf-common"
+                ds.attrs["neurodata_type"] = "VectorData"
+                ds.attrs["object_id"] = str(uuid.uuid4())
 
             # quality metrics
             qm = analyzer.get_extension("quality_metrics").get_data()  # type: ignore
@@ -176,22 +199,35 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                 print(f"Writing metric {metric_name}")
                 if x.shape[0] == 1:
                     x = x.ravel()
-                units.create_dataset(
+                ds = units.create_dataset(
                     metric_name, data=x
                 )
+                ds.attrs["description"] = f"Quality metric {metric_name} for each unit"
+                ds.attrs["namespace"] = "hdmf-common"
+                ds.attrs["neurodata_type"] = "VectorData"
+                ds.attrs["object_id"] = str(uuid.uuid4())
 
             # waveform mean and sd
             templates_ext = analyzer.get_extension("templates")
             template_means = templates_ext.get_templates(operator="average")  # type: ignore
             templates_sd = templates_ext.get_templates(operator="std")  # type: ignore
             colnames.append("waveform_mean")
-            units.create_dataset(
+            ds = units.create_dataset(
                 "waveform_mean", data=template_means, dtype=template_means.dtype
             )
+            ds.attrs["description"] = "Mean waveform for each unit"
+            ds.attrs["namespace"] = "hdmf-common"
+            ds.attrs["neurodata_type"] = "VectorData"
+            ds.attrs["object_id"] = str(uuid.uuid4())
+
             colnames.append("waveform_sd")
-            units.create_dataset(
+            ds = units.create_dataset(
                 "waveform_sd", data=templates_sd, dtype=templates_sd.dtype
             )
+            ds.attrs["description"] = "Standard deviation of waveform for each unit"
+            ds.attrs["namespace"] = "hdmf-common"
+            ds.attrs["neurodata_type"] = "VectorData"
+            ds.attrs["object_id"] = str(uuid.uuid4())
 
             # correlograms
             ccg, bins = analyzer.get_extension("correlograms").get_data()  # type: ignore
@@ -202,11 +238,20 @@ class SpikeSortingPostProcessingDataset(ProcessorBase):
                 acgs[i] = ccg[i, i, :]
 
             colnames.append("acg")
-            units.create_dataset("acg", data=acgs, dtype=np.uint32)
+            ds = units.create_dataset("acg", data=acgs, dtype=np.uint32)
+            ds.attrs["description"] = "Auto-correlogram for each unit"
+            ds.attrs["namespace"] = "hdmf-common"
+            ds.attrs["neurodata_type"] = "VectorData"
+            ds.attrs["object_id"] = str(uuid.uuid4())
+
             colnames.append("acg_bin_edges")
-            units.create_dataset(
+            ds = units.create_dataset(
                 "acg_bin_edges", data=bin_edges_s, dtype=bins.dtype
             )
+            ds.attrs["description"] = "Bin edges for auto-correlogram for each unit"
+            ds.attrs["namespace"] = "hdmf-common"
+            ds.attrs["neurodata_type"] = "VectorData"
+            ds.attrs["object_id"] = str(uuid.uuid4())
 
             units.attrs["colnames"] = colnames
 
