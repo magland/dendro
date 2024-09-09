@@ -1,4 +1,4 @@
-import { FunctionComponent, useCallback, useState } from "react";
+import { FunctionComponent, useCallback, useEffect, useState } from "react";
 import LoginButton from "../../LoginButton";
 import { useLogin } from "../../LoginContext/LoginContext";
 import { apiPostRequest } from "../../hooks";
@@ -21,9 +21,18 @@ const RegisterComputeClientPage: FunctionComponent<
   if (route.page !== "register_compute_client") {
     throw new Error("Invalid route");
   }
+  useEffect(() => {
+    if (!userId) {
+      // we will need to log in and be directed to the home page
+      localStorage.setItem('in-process-of-registering-compute-client', JSON.stringify(route));
+    } else {
+      localStorage.removeItem('in-process-of-registering-compute-client');
+    }
+  }, [route, userId]);
   const serviceName = route.serviceName;
   const computeClientName = route.computeClientName;
   const onRegister = useCallback(async () => {
+    localStorage.removeItem('in-process-of-registering-compute-client');
     console.info("Registering compute client...");
     if (!userId) return;
     console.info("userId: ", userId);
