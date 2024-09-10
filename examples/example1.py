@@ -28,7 +28,8 @@ def main():
         job_definition=job_def,
         required_resources=required_resources,
         tags=['example'],
-        rerun_failing=True
+        rerun_failing=True,
+        delete_failing=True
     )
     print(job.job_url, job.status)
 

@@ -45,32 +45,46 @@ Click on that link to see the job details, including the console output which sh
 Let's examine the code:
 
 ```python
+import os
+from dendro.client import submit_job, DendroJobDefinition, DendroJobRequiredResources, DendroJobParameter
+
+
 service_name = os.getenv('DENDRO_SERVICE_NAME', 'hello_world_service')
 
-job_def = DendroJobDefinition(
-    appName='hello_world',
-    processorName='hello_world_1',
-    inputFiles=[],
-    outputFiles=[],
-    parameters=[]
-)
-required_resources = DendroJobRequiredResources(
-    numCpus=1,
-    numGpus=0,
-    memoryGb=4,
-    timeSec=60
-)
-job = submit_job(
-    service_name=service_name,
-    job_definition=job_def,
-    required_resources=required_resources,
-    tags=['example'],
-    rerun_failing=True
-)
-print(job.job_url, job.status)
+def main():
+    job_def = DendroJobDefinition(
+        appName='hello_world',
+        processorName='hello_world_1',
+        inputFiles=[],
+        outputFiles=[],
+        parameters=[
+            DendroJobParameter(
+                name='name',
+                value='world'
+            )
+        ]
+    )
+    required_resources = DendroJobRequiredResources(
+        numCpus=1,
+        numGpus=0,
+        memoryGb=4,
+        timeSec=60
+    )
+    job = submit_job(
+        service_name=service_name,
+        job_definition=job_def,
+        required_resources=required_resources,
+        tags=['example'],
+        rerun_failing=True,
+        delete_failing=True
+    )
+    print(job.job_url, job.status)
+
+if __name__ == '__main__':
+    main()
 ```
 
-The `job_def` is the job definition which uniquely defines job in terms of the Dendro app, the processor within that app, the inputs, outputs, and parameters. The "hello_world" is installed on the service, and the processor "hello_world_1" is defined within that app. [See here for the source code defining its functionality](https://github.com/magland/dendro/blob/main/apps/hello_world/main.py). The hash of this job definition is what is used to determine whether the job has already been run on the service.
+The `job_def` is the job definition which uniquely defines job in terms of the Dendro app, the processor within that app, the inputs, outputs, and parameters. The "hello_world" app is installed on the service, and the processor "hello_world_1" is defined within that app. [See here for the source code defining its functionality](https://github.com/magland/dendro/blob/main/apps/hello_world/main.py). The hash of this job definition is what is used to determine whether the job has already been run on the service.
 
 The `required_resources` is self-explanatory. This determines whether the job can be run on a given compute client. If the resources are too demanding, the job may never run.
 
@@ -81,8 +95,9 @@ Then `submit_job` is the function that actually queues the Dendro job in the cen
 - `required_resources` is the required resources.
 - `tags` is a list of tags that can be used to filter jobs.
 - `rerun_failing` is a boolean that determines whether to rerun the job if a failing job with the same job definition already exists. If this is set to False (the default) the failing job will be returned.
+- `delete_failing` is a boolean that determines whether to delete the failing job if it is rerun.
 
-Other arguments to `submit_job` include `skip_cache` and `delete_failing`.
+Abother possible argument not mentioned is the `skip_cache` boolean.
 
 Now, create a new script `example1_test.py` and modify this example with a custom "name" parameter. Perhaps set it to your own name. Assuming nobody has run that particular job definition, you should see something like
 
@@ -90,45 +105,59 @@ Now, create a new script `example1_test.py` and modify this example with a custo
 https://dendro.vercel.app/job/your-job-id pending
 ```
 
-This will stay in the pending state until a compute client picks it up and runs it. You can check the status of the job by visiting the link.
+This will stay in the pending state until a compute client picks it up and runs it. You can check the status of the job by visiting the link or by running the script again.
 
 ### Running a job that produces an output file
 
 The second example is a bit more interesting because it creates an output file, namely a text file with the contents "Hello, world!". Try it out!
 
+```bash
+python examples/example2.py
+```
+
 Here's a breakdown of the code:
 
 ```python
-job_def = DendroJobDefinition(
-    appName='hello_world',
-    processorName='hello_world_2',
-    inputFiles=[],
-    outputFiles=[
-        DendroJobOutputFile(
-            name='output',
-            fileBaseName='output.txt'
-        )
-    ],
-    parameters=[
-        DendroJobParameter(
-            name='name',
-            value='world'
-        )
-    ]
-)
-required_resources = DendroJobRequiredResources(
-    numCpus=1,
-    numGpus=0,
-    memoryGb=4,
-    timeSec=60
-)
-job = submit_job(
-    service_name=service_name,
-    job_definition=job_def,
-    required_resources=required_resources,
-    tags=['example']
-)
-print(job.job_url, job.status)
+import os
+from dendro.client import submit_job, DendroJobDefinition, DendroJobRequiredResources, DendroJobOutputFile, DendroJobParameter
+
+
+service_name = os.getenv('DENDRO_SERVICE_NAME', 'hello_world_service')
+
+def main():
+    job_def = DendroJobDefinition(
+        appName='hello_world',
+        processorName='hello_world_2',
+        inputFiles=[],
+        outputFiles=[
+            DendroJobOutputFile(
+                name='output',
+                fileBaseName='output.txt'
+            )
+        ],
+        parameters=[
+            DendroJobParameter(
+                name='name',
+                value='world'
+            )
+        ]
+    )
+    required_resources = DendroJobRequiredResources(
+        numCpus=1,
+        numGpus=0,
+        memoryGb=4,
+        timeSec=60
+    )
+    job = submit_job(
+        service_name=service_name,
+        job_definition=job_def,
+        required_resources=required_resources,
+        tags=['example']
+    )
+    print(job.job_url, job.status)
+
+if __name__ == '__main__':
+    main()
 ```
 
 This code should be fairly self-explanatory. In addition to the parameter in the job defintion, we have an output file named "output".
@@ -148,71 +177,86 @@ The third example (example3.py) is a bit more complex because it involves a job 
 Let's take a look at the code.
 
 ```python
-job_def = DendroJobDefinition(
-    appName='hello_world',
-    processorName='hello_world_2',
-    inputFiles=[],
-    outputFiles=[
-        DendroJobOutputFile(
-            name='output',
-            fileBaseName='output.txt'
-        )
-    ],
-    parameters=[
-        DendroJobParameter(
-            name='name',
-            value='world'
-        )
-    ]
-)
-required_resources = DendroJobRequiredResources(
-    numCpus=1,
-    numGpus=0,
-    memoryGb=4,
-    timeSec=60
-)
-job1 = submit_job(
-    service_name=service_name,
-    job_definition=job_def,
-    required_resources=required_resources,
-    tags=['example']
-)
-print(job1.job_url, job1.status)
+import os
+from dendro.client import submit_job, DendroJobDefinition, DendroJobRequiredResources, DendroJobInputFile, DendroJobOutputFile, DendroJobParameter
 
-job2_def = DendroJobDefinition(
-    appName='hello_world',
-    processorName='count_characters',
-    inputFiles=[
-        DendroJobInputFile(
-            name='input',
-            fileBaseName='input.txt',
-            url=job1.get_output('output')
-        )
-    ],
-    outputFiles=[
-        DendroJobOutputFile(
-            name='output',
-            fileBaseName='output.json'
-        )
-    ],
-    parameters=[
-        DendroJobParameter(
-            name='include_whitespace',
-            value=True
-        )
-    ]
-)
-job2 = submit_job(
-    service_name=service_name,
-    job_definition=job2_def,
-    required_resources=required_resources,
-    tags=['example'],
-    rerun_failing=True
-)
-print(job2.job_url, job2.status, job2.isRunnable)
+
+service_name = os.getenv('DENDRO_SERVICE_NAME', 'hello_world_service')
+
+def main():
+    file1 = DendroJobOutputFile(
+        name='output',
+        fileBaseName='output.txt'
+    )
+    job_def = DendroJobDefinition(
+        appName='hello_world',
+        processorName='hello_world_2',
+        inputFiles=[],
+        outputFiles=[
+            file1
+        ],
+        parameters=[
+            DendroJobParameter(
+                name='name',
+                value='world'
+            )
+        ]
+    )
+    required_resources = DendroJobRequiredResources(
+        numCpus=1,
+        numGpus=0,
+        memoryGb=4,
+        timeSec=60
+    )
+    job1 = submit_job(
+        service_name=service_name,
+        job_definition=job_def,
+        required_resources=required_resources,
+        tags=['example']
+    )
+    print(job1.job_url, job1.status)
+
+    job2_def = DendroJobDefinition(
+        appName='hello_world',
+        processorName='count_characters',
+        inputFiles=[
+            DendroJobInputFile(
+                name='input',
+                fileBaseName='input.txt',
+                url=file1
+            )
+        ],
+        outputFiles=[
+            DendroJobOutputFile(
+                name='output',
+                fileBaseName='output.json'
+            )
+        ],
+        parameters=[
+            DendroJobParameter(
+                name='include_whitespace',
+                value=True
+            )
+        ]
+    )
+    job2 = submit_job(
+        service_name=service_name,
+        job_definition=job2_def,
+        required_resources=required_resources,
+        tags=['example'],
+        rerun_failing=True
+    )
+    print(job2.job_url, job2.status, job2.isRunnable)
+
+if __name__ == '__main__':
+    main()
 ```
 
 Running this will produce two jobs and the output will look something like this:
+
+```bash
+python examples/example3.py
+```
 
 ```bash
 https://dendro.vercel.app/job/Pjc2mcych7MOPz5nI1Up completed
@@ -227,13 +271,7 @@ Click on that second link and you should see the output file "output.json" which
 
 Upon submitting a job to Dendro via the Neurosift interface, users can monitor its progress directly within Neurosift. Once completed, the visualization’s output is automatically downloaded to the user’s browser for rendering. Because Dendro caches the results of these jobs, subsequent identical requests _by any user_ will be served from the cache, without the need to recompute the visualization.
 
-For example, Neurosift users can generate and view [CEBRA emeddings](https://cebra.ai/) for any Units table in an NWB file. [See this example](https://neurosift.app/?p=/nwb&dandisetId=000129&dandisetVersion=draft&url=https://api.dandiarchive.org/api/assets/2ae6bf3c-788b-4ece-8c01-4b4a5680b25b/download/&tab=view:CEBRA|/units). The source code for this example can be found in [apps/hello_cebra](apps/hello_cebra). Because the job was already run, the results are served from the cache, but you can also submit a new job with a different set of parameters.
-
-As another example, you can view estimated firing rates and power spectra for any raw electrophysiology recording. [See this example](https://neurosift.app/?p=/nwb&url=https://api.dandiarchive.org/api/assets/d4bd92fc-4119-4393-b807-f007a86778a1/download/&dandisetId=000957&dandisetVersion=draft&dandiAssetId=d4bd92fc-4119-4393-b807-f007a86778a1&tab=neurodata-item:/acquisition/ElectricalSeriesAP|ElectricalSeries); Click on the "Dendro Summary" tab. The source code for this example can be found in [apps/hello_neurosift](apps/hello_neurosift).
-
-A third application is viewing video files that are not natively supported in the browser. DANDI supports uploading of .avi files, but currently there is no way to preview/stream those files in the browser. Neurosift provides a workaround by using Dendro to precompute .mp4 files associated with portions of those .avi files. [Here is an example](https://neurosift.app/?p=/avi&url=https://api.dandiarchive.org/api/assets/3d760886-c1ac-467d-bd87-3dfd71a5cb65/download/&dandisetId=001084&dandisetVersion=draft).
-
-In the future we plan to support more complex operations such as spike sorting that can be launched either from Neurosift or from Python scripts.
+For a guided tour of Neurosift and Dendro, see this [workshop presentation](https://github.com/flatironinstitute/neurosift/blob/main/doc/neurosift_dendro_MIT_workshop_sep_2024.md).
 
 ### Installing from source
 
@@ -244,7 +282,7 @@ cd python
 pip install -e .
 ```
 
-## Important note to self
+## Important note to self (do not delete)
 
 When using Cloudflare R2 with Range headers and large files, it's important to configure the website to bypass the cache.
 
