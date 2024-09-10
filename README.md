@@ -70,7 +70,7 @@ job = submit_job(
 print(job.job_url, job.status)
 ```
 
-The `job_def` is the job definition which uniquely defines job in terms of the Dendro app, the processor within that app, the inputs, outputs, and parameters. The "hello_world" is installed on the service, and the processor "hello_world_1" is defined within that app. [See here for the source code defining its functionality](https://github.com/magland/pairio/blob/main/apps/hello_world/main.py). The hash of this job definition is what is used to determine whether the job has already been run on the service.
+The `job_def` is the job definition which uniquely defines job in terms of the Dendro app, the processor within that app, the inputs, outputs, and parameters. The "hello_world" is installed on the service, and the processor "hello_world_1" is defined within that app. [See here for the source code defining its functionality](https://github.com/magland/dendro/blob/main/apps/hello_world/main.py). The hash of this job definition is what is used to determine whether the job has already been run on the service.
 
 The `required_resources` is self-explanatory. This determines whether the job can be run on a given compute client. If the resources are too demanding, the job may never run.
 

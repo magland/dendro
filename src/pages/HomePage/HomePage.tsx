@@ -27,7 +27,7 @@ const HomePage: FunctionComponent<Props> = () => {
       }
       <p>
         <a
-          href="https://github.com/magland/pairio"
+          href="https://github.com/magland/dendro"
           target="_blank"
           rel="noopener noreferrer"
         >

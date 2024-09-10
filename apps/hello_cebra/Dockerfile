@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y git
 # Install dendro from github
 RUN mkdir -p /src
 WORKDIR /src
-RUN git clone https://github.com/magland/pairio \
-    && cd pairio \
+RUN git clone https://github.com/magland/dendro \
+    && cd dendro \
     && cd python \
     && pip install -e . \
     && echo "v30"

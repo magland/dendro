@@ -9,7 +9,7 @@ setup(
     version=__version__,
     author="Jeremy Magland, Luiz Tauffer, Alessio Buccino, Ben Dichter",
     author_email="jmagland@flatironinstitute.org",
-    url="https://github.com/magland/pairio",
+    url="https://github.com/magland/dendro",
     description="",
     packages=find_packages(),
     include_package_data=True,
