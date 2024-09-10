@@ -290,9 +290,9 @@
             "attributes": []
         },
         {
-            "name": "phase_analysis_000363",
+            "name": "tuning_analysis_000363",
             "description": "Special analysis for 000363 Dandiset",
-            "label": "phase_analysis_000363",
+            "label": "tuning_analysis_000363",
             "image": "magland/dendro-hello-neurosift:0.1.0",
             "executable": "/app/main.py",
             "inputs": [
