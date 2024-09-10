@@ -288,6 +288,44 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "name": "phase_analysis_000363",
+            "description": "Special analysis for 000363 Dandiset",
+            "label": "phase_analysis_000363",
+            "image": "magland/dendro-hello-neurosift:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [
+                {
+                    "name": "input",
+                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": "Output NWB file in .nwb.lindi.tar format"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "units_path",
+                    "type": "str",
+                    "description": "Path to the units table in the NWB file",
+                    "defaultValue": "units"
+                },
+                {
+                    "name": "position_path",
+                    "type": "str",
+                    "description": "Path to the position timeseries in the NWB file"
+                },
+                {
+                    "name": "output_phase_path",
+                    "type": "str",
+                    "description": "Path to the output phase timeseries in the NWB file"
+                }
+            ],
+            "attributes": []
         }
     ]
 }

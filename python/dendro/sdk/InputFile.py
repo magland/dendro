@@ -2,7 +2,7 @@ from typing import Union
 import requests
 import tempfile
 from pydantic import BaseModel
-from .resolve_dandi_url import resolve_dandi_url
+# from .resolve_dandi_url import resolve_dandi_url
 
 
 class InputFileDownloadError(Exception):
@@ -19,9 +19,13 @@ class InputFile(BaseModel):
 
     def get_url(self):
         url = self.url
-        if url is not None and self.job_id is not None and self.job_private_key is not None:
-            if url.startswith('https://api.dandiarchive.org/api/') or url.startswith('https://api-staging.dandiarchive.org/api/'):
-                url = resolve_dandi_url(url, job_id=self.job_id, job_private_key=self.job_private_key)
+        # While it is tempting to resolve DANDI URL here, that doesn't work
+        # because we need the source url to be in the downstream lindi files. So
+        # we really need to resolve URLs at the time of use. So the following is
+        # commented out.
+        # if url is not None and self.job_id is not None and self.job_private_key is not None:
+        #     if url.startswith('https://api.dandiarchive.org/api/') or url.startswith('https://api-staging.dandiarchive.org/api/'):
+        #         url = resolve_dandi_url(url, job_id=self.job_id, job_private_key=self.job_private_key)
         return url
 
     def download(self, dest_file_path: Union[str, None] = None):
