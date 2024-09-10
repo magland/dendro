@@ -9,9 +9,9 @@ class TuningAnalysis000363Context(BaseModel):
     output_phase_path: str = Field(description='Path to the output phase timeseries in the NWB file')
 
 class TuningAnalysis000363(ProcessorBase):
-    name = 'phase_analysis_000363'
+    name = 'tuning_analysis_000363'
     description = 'Special analysis for 000363 Dandiset'
-    label = 'phase_analysis_000363'
+    label = 'tuning_analysis_000363'
     image = 'magland/dendro-hello-neurosift:0.1.0'
     executable = '/app/main.py'
     attributes = {}

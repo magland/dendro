@@ -21,15 +21,11 @@ RUN git clone https://github.com/magland/dendro \
     && cd dendro \
     && cd python \
     && pip install -e . \
-    && echo "v30"
+    && echo "v31"
 
-# Install lindi from branch
+# Install lindi from prerelease
 WORKDIR /src
-RUN git clone https://github.com/neurodatawithoutborders/lindi \
-    && cd lindi \
-    && git checkout lindi-tar \
-    && pip install -e . \
-    && echo "v7"
+RUN pip install lindi==0.4.0a2
 
 # Install qfc
 RUN pip install qfc==0.3.6
