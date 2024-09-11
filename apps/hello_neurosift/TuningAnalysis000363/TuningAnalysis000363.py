@@ -23,7 +23,7 @@ class TuningAnalysis000363(ProcessorBase):
         import lindi
         import numpy as np
         from qfc.codecs import QFCCodec
-        from .behavior_signal_processing import BehaviorFun
+        from .behavior_signal_processing import BehaviorFun, FilterFun, Utils
 
         QFCCodec.register_codec()
 
@@ -73,8 +73,26 @@ class TuningAnalysis000363(ProcessorBase):
 
         print('Computing phase')
         estimated_sample_rate = 1 / np.median(np.diff(position_timestamps))
-        x = BehaviorFun.compute_phase_for_movement(position_data[:, 1], sample_rate=estimated_sample_rate)  # type: ignore
-        phase = np.real(x[0]).astype(np.float32)
+
+        # behavior trace - keep only one channel
+        behavior_trace = position_data[:, 1]  # type: ignore
+
+        # [optional but recommended] Bandpass filter the data
+        # TODO: expose this as a parameter
+        signal_class = 'jaw_movement'
+        settings = BehaviorFun.signal_settings.get(signal_class, BehaviorFun.signal_settings['default'])
+        band_pass_cutoffs = settings['band_pass_cutoffs']
+        filtered_trace = FilterFun.filter_signal(behavior_trace, sampling_rate=estimated_sample_rate, filter_option=['bandpass', band_pass_cutoffs])
+
+        # [optional but recommended] Detect movement periods
+        movement_mask = Utils.detect_movement_periods(filtered_trace, timestamps=position_timestamps)[0]
+
+        # Compute phase
+        phase = BehaviorFun.compute_phase_for_movement(filtered_trace, sample_rate=estimated_sample_rate, movement_mask=movement_mask)[0]
+        phase = np.real(phase).astype(np.float32)
+
+        ts_masked = position_timestamps[~np.isnan(phase)]
+        phase_masked = phase[~np.isnan(phase)]
 
         print('Writing to output LINDI file')
         with lindi.LindiH5pyFile.from_lindi_file('output.nwb.lindi.tar', mode="r+") as f:
@@ -84,12 +102,12 @@ class TuningAnalysis000363(ProcessorBase):
             g.attrs['namespace'] = 'core'
             g.attrs['neurodata_type'] = 'TimeSeries'
             g.attrs['object_id'] = str(uuid.uuid4())
-            x_d = g.create_dataset('data', data=phase)
+            x_d = g.create_dataset('data', data=phase_masked)
             x_d.attrs['conversion'] = 1
             x_d.attrs['offset'] = 0
             x_d.attrs['resolution'] = -1
             x_d.attrs['unit'] = 'a.u.'
-            x_ts = g.create_dataset('timestamps', data=position_timestamps)
+            x_ts = g.create_dataset('timestamps', data=ts_masked)
             x_ts.attrs['interval'] = 1
             x_ts.attrs['unit'] = 'seconds'
 
