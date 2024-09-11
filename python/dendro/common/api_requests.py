@@ -296,6 +296,7 @@ def create_job(
     required_resources: DendroJobRequiredResources,
     secrets: List[DendroJobSecret],
     user_api_key: str,
+    target_compute_client_ids: Union[List[str], None] = None,
     job_dependencies: List[str] = [],
     skip_cache: bool = False,
     rerun_failing: bool = False,
@@ -315,6 +316,8 @@ def create_job(
         'rerunFailing': rerun_failing,
         'deleteFailing': delete_failing
     }
+    if target_compute_client_ids is not None:
+        req['targetComputeClientIds'] = target_compute_client_ids
     headers = {
         'Authorization': f'Bearer: {user_api_key}'
     }
@@ -334,7 +337,7 @@ def _post_api_request(*,
     url_path: str,
     data: dict,
     headers: Union[dict, None] = None
-):
+) -> dict:
     num_retries = 4
     retry_delay = 1
     for i in range(num_retries):
@@ -350,13 +353,14 @@ def _post_api_request(*,
             print(f'Error in client post api request for {url_path}; retrying in {retry_delay} seconds; {e}')
             time.sleep(retry_delay)
             retry_delay *= 2
+    raise Exception('Impossible')
 
 
 def _post_api_request_try(*,
     url_path: str,
     data: dict,
     headers: Union[dict, None] = None
-):
+) -> dict:
     assert url_path.startswith('/api')
     url = f'{dendro_api_url}{url_path}'
     try:

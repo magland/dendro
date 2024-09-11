@@ -33,7 +33,7 @@ job_definition = DendroJobDefinition(
         ),
         DendroJobParameter(
             name='output_phase_path',
-            value='/acquisition/BehavioralTimeSeries/Camera0_side_JawTracking_phase'
+            value='/processing/behavior/Camera0_side_JawTracking_phase'
         )
     ]
 )

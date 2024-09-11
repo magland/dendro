@@ -40,6 +40,7 @@ RUN git clone https://github.com/magland/hdmf \
 # Copy files into the container
 COPY *.py /app/
 COPY helpers/*.py /app/helpers/
+COPY TuningAnalysis000363/*.py /app/TuningAnalysis000363/
 
 # Set the working directory
 WORKDIR /app

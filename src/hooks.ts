@@ -456,7 +456,7 @@ export const useJobs = (o: {
         serviceName,
         appName,
         processorName,
-        status,
+        status: status || undefined,
         limit: maxNumJobs,
       };
       const resp = await apiPostRequest("findJobs", req);

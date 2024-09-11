@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Union
 from ..common.api_requests import create_job
 from ..common.dendro_types import DendroJobDefinition, DendroJobRequiredResources, DendroJobOutputFile
 from ..common.DendroJob import SpecialJobOutput
@@ -10,6 +10,7 @@ def submit_job(
     service_name: str,
     job_definition: DendroJobDefinition,
     required_resources: DendroJobRequiredResources,
+    target_compute_client_ids: Union[List[str], None] = None,
     tags: List[str] = [],
     skip_cache: bool = False,
     rerun_failing: bool = False,
@@ -43,6 +44,7 @@ def submit_job(
         tags=tags,
         job_definition=job_definition,
         required_resources=required_resources,
+        target_compute_client_ids=target_compute_client_ids,
         secrets=[],
         user_api_key=user_api_key,
         job_dependencies=job_dependencies,

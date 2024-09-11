@@ -23,6 +23,7 @@ class TuningAnalysis000363(ProcessorBase):
         import lindi
         import numpy as np
         from qfc.codecs import QFCCodec
+        from .behavior_signal_processing import BehaviorFun
 
         QFCCodec.register_codec()
 
@@ -70,7 +71,12 @@ class TuningAnalysis000363(ProcessorBase):
             with lindi.LindiH5pyFile.from_hdf5_file(url) as f:
                 f.write_lindi_file('output.nwb.lindi.tar')
 
-        print('Opening LINDI file')
+        print('Computing phase')
+        estimated_sample_rate = 1 / np.median(np.diff(position_timestamps))
+        x = BehaviorFun.compute_phase_for_movement(position_data[:, 1], sample_rate=estimated_sample_rate)  # type: ignore
+        phase = np.real(x[0]).astype(np.float32)
+
+        print('Writing to output LINDI file')
         with lindi.LindiH5pyFile.from_lindi_file('output.nwb.lindi.tar', mode="r+") as f:
             g = f.create_group(output_phase_path)
             g.attrs['description'] = 'Phase timeseries'
@@ -78,7 +84,7 @@ class TuningAnalysis000363(ProcessorBase):
             g.attrs['namespace'] = 'core'
             g.attrs['neurodata_type'] = 'TimeSeries'
             g.attrs['object_id'] = str(uuid.uuid4())
-            x_d = g.create_dataset('data', data=position_data)
+            x_d = g.create_dataset('data', data=phase)
             x_d.attrs['conversion'] = 1
             x_d.attrs['offset'] = 0
             x_d.attrs['resolution'] = -1

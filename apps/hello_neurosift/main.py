@@ -6,7 +6,7 @@ from EphysPreprocess import EphysPreprocess
 from PrepareEphysSpikeSortingDataset import PrepareEphysSpikeSortingDataset
 from MountainSort5 import MountainSort5
 from SpikeSortingPostProcessing import SpikeSortingPostProcessingDataset
-from TuningAnalysis000363 import TuningAnalysis000363
+from TuningAnalysis000363.TuningAnalysis000363 import TuningAnalysis000363
 
 app = App(
     app_name='hello_neurosift',
