@@ -312,7 +312,7 @@
                     "name": "units_path",
                     "type": "str",
                     "description": "Path to the units table in the NWB file",
-                    "defaultValue": "units"
+                    "defaultValue": "/units"
                 },
                 {
                     "name": "position_path",
@@ -323,6 +323,12 @@
                     "name": "output_phase_path",
                     "type": "str",
                     "description": "Path to the output phase timeseries in the NWB file"
+                },
+                {
+                    "name": "trials_path",
+                    "type": "str",
+                    "description": "Path to the trials table in the NWB file",
+                    "defaultValue": "/intervals/trials"
                 }
             ],
             "attributes": []
