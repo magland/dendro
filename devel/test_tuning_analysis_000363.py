@@ -44,7 +44,7 @@ job_definition = DendroJobDefinition(
             ]
         ),
         DendroJobParameter(
-            name='behavior_prefixes',
+            name='behavior_output_prefixes',
             value=[
                 'jaw',
                 'nose',

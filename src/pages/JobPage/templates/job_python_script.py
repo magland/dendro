@@ -67,8 +67,11 @@ def create_jobs():
         service_name=service_name,
         job_definition=job_def,
         required_resources=required_resources,
+        target_compute_client_ids=None,
         tags=['example'],
-        rerun_failing=True
+        skip_cache=False,
+        rerun_failing=True,
+        delete_failing=True
     )
     jobs.append(job)
 {% endfor %}

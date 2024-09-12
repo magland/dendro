@@ -98,13 +98,18 @@ class TuningAnalysis000363(ProcessorBase):
             with lindi.LindiH5pyFile.from_hdf5_file(url) as input_f:
                 input_f.write_lindi_file("output.nwb.lindi.tar")
 
-        output_f = lindi.LindiH5pyFile.from_lindi_file("output.nwb.lindi.tar")
+        output_f = lindi.LindiH5pyFile.from_lindi_file(
+            "output.nwb.lindi.tar", mode="r+"
+        )
 
-        for ii in range(len(behavior_paths)):
-            position_path = behavior_paths[ii]
+        for i_behavior in range(len(behavior_paths)):
+            position_path = behavior_paths[i_behavior]
+            print("")
+            print("====================")
+            print(f"Processing behavior signal: {position_path}")
 
             position_name = position_path.split("/")[-1]
-            output_phase_path = f'processing/behavior/{position_name}_phase'
+            output_phase_path = f"processing/behavior/{position_name}_phase"
 
             position_grp = input_f[position_path]
             assert isinstance(position_grp, lindi.LindiH5pyGroup)
@@ -115,7 +120,7 @@ class TuningAnalysis000363(ProcessorBase):
             estimated_sample_rate = 1 / np.median(np.diff(behavior_timestamps))
 
             # behavior trace - keep only one channel
-            behavior_trace = behavior_data[:, behavior_dimensions[ii]]  # type: ignore
+            behavior_trace = behavior_data[:, behavior_dimensions[i_behavior]]  # type: ignore
 
             # [optional but recommended] Bandpass filter the data
             # TODO: expose this as a parameter
@@ -180,7 +185,9 @@ class TuningAnalysis000363(ProcessorBase):
             labeled_mask, num_epochs = label(cleaned_combined_mask)  # type: ignore
 
             print("Finding epoch slices")
-            epoch_slices = [epoch_slice[0] for epoch_slice in find_objects(labeled_mask)]
+            epoch_slices = [
+                epoch_slice[0] for epoch_slice in find_objects(labeled_mask)
+            ]
 
             print("Computing phase tuning")
             _, phase_stats = compute_phase_tuning(
@@ -220,7 +227,7 @@ class TuningAnalysis000363(ProcessorBase):
             else:
                 assert isinstance(colnames, list)
 
-            prefix = behavior_output_prefixes[ii]
+            prefix = behavior_output_prefixes[i_behavior]
             print(f"Adding {prefix}_phase_mean")
             colnames.append(f"{prefix}_phase_mean")
             ds = units.create_dataset(
@@ -255,6 +262,9 @@ class TuningAnalysis000363(ProcessorBase):
             print("Updating colnames")
             units.attrs["colnames"] = colnames
 
+        # Very important - so it flushes all the changes to the file
+        output_f.close()
+
         print("Uploading output file")
         context.output.upload("output.nwb.lindi.tar")
 
@@ -262,6 +272,7 @@ class TuningAnalysis000363(ProcessorBase):
 def remove_short_epochs(mask, min_duration: float):
     """Remove True epochs shorter than min_duration_samples."""
     import numpy as np
+
     assert isinstance(mask, np.ndarray)
 
     cleaned_mask = mask.copy()
