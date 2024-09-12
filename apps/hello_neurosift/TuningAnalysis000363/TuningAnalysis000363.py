@@ -1,3 +1,4 @@
+from typing import List
 import uuid
 from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
@@ -10,11 +11,14 @@ class TuningAnalysis000363Context(BaseModel):
     units_path: str = Field(
         description="Path to the units table in the NWB file", default="/units"
     )
-    position_path: str = Field(
-        description="Path to the position timeseries in the NWB file"
+    behavior_paths: List[str] = Field(
+        description="Paths to the behavior timeseries in the NWB file"
     )
-    output_phase_path: str = Field(
-        description="Path to the output phase timeseries in the NWB file"
+    behavior_dimensions: List[int] = Field(
+        description="Zero-based dimension indices to use for the behavior signal"
+    )
+    behavior_output_prefixes: List[str] = Field(
+        description="Output prefixes for the behavior timeseries in the NWB file"
     )
     trials_path: str = Field(
         description="Path to the trials table in the NWB file",
@@ -42,9 +46,19 @@ class TuningAnalysis000363(ProcessorBase):
         QFCCodec.register_codec()
 
         units_path = context.units_path
-        position_path = context.position_path
-        output_phase_path = context.output_phase_path
+        behavior_paths = context.behavior_paths
+        behavior_dimensions = context.behavior_dimensions
+        behavior_output_prefixes = context.behavior_output_prefixes
         trials_path = context.trials_path
+
+        if len(behavior_paths) != len(behavior_dimensions):
+            raise ValueError(
+                "behavior_paths and behavior_dimensions must have the same length"
+            )
+        if len(behavior_paths) != len(behavior_output_prefixes):
+            raise ValueError(
+                "behavior_paths and behavior_prefixes must have the same length"
+            )
 
         input = context.input
         url = input.get_url()
@@ -53,132 +67,136 @@ class TuningAnalysis000363(ProcessorBase):
         if input.file_base_name.endswith(
             ".lindi.json"
         ) or input.file_base_name.endswith(".lindi.tar"):
-            f = lindi.LindiH5pyFile.from_lindi_file(url)
+            input_f = lindi.LindiH5pyFile.from_lindi_file(url)
         else:
-            f = lindi.LindiH5pyFile.from_hdf5_file(url)
+            input_f = lindi.LindiH5pyFile.from_hdf5_file(url)
 
-        position_grp = f[position_path]
-        assert isinstance(position_grp, lindi.LindiH5pyGroup)
-        behavior_data = position_grp["data"][()]
-        behavior_timestamps = position_grp["timestamps"][()]
-
-        # Load the spike data
-        spike_times: np.ndarray = f[f"{units_path}/spike_times"][()]  # type: ignore
-        spike_times_index: np.ndarray = f[f"{units_path}/spike_times_index"][()]  # type: ignore
-        spike_trains = []
-        offset = 0
-        for i in range(len(spike_times_index)):
-            st = spike_times[offset:int(spike_times_index[i])]
-            # exclude the NaN from the spike times
-            st = st[~np.isnan(st)]
-            spike_trains.append(st)
-            offset = int(spike_times_index[i])
-        num_units = len(spike_trains)
-
+        # # Load the spike data
+        spike_times: np.ndarray = input_f[f"{units_path}/spike_times"][()]  # type: ignore
+        spike_times_index: np.ndarray = input_f[f"{units_path}/spike_times_index"][()]  # type: ignore
+        # spike_trains = []
+        # offset = 0
+        # for i in range(len(spike_times_index)):
+        #     st = spike_times[offset:int(spike_times_index[i])]
+        #     # exclude the NaN from the spike times
+        #     st = st[~np.isnan(st)]
+        #     spike_trains.append(st)
+        #     offset = int(spike_times_index[i])
+        num_units = len(spike_times_index)
         print(f"Number of units: {num_units}")
-        print(f"Total number of spikes: {sum([len(st) for st in spike_trains])}")
+        print(f"Total number of spikes: {len(spike_times)}")
 
-        print("Creating LINDI file")
+        print("Creating output LINDI file")
         url = input.get_url()
         assert url, "No URL for input file"
         if input.file_base_name.endswith(
             ".lindi.json"
         ) or input.file_base_name.endswith(".lindi.tar"):
-            with lindi.LindiH5pyFile.from_lindi_file(url) as f:
-                f.write_lindi_file("output.nwb.lindi.tar")
+            with lindi.LindiH5pyFile.from_lindi_file(url) as input_f:
+                input_f.write_lindi_file("output.nwb.lindi.tar")
         else:
-            with lindi.LindiH5pyFile.from_hdf5_file(url) as f:
-                f.write_lindi_file("output.nwb.lindi.tar")
+            with lindi.LindiH5pyFile.from_hdf5_file(url) as input_f:
+                input_f.write_lindi_file("output.nwb.lindi.tar")
 
-        print("Computing phase")
-        estimated_sample_rate = 1 / np.median(np.diff(behavior_timestamps))
+        output_f = lindi.LindiH5pyFile.from_lindi_file("output.nwb.lindi.tar")
 
-        # behavior trace - keep only one channel
-        behavior_trace = behavior_data[:, 1]  # type: ignore
+        for ii in range(len(behavior_paths)):
+            position_path = behavior_paths[ii]
 
-        # [optional but recommended] Bandpass filter the data
-        # TODO: expose this as a parameter
-        signal_class = "jaw_movement"
-        settings = BehaviorFun.signal_settings.get(
-            signal_class, BehaviorFun.signal_settings["default"]
-        )
-        band_pass_cutoffs = settings["band_pass_cutoffs"]
-        filtered_trace = FilterFun.filter_signal(
-            behavior_trace,
-            sampling_rate=estimated_sample_rate,
-            filter_option=["bandpass", band_pass_cutoffs],
-        )
+            position_name = position_path.split("/")[-1]
+            output_phase_path = f'processing/behavior/{position_name}_phase'
 
-        # [optional but recommended] Detect movement periods
-        movement_mask = Utils.detect_movement_periods(
-            filtered_trace, timestamps=behavior_timestamps
-        )[0]
+            position_grp = input_f[position_path]
+            assert isinstance(position_grp, lindi.LindiH5pyGroup)
+            behavior_data = position_grp["data"][()]
+            behavior_timestamps = position_grp["timestamps"][()]
 
-        # Compute phase
-        phase = BehaviorFun.compute_phase_for_movement(
-            filtered_trace,
-            sample_rate=estimated_sample_rate,
-            movement_mask=movement_mask,
-        )[0]
-        phase = np.real(phase).astype(np.float32)
+            print("Computing phase")
+            estimated_sample_rate = 1 / np.median(np.diff(behavior_timestamps))
 
-        print("Extracting trials data")
-        trial_data = f[trials_path]
-        assert isinstance(trial_data, lindi.LindiH5pyGroup)
-        # trial_id = trial_data['id'][()]
-        # trial_uid = trial_data['trial_uid'][()]
-        start_times = trial_data["start_time"][()]
-        assert isinstance(start_times, np.ndarray)
-        stop_times = trial_data["stop_time"][()]
-        assert isinstance(stop_times, np.ndarray)
-        # task = trial_data['task'][()]
-        outcomes = trial_data["outcome"][()]
-        assert isinstance(outcomes, np.ndarray)
-        # instruction = trial_data['trial_instruction'][()]
+            # behavior trace - keep only one channel
+            behavior_trace = behavior_data[:, behavior_dimensions[ii]]  # type: ignore
 
-        print("Computing trial mask")
-        trial_label = "hit"
-        trial_mask = outcomes == trial_label
-        trial_mask = np.zeros_like(behavior_timestamps, dtype=bool)
-        for i in range(len(start_times)):
-            if outcomes[i] == trial_label:
-                # Mark the time points within the "hit" trial
-                trial_mask[
-                    (behavior_timestamps >= start_times[i])
-                    & (behavior_timestamps <= stop_times[i])
-                ] = True
+            # [optional but recommended] Bandpass filter the data
+            # TODO: expose this as a parameter
+            signal_class = "jaw_movement"
+            settings = BehaviorFun.signal_settings.get(
+                signal_class, BehaviorFun.signal_settings["default"]
+            )
+            band_pass_cutoffs = settings["band_pass_cutoffs"]
+            filtered_trace = FilterFun.filter_signal(
+                behavior_trace,
+                sampling_rate=estimated_sample_rate,
+                filter_option=["bandpass", band_pass_cutoffs],
+            )
 
-        print("Computing combined mask")
-        combined_mask = movement_mask & trial_mask
+            # [optional but recommended] Detect movement periods
+            movement_mask = Utils.detect_movement_periods(
+                filtered_trace, timestamps=behavior_timestamps
+            )[0]
 
-        print("Removing short epochs")
-        min_duration = 0.5  # in seconds
-        cleaned_combined_mask = remove_short_epochs(combined_mask, min_duration)
+            # Compute phase
+            phase = BehaviorFun.compute_phase_for_movement(
+                filtered_trace,
+                sample_rate=estimated_sample_rate,
+                movement_mask=movement_mask,
+            )[0]
+            phase = np.real(phase).astype(np.float32)
 
-        print("Labeling epochs")
-        labeled_mask, num_epochs = label(cleaned_combined_mask)  # type: ignore
+            print("Extracting trials data")
+            trial_data = input_f[trials_path]
+            assert isinstance(trial_data, lindi.LindiH5pyGroup)
+            # trial_id = trial_data['id'][()]
+            # trial_uid = trial_data['trial_uid'][()]
+            start_times = trial_data["start_time"][()]
+            assert isinstance(start_times, np.ndarray)
+            stop_times = trial_data["stop_time"][()]
+            assert isinstance(stop_times, np.ndarray)
+            # task = trial_data['task'][()]
+            outcomes = trial_data["outcome"][()]
+            assert isinstance(outcomes, np.ndarray)
+            # instruction = trial_data['trial_instruction'][()]
 
-        print("Finding epoch slices")
-        epoch_slices = [epoch_slice[0] for epoch_slice in find_objects(labeled_mask)]
+            print("Computing trial mask")
+            trial_label = "hit"
+            trial_mask = outcomes == trial_label
+            trial_mask = np.zeros_like(behavior_timestamps, dtype=bool)
+            for ii in range(len(start_times)):
+                if outcomes[ii] == trial_label:
+                    # Mark the time points within the "hit" trial
+                    trial_mask[
+                        (behavior_timestamps >= start_times[ii])
+                        & (behavior_timestamps <= stop_times[ii])
+                    ] = True
 
-        print("Computing phase tuning")
-        phase_tuning, phase_stats = compute_phase_tuning(
-            phase, behavior_timestamps, spike_times, spike_times_index, epoch_slices
-        )
-        phase_mean = [x[0] for x in phase_stats]
-        phase_var = [x[1] for x in phase_stats]
-        phase_p_value = [x[2] for x in phase_stats]
+            print("Computing combined mask")
+            combined_mask = movement_mask & trial_mask
 
-        print("Masking phase data")
-        ts_masked = behavior_timestamps[~np.isnan(phase)]
-        phase_masked = phase[~np.isnan(phase)]
+            print("Removing short epochs")
+            min_duration = 0.5  # in seconds
+            cleaned_combined_mask = remove_short_epochs(combined_mask, min_duration)
 
-        print("Writing to output LINDI file")
-        with lindi.LindiH5pyFile.from_lindi_file(
-            "output.nwb.lindi.tar", mode="r+"
-        ) as f:
+            print("Labeling epochs")
+            labeled_mask, num_epochs = label(cleaned_combined_mask)  # type: ignore
+
+            print("Finding epoch slices")
+            epoch_slices = [epoch_slice[0] for epoch_slice in find_objects(labeled_mask)]
+
+            print("Computing phase tuning")
+            _, phase_stats = compute_phase_tuning(
+                phase, behavior_timestamps, spike_times, spike_times_index, epoch_slices
+            )
+            phase_mean = [x[0] for x in phase_stats]
+            phase_var = [x[1] for x in phase_stats]
+            phase_p_value = [x[2] for x in phase_stats]
+
+            print("Masking phase data")
+            ts_masked = behavior_timestamps[~np.isnan(phase)]
+            phase_masked = phase[~np.isnan(phase)]
+
+            print("Writing to output LINDI file")
             print("Creating output phase timeseries")
-            g = f.create_group(output_phase_path)
+            g = output_f.create_group(output_phase_path)
             g.attrs["description"] = "Phase timeseries"
             g.attrs["comments"] = "no comments"
             g.attrs["namespace"] = "core"
@@ -194,7 +212,7 @@ class TuningAnalysis000363(ProcessorBase):
             x_ts.attrs["unit"] = "seconds"
 
             print("Adding columns to units table")
-            units = f[units_path]
+            units = output_f[units_path]
             assert isinstance(units, lindi.LindiH5pyGroup)
             colnames = units.attrs["colnames"]
             if isinstance(colnames, np.ndarray):
@@ -202,49 +220,34 @@ class TuningAnalysis000363(ProcessorBase):
             else:
                 assert isinstance(colnames, list)
 
-            print("Adding phase_tuning")
-            colnames.append("phase_tuning")
-            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            # I have questions about what to do here
-            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            phase_tuning_list = [
-                phase_tuning[i][0] if len(phase_tuning[i]) > 0 else np.nan
-                for i in range(num_units)
-            ]
+            prefix = behavior_output_prefixes[ii]
+            print(f"Adding {prefix}_phase_mean")
+            colnames.append(f"{prefix}_phase_mean")
             ds = units.create_dataset(
-                "phase_tuning", data=np.array(phase_tuning_list, dtype=np.float32)
+                f"{prefix}_phase_mean", data=np.array(phase_mean, dtype=np.float32)
             )
-            ds.attrs["description"] = "Phase tuning for each unit"
+            ds.attrs["description"] = f"Phase mean for each unit ({prefix})"
             ds.attrs["namespace"] = "hdmf-common"
             ds.attrs["neurodata_type"] = "VectorData"
             ds.attrs["object_id"] = str(uuid.uuid4())
 
-            print("Adding phase_mean")
-            colnames.append("phase_mean")
+            print(f"Adding {prefix}_phase_var")
+            colnames.append(f"{prefix}_phase_var")
             ds = units.create_dataset(
-                "phase_mean", data=np.array(phase_mean, dtype=np.float32)
+                f"{prefix}_phase_var", data=np.array(phase_var, dtype=np.float32)
             )
-            ds.attrs["description"] = "Phase mean for each unit"
+            ds.attrs["description"] = f"Phase variance for each unit ({prefix})"
             ds.attrs["namespace"] = "hdmf-common"
             ds.attrs["neurodata_type"] = "VectorData"
             ds.attrs["object_id"] = str(uuid.uuid4())
 
-            print("Adding phase_var")
-            colnames.append("phase_var")
+            print(f"Adding {prefix}_phase_p_value")
+            colnames.append(f"{prefix}_phase_p_value")
             ds = units.create_dataset(
-                "phase_var", data=np.array(phase_var, dtype=np.float32)
+                f"{prefix}_phase_p_value",
+                data=np.array(phase_p_value, dtype=np.float32),
             )
-            ds.attrs["description"] = "Phase variance for each unit"
-            ds.attrs["namespace"] = "hdmf-common"
-            ds.attrs["neurodata_type"] = "VectorData"
-            ds.attrs["object_id"] = str(uuid.uuid4())
-
-            print("Adding phase_p_value")
-            colnames.append("phase_p_value")
-            ds = units.create_dataset(
-                "phase_p_value", data=np.array(phase_p_value, dtype=np.float32)
-            )
-            ds.attrs["description"] = "Phase p-value for each unit"
+            ds.attrs["description"] = f"Phase p-value for each unit ({prefix})"
             ds.attrs["namespace"] = "hdmf-common"
             ds.attrs["neurodata_type"] = "VectorData"
             ds.attrs["object_id"] = str(uuid.uuid4())

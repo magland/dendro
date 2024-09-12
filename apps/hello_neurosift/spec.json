@@ -315,14 +315,19 @@
                     "defaultValue": "/units"
                 },
                 {
-                    "name": "position_path",
-                    "type": "str",
-                    "description": "Path to the position timeseries in the NWB file"
+                    "name": "behavior_paths",
+                    "type": "List[str]",
+                    "description": "Paths to the behavior timeseries in the NWB file"
                 },
                 {
-                    "name": "output_phase_path",
-                    "type": "str",
-                    "description": "Path to the output phase timeseries in the NWB file"
+                    "name": "behavior_dimensions",
+                    "type": "List[int]",
+                    "description": "Zero-based dimension indices to use for the behavior signal"
+                },
+                {
+                    "name": "behavior_output_prefixes",
+                    "type": "List[str]",
+                    "description": "Output prefixes for the behavior timeseries in the NWB file"
                 },
                 {
                     "name": "trials_path",

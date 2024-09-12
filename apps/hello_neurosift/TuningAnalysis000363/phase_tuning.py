@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import circmean, circstd
-from scipy.ndimage import label
+
 
 def rayleigh_test(phases):
     """
@@ -95,7 +95,7 @@ def compute_phase_tuning(b_phase, b_timestamps, spike_times, spike_times_index, 
 
         # Compute histogram of phases for spiking events
         edges = np.linspace(-np.pi, np.pi, num_bins + 1)
-        centers = (edges[:-1] + edges[1:]) / 2
+        # centers = (edges[:-1] + edges[1:]) / 2
 
         # Bin the aggregated phases
         phase_bins = np.digitize(aggregated_spike_phases, edges) - 1

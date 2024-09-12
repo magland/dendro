@@ -28,12 +28,28 @@ job_definition = DendroJobDefinition(
             value='/units'
         ),
         DendroJobParameter(
-            name='position_path',
-            value='/acquisition/BehavioralTimeSeries/Camera0_side_JawTracking'
+            name='behavior_paths',
+            value=[
+                '/acquisition/BehavioralTimeSeries/Camera0_side_JawTracking',
+                '/acquisition/BehavioralTimeSeries/Camera0_side_NoseTracking',
+                '/acquisition/BehavioralTimeSeries/Camera0_side_TongueTracking'
+            ]
         ),
         DendroJobParameter(
-            name='output_phase_path',
-            value='/processing/behavior/Camera0_side_JawTracking_phase'
+            name='behavior_dimensions',
+            value=[
+                1,
+                1,
+                1
+            ]
+        ),
+        DendroJobParameter(
+            name='behavior_prefixes',
+            value=[
+                'jaw',
+                'nose',
+                'tongue'
+            ]
         )
     ]
 )
