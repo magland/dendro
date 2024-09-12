@@ -48,6 +48,7 @@ job = submit_job(
     service_name=service_name,
     job_definition=job_definition,
     required_resources=required_resources,
+    target_compute_client_ids=None,
     tags=[],
     skip_cache=False,
     rerun_failing=True,

@@ -204,8 +204,15 @@ class TuningAnalysis000363(ProcessorBase):
 
             print("Adding phase_tuning")
             colnames.append("phase_tuning")
+            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            # I have questions about what to do here
+            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            phase_tuning_list = [
+                phase_tuning[i][0] if len(phase_tuning[i]) > 0 else np.nan
+                for i in range(num_units)
+            ]
             ds = units.create_dataset(
-                "phase_tuning", data=np.array(phase_tuning, dtype=np.float32)
+                "phase_tuning", data=np.array(phase_tuning_list, dtype=np.float32)
             )
             ds.attrs["description"] = "Phase tuning for each unit"
             ds.attrs["namespace"] = "hdmf-common"

@@ -5,11 +5,11 @@ from scipy.ndimage import label
 def rayleigh_test(phases):
     """
     Perform the Rayleigh test for non-uniformity of circular data.
-    
+
     Parameters:
     - phases: np.ndarray
         Array of phase angles in radians.
-    
+
     Returns:
     - p_value: float
         p-value of the Rayleigh test.
@@ -18,7 +18,7 @@ def rayleigh_test(phases):
     r = np.abs(np.sum(np.exp(1j * phases)) / n)  # mean resultant length
     z = n * r**2
     p_value = np.exp(-z) * (1 + (2 * z - z**2) / (4 * n) - (24 * z - 132 * z**2 + 76 * z**3 - 9 * z**4) / (288 * n**2))
-    
+
     return p_value
 
 def compute_phase_tuning(b_phase, b_timestamps, spike_times, spike_times_index, epochs):
@@ -36,8 +36,8 @@ def compute_phase_tuning(b_phase, b_timestamps, spike_times, spike_times_index, 
     - spike_times_index: np.ndarray
         Index pointing to the spikes for each unit.
     - epochs: list of slice objects
-        Slices corresponding to the valid epochs from which to aggregate data. 
-        This is typically computed from a combined mask of behavior of interest (e.g., movement epochs) and ephys (e.g., correct trials). e.g.: 
+        Slices corresponding to the valid epochs from which to aggregate data.
+        This is typically computed from a combined mask of behavior of interest (e.g., movement epochs) and ephys (e.g., correct trials). e.g.:
         labeled_mask, num_epochs = label(combined_mask)
         epochs = [epoch_slice[0] for epoch_slice in find_objects(labeled_mask)]
 
@@ -51,13 +51,14 @@ def compute_phase_tuning(b_phase, b_timestamps, spike_times, spike_times_index, 
     # Initialize result structures
     phase_stats = []
     phase_tuning = []
-    num_units = len(spike_times_index) - 1
+    num_units = len(spike_times_index)
     num_bins = 32  # Number of phase bins (equivalent to pi/16 radians)
 
     # Loop through each unit
     for unit_num in range(num_units):
         # Extract spike times for the unit
-        unit_spike_times = spike_times[spike_times_index[unit_num]:spike_times_index[unit_num + 1]]
+        spike_times_index_with_zero_prepended = np.concatenate(([0], spike_times_index))
+        unit_spike_times = spike_times[spike_times_index_with_zero_prepended[unit_num]:spike_times_index_with_zero_prepended[unit_num + 1]]
 
         # Initialize lists to aggregate spike times and corresponding phases
         unit_tuning = []
@@ -85,6 +86,8 @@ def compute_phase_tuning(b_phase, b_timestamps, spike_times, spike_times_index, 
             aggregated_spike_phases.extend(spike_phases)
 
         if len(aggregated_spike_phases) == 0:
+            phase_stats.append((np.nan, np.nan, np.nan))
+            phase_tuning.append([])
             continue  # Skip if no spikes in all epochs
 
         # Convert to a numpy array for further analysis
