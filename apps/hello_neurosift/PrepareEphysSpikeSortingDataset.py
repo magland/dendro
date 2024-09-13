@@ -34,7 +34,7 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
         from qfc import qfc_estimate_quant_scale_factor
         from qfc.codecs.QFCCodec import QFCCodec
         from helpers.nwbextractors import NwbRecordingExtractor
-        from helpers.make_float32_recording import make_float32_recording
+        from helpers.make_float32_recording import make_float32_recording, make_int16_recording
         import spikeinterface.preprocessing as spre
 
         QFCCodec.register_codec()
@@ -78,6 +78,8 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                     h5py_file=f, electrical_series_path=electrical_series_path
                 )
 
+                recording_dtype = recording.get_dtype()
+
                 if duration_sec > 0:
                     start_frame = 0
                     end_frame = int(duration_sec * recording.get_sampling_frequency())
@@ -93,11 +95,16 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
 
                 print(f'Bandpass filtering recording from {freq_min} to {freq_max} Hz')
                 recording_filtered = spre.bandpass_filter(
-                    recording, freq_min=freq_min, freq_max=freq_max, dtype=np.float32
+                    recording, freq_min=freq_min, freq_max=freq_max, dtype=recording_dtype
                 )  # important to specify dtype here
 
-                print('Writing float32 recording to disk')
-                recording_binary = make_float32_recording(recording_filtered, dirname='recording_float32')
+                if recording_dtype == np.float32:
+                    print('Writing float32 recording to disk')
+                    recording_binary = make_float32_recording(recording_filtered, dirname='recording_float32')
+                elif recording_dtype == np.int16:
+                    recording_binary = make_int16_recording(recording_filtered, dirname='recording_int16')
+                else:
+                    raise Exception(f'Unhandled recording dtype: {recording_dtype}')
 
                 print('Determining scale factor')
                 traces0 = recording_binary.get_traces(start_frame=0, end_frame=int(1 * recording_binary.get_sampling_frequency()))

@@ -2824,30 +2824,33 @@ const userIsAllowedToProcessJobsForService = (
   service: DendroService,
   userId: string,
 ) => {
-  if (service.userId === userId) return true;
-  const u = service.users.find((u) => u.userId === userId);
-  if (!u) return false;
-  return u.processJobs;
+  return true;
+  // if (service.userId === userId) return true;
+  // const u = service.users.find((u) => u.userId === userId);
+  // if (!u) return false;
+  // return u.processJobs;
 };
 
 const userIsAllowedToCreateJobsForService = (
   service: DendroService,
   userId: string,
 ) => {
-  if (service.userId === userId) return true;
-  const u = service.users.find((u) => u.userId === userId);
-  if (!u) return false;
-  return u.createJobs;
+  return true;
+  // if (service.userId === userId) return true;
+  // const u = service.users.find((u) => u.userId === userId);
+  // if (!u) return false;
+  // return u.createJobs;
 };
 
 const userIsAllowedToDeleteJobsForService = (
   service: DendroService,
   userId: string,
 ) => {
-  if (service.userId === userId) return true;
-  const u = service.users.find((u) => u.userId === userId);
-  if (!u) return false;
-  return u.createJobs;
+  return true;
+  // if (service.userId === userId) return true;
+  // const u = service.users.find((u) => u.userId === userId);
+  // if (!u) return false;
+  // return u.createJobs;
 };
 
 const userIsAdminForService = (service: DendroService, userId: string) => {
