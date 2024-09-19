@@ -1466,6 +1466,7 @@ export const isGetServiceAppsResponse = (
 export type GetPubsubSubscriptionRequest = {
   type: "getPubsubSubscriptionRequest";
   computeClientId?: string;
+  protocolVersion?: string;
 };
 
 export const isGetPubsubSubscriptionRequest = (
@@ -1474,6 +1475,7 @@ export const isGetPubsubSubscriptionRequest = (
   return validateObject(x, {
     type: isEqualTo("getPubsubSubscriptionRequest"),
     computeClientId: optional(isString),
+    protocolVersion: optional(isString)
   });
 };
 

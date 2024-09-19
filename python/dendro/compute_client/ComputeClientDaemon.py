@@ -6,7 +6,8 @@ import multiprocessing
 import traceback
 from pathlib import Path
 from .JobManager import JobManager
-from ..common.api_requests import get_pubsub_subscription, get_runnable_jobs_for_compute_client
+from ..common.api_requests import get_runnable_jobs_for_compute_client
+from .PubsubClient import PubsubClient
 
 
 class ComputeClientDaemon:
@@ -34,18 +35,9 @@ class ComputeClientDaemon:
     def start(self, cleanup_old_jobs=True, timeout: Optional[float] = None):
         timer_handle_jobs = 0
 
-        print('Getting pubsub info')
-        pubsub_subscription = get_pubsub_subscription(
+        pubsub_client = PubsubClient(
             compute_client_id=self._compute_client_id,
             compute_client_private_key=self._compute_client_private_key
-        )
-        pubnub_subscribe_key = pubsub_subscription['pubnubSubscribeKey']
-        from .PubsubClient import PubsubClient
-        pubsub_client = PubsubClient(
-            pubnub_subscribe_key=pubnub_subscribe_key,
-            pubnub_channel=pubsub_subscription['pubnubChannel'],
-            pubnub_user=pubsub_subscription['pubnubUser'],
-            compute_client_id=self._compute_client_id
         )
 
         # # Create file cache directory if needed
@@ -131,7 +123,8 @@ class ComputeClientDaemon:
             if cleanup_old_jobs_process is not None:
                 cleanup_old_jobs_process.terminate()
             if pubsub_client is not None:
-                pubsub_client.close() # unfortunately this doesn't actually stop the thread - it's a pubnub/python issue
+                # right now there's no way to kill the pubsub client's websocket connection
+                pass
 
     def _handle_jobs(self):
         print('Checking for new jobs')

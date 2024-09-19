@@ -23,11 +23,6 @@ setup(
         'psutil',
         'requests'
     ],
-    extras_require={
-        'compute_client': [
-            'pubnub>=7.2.0'
-        ]
-    },
     entry_points={
         "console_scripts": [
             "dendro=dendro.cli:main",

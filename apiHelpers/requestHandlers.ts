@@ -3,7 +3,7 @@ import { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "crypto";
 import allowCors from "./allowCors"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient"; // remove .js for local dev
-import publishPubsubMessage from "./publicPubsubMessage"; // remove .js for local dev
+import publishPubsubMessage from "./publishPubsubMessage"; // remove .js for local dev
 import {
   AddServiceAppResponse,
   AddServiceResponse,
@@ -86,6 +86,7 @@ import {
   isGetSignedDownloadUrlRequest,
   GetSignedDownloadUrlResponse,
 } from "./types"; // remove .js for local dev
+import { SubscribeRequest, SubscribeTokenObject } from "./ephemeriPubsubTypes";
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -2041,7 +2042,8 @@ export const getPubsubSubscriptionHandler = allowCors(
       return;
     }
     try {
-      const computeClientId = rr.computeClientId;
+      const { computeClientId } = rr;
+      const protocolVersion = rr.protocolVersion || 'old';  // by default use "old" because the old dendro compute clients do not send the protocolVersion
       if (!computeClientId) {
         res
           .status(400)
@@ -2064,20 +2066,61 @@ export const getPubsubSubscriptionHandler = allowCors(
       await updateComputeClient(computeClientId, {
         timestampLastActiveSec: Date.now() / 1000,
       });
-      const VITE_PUBNUB_SUBSCRIBE_KEY = process.env.VITE_PUBNUB_SUBSCRIBE_KEY;
-      if (!VITE_PUBNUB_SUBSCRIBE_KEY) {
-        res.status(500).json({ error: "VITE_PUBNUB_SUBSCRIBE_KEY not set" });
+      if (protocolVersion === 'old') {
+        const VITE_PUBNUB_SUBSCRIBE_KEY = process.env.VITE_PUBNUB_SUBSCRIBE_KEY;
+        if (!VITE_PUBNUB_SUBSCRIBE_KEY) {
+          res.status(500).json({ error: "VITE_PUBNUB_SUBSCRIBE_KEY not set" });
+          return;
+        }
+        const resp: GetPubsubSubscriptionResponse = {
+          type: "getPubsubSubscriptionResponse",
+          subscription: {
+            pubnubSubscribeKey: VITE_PUBNUB_SUBSCRIBE_KEY,
+            pubnubChannel: "dendro-compute-clients", // cannot do this by service because we want to allow compute clients to subscribe to multiple services
+            pubnubUser: computeClientId,
+          },
+        };
+        res.status(200).json(resp);
+      }
+      else if (protocolVersion === '1') {
+        const EPHEMERI_PUBSUB_URL = process.env.EPHEMERI_PUBSUB_URL;
+        if (!EPHEMERI_PUBSUB_URL) {
+          res.status(500).json({ error: "EPHEMERI_PUBSUB_URL not set" });
+          return;
+        }
+        const EPHEMERI_PUBSUB_API_KEY = process.env.EPHEMERI_PUBSUB_API_KEY;
+        if (!EPHEMERI_PUBSUB_API_KEY) {
+          res.status(500).json({ error: "EPHEMERI_PUBSUB_API_KEY not set" });
+          return;
+        }
+        const channels = computeClient.serviceNames.map(serviceName => `dendro-service.${serviceName}`);
+        const subscribeTokenObject: SubscribeTokenObject = {
+          timestamp: Date.now(),
+          channels,
+        }
+        const subscribeToken = JSON.stringify(subscribeTokenObject);
+        const ephemeriPubsubSubscribeRequest: SubscribeRequest = {
+          type: 'subscribeRequest',
+          subscribeToken,
+          tokenSignature: computeSha1(subscribeToken + EPHEMERI_PUBSUB_API_KEY),
+          channels
+        }
+        const resp: GetPubsubSubscriptionResponse = {
+          type: "getPubsubSubscriptionResponse",
+          subscription: {
+            pubnubSubscribeKey: undefined,
+            pubnubChannel: undefined,
+            pubnubUser: undefined,
+            ephemeriPubsubUrl: EPHEMERI_PUBSUB_URL,
+            ephemeriPubsubSubscribeRequest
+          }
+        }
+        res.status(200).json(resp);
+      }
+      else {
+        res.status(400).json({ error: "Invalid protocolVersion" });
         return;
       }
-      const resp: GetPubsubSubscriptionResponse = {
-        type: "getPubsubSubscriptionResponse",
-        subscription: {
-          pubnubSubscribeKey: VITE_PUBNUB_SUBSCRIBE_KEY,
-          pubnubChannel: "dendro-compute-clients", // cannot do this by service because we want to allow compute clients to subscribe to multiple services
-          pubnubUser: computeClientId,
-        },
-      };
-      res.status(200).json(resp);
     } catch (e) {
       console.error(e);
       res.status(500).json({ error: e.message });
@@ -2824,33 +2867,30 @@ const userIsAllowedToProcessJobsForService = (
   service: DendroService,
   userId: string,
 ) => {
-  return true;
-  // if (service.userId === userId) return true;
-  // const u = service.users.find((u) => u.userId === userId);
-  // if (!u) return false;
-  // return u.processJobs;
+  if (service.userId === userId) return true;
+  const u = service.users.find((u) => u.userId === userId);
+  if (!u) return false;
+  return u.processJobs;
 };
 
 const userIsAllowedToCreateJobsForService = (
   service: DendroService,
   userId: string,
 ) => {
-  return true;
-  // if (service.userId === userId) return true;
-  // const u = service.users.find((u) => u.userId === userId);
-  // if (!u) return false;
-  // return u.createJobs;
+  if (service.userId === userId) return true;
+  const u = service.users.find((u) => u.userId === userId);
+  if (!u) return false;
+  return u.createJobs;
 };
 
 const userIsAllowedToDeleteJobsForService = (
   service: DendroService,
   userId: string,
 ) => {
-  return true;
-  // if (service.userId === userId) return true;
-  // const u = service.users.find((u) => u.userId === userId);
-  // if (!u) return false;
-  // return u.createJobs;
+  if (service.userId === userId) return true;
+  const u = service.users.find((u) => u.userId === userId);
+  if (!u) return false;
+  return u.createJobs;
 };
 
 const userIsAdminForService = (service: DendroService, userId: string) => {

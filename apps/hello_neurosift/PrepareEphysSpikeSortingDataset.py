@@ -101,8 +101,10 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                 if recording_dtype == np.float32:
                     print('Writing float32 recording to disk')
                     recording_binary = make_float32_recording(recording_filtered, dirname='recording_float32')
+                    recording_dtype_str = 'float32'
                 elif recording_dtype == np.int16:
                     recording_binary = make_int16_recording(recording_filtered, dirname='recording_int16')
+                    recording_dtype_str = 'int16'
                 else:
                     raise Exception(f'Unhandled recording dtype: {recording_dtype}')
 
@@ -126,7 +128,7 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                     print('Creating codec')
                     codec = QFCCodec(
                         quant_scale_factor=scale_factor,
-                        dtype='float32',
+                        dtype=recording_dtype_str,
                         segment_length=int(recording_binary.get_sampling_frequency() * 1),
                         compression_method=compression_method,
                         zlib_level=zlib_level,
@@ -147,8 +149,9 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                 )
 
                 print(f'Creating new electrical series: {output_electrical_series_name}')
+                num_channels_per_chunk = _determine_num_channels_per_chunk(recording_binary.get_num_channels())
                 num_samples_per_chunk = recording.get_sampling_frequency() * 1
-                while num_samples_per_chunk * recording.get_num_channels() * 2 < 15e6:
+                while num_samples_per_chunk * num_samples_per_chunk * 2 < 15e6:
                     num_samples_per_chunk += recording.get_sampling_frequency() * 1
                 data = pynwb.H5DataIO(
                     # TODO: figure out a different way to do this because we don't want to load the entire recording into memory
@@ -177,3 +180,18 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
 def estimate_noise_level(traces):
     noise_level = np.median(np.abs(traces - np.median(traces))) / 0.6745
     return noise_level
+
+
+def _determine_num_channels_per_chunk(total_num_channels: int):
+    if total_num_channels <= 64:
+        return total_num_channels
+    elif total_num_channels <= 128:
+        return total_num_channels // 2
+    elif total_num_channels <= 256:
+        return total_num_channels // 4
+    elif total_num_channels <= 384:
+        return total_num_channels // 6
+    elif total_num_channels <= 512:
+        return total_num_channels // 8
+    else:
+        return 64

@@ -137,7 +137,9 @@ def get_pubsub_subscription(*, compute_client_id: str, compute_client_private_ke
     url_path = '/api/getPubsubSubscription'
     req = {
         'type': 'getPubsubSubscriptionRequest',
-        'computeClientId': compute_client_id
+        'computeClientId': compute_client_id,
+        'protocolVersion': '1'
+
     }
     headers = {
         'Authorization': f'Bearer {compute_client_private_key}'
