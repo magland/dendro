@@ -359,7 +359,7 @@
             ],
             "parameters": [
                 {
-                    "name": "dandataset_id",
+                    "name": "dandiset_id",
                     "type": "str",
                     "description": "Dandiset ID"
                 },

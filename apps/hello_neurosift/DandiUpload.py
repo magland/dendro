@@ -5,7 +5,7 @@ from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 class DandiUploadContext(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
     output: OutputFile = Field(description='Uploaded NWB file', json_schema_extra={'url_determined_at_runtime': True})
-    dandataset_id: str = Field(description='Dandiset ID')
+    dandiset_id: str = Field(description='Dandiset ID')
     dandiset_version: str = Field(description='Dandiset version')
     asset_path: str = Field(description='Path to the asset in the dandiset')
     staging: bool = Field(description='Whether to use the staging server', default=True)
@@ -25,7 +25,7 @@ class DandiUpload(ProcessorBase):
     ):
         input = context.input
         output = context.output
-        dandiset_id = context.dandataset_id
+        dandiset_id = context.dandiset_id
         dandiset_version = context.dandiset_version
         asset_path = context.asset_path
 

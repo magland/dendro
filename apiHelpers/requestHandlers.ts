@@ -2,7 +2,7 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "crypto";
 import allowCors from "./allowCors"; // remove .js for local dev
-import { SubscribeRequest, SubscribeTokenObject } from "./ephemeriPubsubTypes";
+import { SubscribeRequest, SubscribeTokenObject } from "./ephemeriPubsubTypes"; // remove .js for local dev
 import { getMongoClient } from "./getMongoClient"; // remove .js for local dev
 import publishPubsubMessage from "./publishPubsubMessage"; // remove .js for local dev
 import {

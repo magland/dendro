@@ -1,4 +1,4 @@
-import { isPublishResponse, PublishRequest, PublishTokenObject } from "./ephemeriPubsubTypes";
+import { isPublishResponse, PublishRequest, PublishTokenObject } from "./ephemeriPubsubTypes"; // remove .js for local dev
 import crypto from "crypto";
 
 const publishPubsubMessage = async (channel: string, message: any) => {
