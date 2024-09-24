@@ -151,7 +151,7 @@ class PrepareEphysSpikeSortingDataset(ProcessorBase):
                 print(f'Creating new electrical series: {output_electrical_series_name}')
                 num_channels_per_chunk = _determine_num_channels_per_chunk(recording_binary.get_num_channels())
                 num_samples_per_chunk = recording.get_sampling_frequency() * 1
-                while num_samples_per_chunk * num_samples_per_chunk * 2 < 15e6:
+                while num_samples_per_chunk * num_channels_per_chunk * 2 < 15e6:
                     num_samples_per_chunk += recording.get_sampling_frequency() * 1
                 data = pynwb.H5DataIO(
                     # TODO: figure out a different way to do this because we don't want to load the entire recording into memory

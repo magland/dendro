@@ -20,6 +20,7 @@ class DendroAppProcessorInputFile(BaseModel):
 class DendroAppProcessorOutputFile(BaseModel):
     name: str
     description: str
+    urlDeterminedAtRuntime: Union[bool, None] = None
 
 
 class DendroAppProcessorAttribute(BaseModel):
@@ -91,6 +92,7 @@ class DendroServiceApp(BaseModel):
 # export type DendroAppProcessorOutputFile = {
 #   name: string
 #   description: string
+#   urlDeterminedAtRuntime: boolean
 # }
 
 # // DendroAppProcessorParameterTypes
@@ -107,6 +109,7 @@ class DendroServiceApp(BaseModel):
 class DendroJobOutputFile(BaseModel):
     name: str
     fileBaseName: str
+    urlDeterminedAtRuntime: Union[bool, None] = None
 
 
 class DendroJobInputFile(BaseModel):

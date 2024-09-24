@@ -21,7 +21,7 @@ RUN git clone https://github.com/magland/dendro \
     && cd dendro \
     && cd python \
     && pip install -e . \
-    && echo "v31"
+    && echo "v32"
 
 # Install lindi from prerelease
 WORKDIR /src

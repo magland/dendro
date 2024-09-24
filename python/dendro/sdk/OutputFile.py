@@ -3,7 +3,7 @@ import os
 import math
 import requests
 from pydantic import BaseModel
-from ..common.api_requests import get_upload_url, finalize_multipart_upload, cancel_multipart_upload
+from ..common.api_requests import get_upload_url, finalize_multipart_upload, cancel_multipart_upload, set_output_url, api_get_dandi_api_key
 
 
 class SetOutputFileException(Exception):
@@ -16,7 +16,11 @@ class OutputFile(BaseModel):
     job_private_key: Union[str, None] = None
     was_uploaded: bool = False
     size: Union[int, None] = None
+    url_determined_at_runtime: Union[bool, None] = None
+    url_was_set: bool = False
     def upload(self, local_file_name: str, delete_local_file: bool = True):
+        if self.url_determined_at_runtime:
+            raise Exception('Cannot upload file with url_determined_at_runtime set to True')
         if self.job_id is None:
             raise Exception('Unexpected: job_id is None in OutputFile')
         if self.job_private_key is None:
@@ -87,6 +91,35 @@ class OutputFile(BaseModel):
             except Exception as e:
                 print(f'Error cancelling multi-part upload: {e}')
             raise Exception(f'Unexpected type for upload_url: {type(upload_url)}')
+
+    def set_url(self, url: str):
+        if not self.url_determined_at_runtime:
+            raise Exception('Cannot set url for OutputFile with url_determined_at_runtime set to False')
+        if self.job_id is None:
+            raise Exception('Unexpected: job_id is None in OutputFile')
+        if self.job_private_key is None:
+            raise Exception('Unexpected: job_private_key is None in OutputFile')
+        set_output_url(
+            job_id=self.job_id,
+            job_private_key=self.job_private_key,
+            output_name=self.name,
+            url=url
+        )
+        self.url_was_set = True
+
+    # For now, we can get the DANDI API key, but only in restricted
+    # circumstances. In the future the API key will remain secret on the
+    # server.
+    def get_dandi_api_key(self):
+        if self.job_id is None:
+            raise Exception('Unexpected: job_id is None in OutputFile')
+        if self.job_private_key is None:
+            raise Exception('Unexpected: job_private_key is None in OutputFile')
+        return api_get_dandi_api_key(
+            job_id=self.job_id,
+            job_private_key=self.job_private_key,
+            output_name=self.name
+        )
 
     # validator is needed to be an allowed pydantic type
     @classmethod

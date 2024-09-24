@@ -4,7 +4,6 @@ import json
 from .InputFile import InputFile
 from .OutputFile import OutputFile
 from .AppProcessor import AppProcessor
-from ..common.DendroJob import DendroJob
 from ..common.api_requests import get_job
 
 
@@ -52,8 +51,9 @@ def _run_job_child_process(*, job_id: str, job_private_key: str, processors: Lis
     print(f'[dendro] Running job: {job_id}')
 
     # Get a job from the remote dendro API
-    job: DendroJob = get_job(job_id=job_id)
-    assert isinstance(job, DendroJob)
+    job = get_job(job_id=job_id)
+    if job is None:
+        raise Exception(f'Job not found: {job_id}')
 
     # Find the registered processor and the associated processor function
     app_name = job.jobDefinition.appName
@@ -116,7 +116,8 @@ def _run_job_child_process(*, job_id: str, job_private_key: str, processors: Lis
             name=output_file.name,
             file_base_name=output_file.fileBaseName,
             job_id=job_id,
-            job_private_key=job_private_key
+            job_private_key=job_private_key,
+            url_determined_at_runtime=output_file.urlDeterminedAtRuntime
         )
         context._dendro_set_attribute(output.name, x)
     for parameter in processor._parameters:
@@ -140,8 +141,12 @@ def _run_job_child_process(*, job_id: str, job_private_key: str, processors: Lis
     for output in processor._outputs:
         x = context._dendro_attributes[output.name]
         assert isinstance(x, OutputFile)
-        if not x.was_uploaded:
-            raise Exception(f'Output was not uploaded: {output.name}')
+        if x.url_determined_at_runtime:
+            if not x.url_was_set:
+                raise Exception(f'Output URL was not set: {output.name}')
+        else:
+            if not x.was_uploaded:
+                raise Exception(f'Output was not uploaded: {output.name}')
 
     # Write the output_file_sizes.json file
     # (perhaps to be used later when saving things locally)

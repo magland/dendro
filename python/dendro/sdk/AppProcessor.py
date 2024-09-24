@@ -39,11 +39,14 @@ class AppProcessorOutput:
     """An output file of a processor in an app"""
     name: str
     description: str
+    url_determined_at_runtime: Union[bool, None]
     def get_spec(self):
-        ret = {
+        ret: dict = {
             'name': self.name,
             'description': self.description
         }
+        if self.url_determined_at_runtime is not None and self.url_determined_at_runtime:
+            ret['urlDeterminedAtRuntime'] = self.url_determined_at_runtime
         # validate
         DendroAppProcessorOutputFile(**ret)
         return ret
@@ -51,7 +54,8 @@ class AppProcessorOutput:
     def from_spec(spec):
         return AppProcessorOutput(
             name=spec['name'],
-            description=spec['description'] if spec['description'] is not None else ''
+            description=spec['description'] if spec['description'] is not None else '',
+            url_determined_at_runtime=spec.get('url_determined_at_runtime', None)
         )
 
 
@@ -227,8 +231,10 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
         if hasattr(field, 'json_schema_extra'):
             json_schema_extra = field.json_schema_extra # type: ignore
             options = json_schema_extra.get('options', None) if json_schema_extra is not None else None # type: ignore
+            url_determined_at_runtime = json_schema_extra.get('url_determined_at_runtime', None) if json_schema_extra is not None else None # type: ignore
         else:
             options = None
+            url_determined_at_runtime = None
         # support both pydantic v1 and v2
         annotation = field.annotation if hasattr(field, 'annotation') else None # type: ignore
         if annotation is None:
@@ -252,7 +258,8 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
             'description': description,
             'annotation': annotation,
             'defaultValue': default_value,
-            'options': options
+            'options': options,
+            'url_determined_at_runtime': url_determined_at_runtime
         })
 
     inputs: List[AppProcessorInput] = []
@@ -264,6 +271,9 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
         annotation: Any = context_field['annotation']
         defaultValue: Any = context_field.get('defaultValue', None)
         options: Union[List[str], None] = context_field['options']
+        url_determined_at_runtime: Union[str, None] = context_field.get('url_determined_at_runtime', None)
+        if url_determined_at_runtime is not None:
+            assert isinstance(url_determined_at_runtime, bool)
         if annotation == InputFile or annotation == List[InputFile]:
             is_list = annotation == List[InputFile]
             inputs.append(AppProcessorInput(
@@ -276,10 +286,13 @@ def _get_context_inputs_outputs_parameters_for_model(context_class: Type[BaseMod
                 raise AppProcessorException(f"Input {name} has options set - only parameters can have options")
             if defaultValue is not None:
                 raise AppProcessorException(f"Input {name} has default set - only parameters can have default set")
+            if url_determined_at_runtime is not None:
+                raise AppProcessorException(f"Input {name} has url_determined_at_runtime set - only outputs can have url_determined_at_runtime set")
         elif annotation == OutputFile:
             outputs.append(AppProcessorOutput(
                 name=name,
-                description=description if description is not None else ''
+                description=description if description is not None else '',
+                url_determined_at_runtime=url_determined_at_runtime
             ))
             # check to make sure other fields are not set
             if options is not None:

@@ -2,6 +2,7 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "crypto";
 import allowCors from "./allowCors"; // remove .js for local dev
+import { SubscribeRequest, SubscribeTokenObject } from "./ephemeriPubsubTypes";
 import { getMongoClient } from "./getMongoClient"; // remove .js for local dev
 import publishPubsubMessage from "./publishPubsubMessage"; // remove .js for local dev
 import {
@@ -9,6 +10,7 @@ import {
   AddServiceResponse,
   AddUserResponse,
   CancelJobResponse,
+  CancelMultipartUploadResponse,
   ComputeClientComputeSlot,
   ComputeUserStatsResponse,
   CreateComputeClientResponse,
@@ -17,18 +19,6 @@ import {
   DeleteJobsResponse,
   DeleteServiceAppResponse,
   DeleteServiceResponse,
-  FindJobByDefinitionResponse,
-  GetComputeClientResponse,
-  GetComputeClientsResponse,
-  GetJobResponse,
-  FindJobsResponse,
-  GetPubsubSubscriptionResponse,
-  GetRunnableJobsForComputeClientResponse,
-  GetServiceAppResponse,
-  GetServiceAppsResponse,
-  GetServiceResponse,
-  GetServicesResponse,
-  GetSignedUploadUrlResponse,
   DendroComputeClient,
   DendroJob,
   DendroJobDefinition,
@@ -36,6 +26,21 @@ import {
   DendroService,
   DendroServiceApp,
   DendroUser,
+  FinalizeMultipartUploadResponse,
+  FindJobByDefinitionResponse,
+  FindJobsResponse,
+  GetComputeClientResponse,
+  GetComputeClientsResponse,
+  GetDandiApiKeyResponse,
+  GetJobResponse,
+  GetPubsubSubscriptionResponse,
+  GetRunnableJobsForComputeClientResponse,
+  GetServiceAppResponse,
+  GetServiceAppsResponse,
+  GetServiceResponse,
+  GetServicesResponse,
+  GetSignedDownloadUrlResponse,
+  GetSignedUploadUrlResponse,
   PingComputeClientsResponse,
   ResetUserApiKeyResponse,
   SetComputeClientInfoResponse,
@@ -48,6 +53,7 @@ import {
   isAddServiceRequest,
   isAddUserRequest,
   isCancelJobRequest,
+  isCancelMultipartUploadRequest,
   isComputeUserStatsRequest,
   isCreateComputeClientRequest,
   isCreateJobRequest,
@@ -55,23 +61,26 @@ import {
   isDeleteJobsRequest,
   isDeleteServiceAppRequest,
   isDeleteServiceRequest,
+  isDendroComputeClient,
+  isDendroJob,
+  isDendroService,
+  isDendroServiceApp,
+  isDendroUser,
+  isFinalizeMultipartUploadRequest,
   isFindJobByDefinitionRequest,
+  isFindJobsRequest,
   isGetComputeClientRequest,
   isGetComputeClientsRequest,
+  isGetDandiApiKeyRequest,
   isGetJobRequest,
-  isFindJobsRequest,
   isGetPubsubSubscriptionRequest,
   isGetRunnableJobsForComputeClientRequest,
   isGetServiceAppRequest,
   isGetServiceAppsRequest,
   isGetServiceRequest,
   isGetServicesRequest,
+  isGetSignedDownloadUrlRequest,
   isGetSignedUploadUrlRequest,
-  isDendroComputeClient,
-  isDendroJob,
-  isDendroService,
-  isDendroServiceApp,
-  isDendroUser,
   isPingComputeClientsRequest,
   isResetUserApiKeyRequest,
   isSetComputeClientInfoRequest,
@@ -79,14 +88,9 @@ import {
   isSetServiceAppInfoRequest,
   isSetServiceInfoRequest,
   isSetUserInfoRequest,
-  isFinalizeMultipartUploadRequest,
-  FinalizeMultipartUploadResponse,
-  isCancelMultipartUploadRequest,
-  CancelMultipartUploadResponse,
-  isGetSignedDownloadUrlRequest,
-  GetSignedDownloadUrlResponse,
+  issetOutputFileUrlRequest,
+  setOutputFileUrlResponse,
 } from "./types"; // remove .js for local dev
-import { SubscribeRequest, SubscribeTokenObject } from "./ephemeriPubsubTypes";
 
 const TEMPORY_ACCESS_TOKEN = process.env.TEMPORY_ACCESS_TOKEN;
 if (!TEMPORY_ACCESS_TOKEN) {
@@ -602,7 +606,7 @@ export const createJobHandler = allowCors(
         const ofr: DendroJobOutputFileResult = {
           name: oo.name,
           fileBaseName: oo.fileBaseName,
-          url: await createOutputFileUrl({
+          url: oo.urlDeterminedAtRuntime ? '' : await createOutputFileUrl({
             serviceName: rr.serviceName,
             appName: rr.jobDefinition.appName,
             processorName: rr.jobDefinition.processorName,
@@ -3058,6 +3062,149 @@ export const computeUserStatsHandler = allowCors(
       res.status(500).json({ error: e.message });
     }
   },
+);
+
+// getDandiApiKey handler
+export const getDandiApiKeyHandler = allowCors(
+  async (req: VercelRequest, res: VercelResponse) => {
+    const rr = req.body;
+    if (!isGetDandiApiKeyRequest(rr)) {
+      res.status(400).json({ error: "Invalid request" });
+      return;
+    }
+    try {
+      const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
+      if (!jobPrivateKey) {
+        res.status(400).json({ error: "Job private key must be provided" });
+        return;
+      }
+      const jobId = rr.jobId;
+      const outputName = rr.outputName;
+      const job = await fetchJob(jobId, {includeSecrets: true, includePrivateKey: true});
+      if (!job) {
+        res.status(404).json({ error: "Job not found" });
+        return;
+      }
+      if (job.jobPrivateKey !== jobPrivateKey) {
+        res.status(403).json({ error: "Unauthorized" });
+        return;
+      }
+      if (job.status !== 'running') {
+        res.status(400).json({ error: "Job is not running" });
+        return;
+      }
+      const oo = job.jobDefinition.outputFiles.find(o => (o.name === outputName));
+      if (!oo) {
+        res.status(400).json({ error: "Output name not found in job definition" });
+        return;
+      }
+      if (!oo.urlDeterminedAtRuntime) {
+        res.status(400).json({ error: "Cannot get DANDI API key because output url is not determined at run time" });
+        return;
+      }
+      const computeClientId = job.computeClientId;
+      if (!computeClientId) {
+        res.status(400).json({ error: "Job does not have a compute client id" });
+        return;
+      }
+      const computeClient = await fetchComputeClient(computeClientId);
+      if (!computeClient) {
+        res.status(404).json({ error: "Compute client not found" });
+        return;
+      }
+      if (computeClient.userId !== 'github|magland') {
+        // in the future, the dandi api key will stay secret on the server, but
+        // for now we restrict to compute clients owned by magland so we don't
+        // have a situation of people hacking and stealing the dandi api key
+        res.status(403).json({ error: "For now, only compute clients owned by magland are allowed to get Dandi API keys." });
+        return;
+      }
+      const s = job.secrets?.find(s => (s.name === 'DANDI_API_KEY'));
+      const DANDI_API_KEY = s ? s.value : undefined;
+      if (!DANDI_API_KEY) {
+        res.status(404).json({ error: "DANDI_API_KEY not found in job secrets" });
+        return;
+      }
+      const resp: GetDandiApiKeyResponse = {
+        type: "getDandiApiKeyResponse",
+        dandiApiKey: DANDI_API_KEY,
+      };
+      res.status(200).json(resp);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message });
+    }
+  }
+);
+
+// setOutputFileUrl handler
+export const setOutputFileUrlHandler = allowCors(
+  async (req: VercelRequest, res: VercelResponse) => {
+    const rr = req.body;
+    if (!issetOutputFileUrlRequest(rr)) {
+      res.status(400).json({ error: "Invalid request" });
+      return;
+    }
+    try {
+      const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
+      if (!jobPrivateKey) {
+        res.status(400).json({ error: "Job private key must be provided" });
+        return;
+      }
+      const jobId = rr.jobId;
+      const outputName = rr.outputName;
+      const url = rr.url;
+      const job = await fetchJob(jobId, {includeSecrets: false, includePrivateKey: true});
+      if (!job) {
+        res.status(404).json({ error: "Job not found" });
+        return;
+      }
+      if (job.jobPrivateKey !== jobPrivateKey) {
+        res.status(403).json({ error: "Unauthorized" });
+        return;
+      }
+      if (job.status !== 'running') {
+        res.status(400).json({ error: "Job is not running" });
+        return;
+      }
+      const oo = job.jobDefinition.outputFiles.find(o => (o.name === outputName));
+      if (!oo) {
+        res.status(400).json({ error: "Output name not found in job definition" });
+        return;
+      }
+      if (!oo.urlDeterminedAtRuntime) {
+        res.status(400).json({ error: "Output url is not determined at run time" });
+        return;
+      }
+      const outputFileResultFound = job.outputFileResults.find(o => (o.name === outputName));
+      if (!outputFileResultFound) {
+        res.status(400).json({ error: "Output file result not found" });
+        return;
+      }
+      if (outputFileResultFound.url) {
+        res.status(400).json({ error: "Output file url is already set" });
+        return;
+      }
+      const newOutputFileResults = job.outputFileResults.map(o => {
+        if (o.name === outputName) {
+          return {
+            ...o,
+            url,
+          };
+        }
+        return o;
+      });
+      const newOutputFileUrls = newOutputFileResults.map(o => o.url);
+      await updateJob(jobId, { outputFileResults: newOutputFileResults, outputFiles: newOutputFileUrls });
+      const resp: setOutputFileUrlResponse = {
+        type: "setOutputFileUrlResponse"
+      };
+      res.status(200).json(resp);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message });
+    }
+  }
 );
 
 const generateJobId = () => {

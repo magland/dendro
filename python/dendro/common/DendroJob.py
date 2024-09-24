@@ -24,6 +24,7 @@ class DendroJobInputFile(BaseModel):
 class DendroJobOutputFile(BaseModel):
     name: str
     fileBaseName: str
+    urlDeterminedAtRuntime: Union[bool, None] = None
 
 
 class DendroJobParameter(BaseModel):

@@ -335,6 +335,59 @@ def create_job(
     return job
 
 
+def set_output_url(
+    *,
+    job_id: str,
+    job_private_key: str,
+    output_name: str,
+    url: str
+):
+    url_path = '/api/setOutputFileUrl'
+    req = {
+        'type': 'setOutputFileUrlRequest',
+        'jobId': job_id,
+        'outputName': output_name,
+        'url': url
+    }
+    headers = {
+        'Authorization': f'Bearer {job_private_key}'
+    }
+    res = _post_api_request(
+        url_path=url_path,
+        data=req,
+        headers=headers
+    )
+    if res['type'] != 'setOutputFileUrlResponse':
+        raise Exception('Unexpected response for setOutputFileUrlRequest')
+
+
+# For now, we can get the DANDI API key, but only in restricted
+# circumstances. In the future the API key will remain secret on the
+# server.
+def api_get_dandi_api_key(*,
+    job_id: str,
+    job_private_key: str,
+    output_name: str
+):
+    url_path = '/api/getDandiApiKey'
+    req = {
+        'type': 'getDandiApiKeyRequest',
+        'jobId': job_id,
+        'outputName': output_name
+    }
+    headers = {
+        'Authorization': f'Bearer {job_private_key}'
+    }
+    res = _post_api_request(
+        url_path=url_path,
+        data=req,
+        headers=headers
+    )
+    if res['type'] != 'getDandiApiKeyResponse':
+        raise Exception('Unexpected response for getDandiApiKeyRequest')
+    return res['dandiApiKey']
+
+
 def _post_api_request(*,
     url_path: str,
     data: dict,

@@ -21,6 +21,7 @@ def upload_additional_job_output(
         other_name=remote_fname,
         size=os.path.getsize(local_file_name)
     )
+    assert isinstance(upload_url, str)
 
     print(f'[] Uploading other file {remote_fname}') # it could be a security issue to provide the url in this print statement
     with open(local_file_name, 'rb') as f:
