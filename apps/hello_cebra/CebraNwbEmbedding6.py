@@ -22,6 +22,7 @@ class CebraNwbEmbedding6(ProcessorBase):
         context: CebraNwbEmbedding6Context
     ):
         import lindi
+        from lindi import add_additional_url_resolver
         import numpy as np
         import cebra
         import torch
@@ -29,8 +30,11 @@ class CebraNwbEmbedding6(ProcessorBase):
         from pynwb.file import ProcessingModule
         from pynwb.misc import TimeSeries
         from qfc.codecs import QFCCodec
+        from helpers.dandi_url_resolver import dandi_url_resolver
 
         QFCCodec.register_codec()
+
+        add_additional_url_resolver(dandi_url_resolver)
 
         units_path = context.units_path
         batch_size = context.batch_size

@@ -132,6 +132,8 @@ def _run_job_child_process(*, job_id: str, job_private_key: str, processors: Lis
     print('[dendro] Preparing to run processor')
     _set_custom_kachery_storage_backend(job_id=job_id, job_private_key=job_private_key)
 
+    _add_additional_lindi_url_resolvers(job_id=job_id, job_private_key=job_private_key)
+
     # Run the processor function
     print('[dendro] Running processor')
     processor_class.run(context)
@@ -210,3 +212,22 @@ def _compute_sha1_of_file(file_path: str):
                 break
             sha1.update(chunk)
     return sha1.hexdigest()
+
+
+def _add_additional_lindi_url_resolvers(*, job_id: str, job_private_key: str):
+    try:
+        import lindi  # noqa: F401
+    except ImportError:
+        # if we don't have lindi installed, then let's not worry about it
+        return
+
+    try:
+        from lindi import add_additional_url_resolver
+        from .resolve_dandi_url import resolve_dandi_url
+
+        def url_resolver(url: str):
+            return resolve_dandi_url(url, job_id=job_id, job_private_key=job_private_key)
+        add_additional_url_resolver(url_resolver)
+    except Exception as e:
+        print('WARNING: Problem adding additional lindi url resolvers:', e)
+        return
