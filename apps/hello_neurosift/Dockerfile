@@ -23,9 +23,11 @@ RUN git clone https://github.com/magland/dendro \
     && pip install -e . \
     && echo "v32"
 
-# Install lindi from prerelease
-WORKDIR /src
-RUN pip install lindi==0.4.0a2
+# Install lindi
+RUN pip install lindi
+
+# Install dandi
+RUN pip install dandi
 
 # Install qfc
 RUN pip install qfc==0.3.6

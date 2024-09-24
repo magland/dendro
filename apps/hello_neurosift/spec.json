@@ -337,6 +337,50 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "name": "dandi_upload",
+            "description": "Upload an NWB file to DANDI",
+            "label": "dandi_upload",
+            "image": "magland/dendro-hello-neurosift:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [
+                {
+                    "name": "input",
+                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": "Uploaded NWB file",
+                    "urlDeterminedAtRuntime": true
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "dandataset_id",
+                    "type": "str",
+                    "description": "Dandiset ID"
+                },
+                {
+                    "name": "dandiset_version",
+                    "type": "str",
+                    "description": "Dandiset version"
+                },
+                {
+                    "name": "asset_path",
+                    "type": "str",
+                    "description": "Path to the asset in the dandiset"
+                },
+                {
+                    "name": "staging",
+                    "type": "bool",
+                    "description": "Whether to use the staging server",
+                    "defaultValue": true
+                }
+            ],
+            "attributes": []
         }
     ]
 }
