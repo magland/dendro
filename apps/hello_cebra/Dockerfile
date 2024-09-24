@@ -13,15 +13,10 @@ RUN git clone https://github.com/magland/dendro \
     && cd dendro \
     && cd python \
     && pip install -e . \
-    && echo "v30"
+    && echo "v41"
 
-# Install lindi from branch
-WORKDIR /src
-RUN git clone https://github.com/neurodatawithoutborders/lindi \
-    && cd lindi \
-    && git checkout lindi-tar \
-    && pip install -e . \
-    && echo "v7"
+# Install lindi
+RUN pip install lindi
 
 # Install pynwb
 RUN pip install pynwb
