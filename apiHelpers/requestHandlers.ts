@@ -3195,7 +3195,7 @@ export const setOutputFileUrlHandler = allowCors(
         return o;
       });
       const newOutputFileUrls = newOutputFileResults.map(o => o.url);
-      await updateJob(jobId, { outputFileResults: newOutputFileResults, outputFiles: newOutputFileUrls });
+      await updateJob(jobId, { outputFileResults: newOutputFileResults, outputFileUrlList: newOutputFileUrls });
       const resp: setOutputFileUrlResponse = {
         type: "setOutputFileUrlResponse"
       };
