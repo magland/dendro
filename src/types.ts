@@ -892,6 +892,7 @@ export const isFindJobsResponse = (x: any): x is FindJobsResponse => {
 export type GetRunnableJobsForComputeClientRequest = {
   type: "getRunnableJobsForComputeClientRequest";
   computeClientId: string;
+  jobId?: string;
 };
 
 export const isGetRunnableJobsForComputeClientRequest = (
@@ -900,6 +901,7 @@ export const isGetRunnableJobsForComputeClientRequest = (
   return validateObject(x, {
     type: isEqualTo("getRunnableJobsForComputeClientRequest"),
     computeClientId: isString,
+    jobId: optional(isString),
   });
 };
 

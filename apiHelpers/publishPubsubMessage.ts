@@ -1,4 +1,8 @@
-import { isPublishResponse, PublishRequest, PublishTokenObject } from "./ephemeriPubsubTypes"; // remove .js for local dev
+import {
+  isPublishResponse,
+  PublishRequest,
+  PublishTokenObject,
+} from "./ephemeriPubsubTypes"; // remove .js for local dev
 import crypto from "crypto";
 
 const publishPubsubMessage = async (channel: string, message: any) => {
@@ -23,7 +27,7 @@ const publishPubsubMessage = async (channel: string, message: any) => {
 
   const EPHEMERI_PUBSUB_URL = process.env.EPHEMERI_PUBSUB_URL;
   const EPHEMERI_PUBSUB_API_KEY = process.env.EPHEMERI_PUBSUB_API_KEY;
-  if ((EPHEMERI_PUBSUB_URL) && (EPHEMERI_PUBSUB_API_KEY)) {
+  if (EPHEMERI_PUBSUB_URL && EPHEMERI_PUBSUB_API_KEY) {
     const url = `${EPHEMERI_PUBSUB_URL}/publish`;
     const messageJson = JSON.stringify(message);
     const publishTokenObject: PublishTokenObject = {
@@ -35,15 +39,15 @@ const publishPubsubMessage = async (channel: string, message: any) => {
     const publishToken = JSON.stringify(publishTokenObject);
     const tokenSignature = sha1(`${publishToken}${EPHEMERI_PUBSUB_API_KEY}`);
     const req: PublishRequest = {
-      type: 'publishRequest',
+      type: "publishRequest",
       publishToken,
       tokenSignature,
-      messageJson
+      messageJson,
     };
     const response = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(req),
     });
@@ -54,11 +58,14 @@ const publishPubsubMessage = async (channel: string, message: any) => {
     }
     const resp = await response.json();
     if (!isPublishResponse(resp)) {
-      throw new Error(`Invalid response from ephemeri pubsub: ${JSON.stringify(resp)}`);
+      throw new Error(
+        `Invalid response from ephemeri pubsub: ${JSON.stringify(resp)}`,
+      );
     }
-  }
-  else {
-    console.warn("EPHEMERI_PUBSUB_URL or EPHEMERI_PUBSUB_API_KEY not set, skipping ephemeri pubsub");
+  } else {
+    console.warn(
+      "EPHEMERI_PUBSUB_URL or EPHEMERI_PUBSUB_API_KEY not set, skipping ephemeri pubsub",
+    );
   }
 };
 

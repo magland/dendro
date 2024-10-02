@@ -1,386 +1,386 @@
 {
-    "name": "hello_neurosift",
-    "description": "Neurosift processors",
-    "processors": [
+  "name": "hello_neurosift",
+  "description": "Neurosift processors",
+  "processors": [
+    {
+      "name": "units_summary_1",
+      "description": "Compute autocorrelograms for a units table in an NWB file",
+      "label": "units_summary_1",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
         {
-            "name": "units_summary_1",
-            "description": "Compute autocorrelograms for a units table in an NWB file",
-            "label": "units_summary_1",
-            "image": "magland/dendro-hello-neurosift:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "Output data in .lindi.tar format"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "units_path",
-                    "type": "str",
-                    "description": "Path to the units table in the NWB file",
-                    "defaultValue": "units"
-                },
-                {
-                    "name": "correlogram_window_size_msec",
-                    "type": "float",
-                    "description": "Correlogram window size in milliseconds",
-                    "defaultValue": 100
-                },
-                {
-                    "name": "correlogram_bin_size_msec",
-                    "type": "float",
-                    "description": "Correlogram bin size in milliseconds",
-                    "defaultValue": 1
-                }
-            ],
-            "attributes": []
-        },
-        {
-            "name": "ephys_summary_1",
-            "description": "Compute summary information for an electrophysiology dataset",
-            "label": "ephys_summary_1",
-            "image": "magland/dendro-hello-neurosift:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "Output data in .lindi.tar format"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "electrical_series_path",
-                    "type": "str",
-                    "description": "Path to the electrical series object in the NWB file"
-                },
-                {
-                    "name": "segment_start_time_sec",
-                    "type": "float",
-                    "description": "Start time of segment to analyze in seconds"
-                },
-                {
-                    "name": "segment_duration_sec",
-                    "type": "float",
-                    "description": "Duration of segment to analyze in seconds"
-                }
-            ],
-            "attributes": []
-        },
-        {
-            "name": "avi_to_mp4",
-            "description": "Convert an .avi file to an .mp4 file",
-            "label": "avi_to_mp4",
-            "image": "magland/dendro-hello-neurosift:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "Input .avi file"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "Output .mp4 file"
-                },
-                {
-                    "name": "info",
-                    "description": "Output .json info file"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "duration_sec",
-                    "type": "str",
-                    "description": "The duration of the output video in seconds",
-                    "defaultValue": 10
-                }
-            ],
-            "attributes": []
-        },
-        {
-            "name": "ephys_preprocess",
-            "description": "Run preprocessing on an electrophysiology dataset",
-            "label": "ephys_preprocess",
-            "image": "magland/dendro-hello-neurosift:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "Output data in .nwb.lindi.tar format"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "electrical_series_path",
-                    "type": "str",
-                    "description": "Path to the electrical series object in the NWB file"
-                }
-            ],
-            "attributes": []
-        },
-        {
-            "name": "prepare_ephys_spike_sorting_dataset",
-            "description": "Run preprocessing on an electrophysiology dataset in preparation for spike sorting",
-            "label": "prepare_ephys_spike_sorting_dataset",
-            "image": "magland/dendro-hello-neurosift:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "New NWB file in .nwb.lindi.tar format"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "electrical_series_path",
-                    "type": "str",
-                    "description": "Path to the electrical series object in the NWB file"
-                },
-                {
-                    "name": "duration_sec",
-                    "type": "float",
-                    "description": "Duration of the recording to process, or 0 to process the entire recording"
-                },
-                {
-                    "name": "electrode_indices",
-                    "type": "List[int]",
-                    "description": "List of electrode indices to process"
-                },
-                {
-                    "name": "freq_min",
-                    "type": "float",
-                    "description": "Minimum frequency for bandpass filter"
-                },
-                {
-                    "name": "freq_max",
-                    "type": "float",
-                    "description": "Maximum frequency for bandpass filter"
-                },
-                {
-                    "name": "compression_ratio",
-                    "type": "float",
-                    "description": "Target compression ratio"
-                },
-                {
-                    "name": "output_electrical_series_name",
-                    "type": "str",
-                    "description": "Name of the output electrical series object"
-                }
-            ],
-            "attributes": []
-        },
-        {
-            "name": "mountainsort5",
-            "description": "Run spike sorting using MountainSort5",
-            "label": "mountainsort5",
-            "image": "magland/dendro-hello-neurosift:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "Input NWB file in .nwb.lindi.tar format"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "New NWB file in .nwb.lindi.tar format"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "electrical_series_path",
-                    "type": "str",
-                    "description": "Path to the electrical series object in the NWB file"
-                },
-                {
-                    "name": "output_units_name",
-                    "type": "str",
-                    "description": "Name of the output units object"
-                },
-                {
-                    "name": "detect_threshold",
-                    "type": "float",
-                    "description": "Threshold for spike detection"
-                },
-                {
-                    "name": "channel_radius",
-                    "type": "float",
-                    "description": "Channel radius for spike detection"
-                }
-            ],
-            "attributes": []
-        },
-        {
-            "name": "spike_sorting_post_processing",
-            "description": "Run post processing on an electrophysiology dataset after spike sorting and add columns to the units table",
-            "label": "spike_sorting_post_processing",
-            "image": "magland/dendro-hello-neurosift:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "New NWB file in .nwb.lindi.tar format"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "electrical_series_path",
-                    "type": "str",
-                    "description": "Path to the electrical series object in the NWB file"
-                },
-                {
-                    "name": "units_path",
-                    "type": "str",
-                    "description": "Path to the units object in the NWB file"
-                },
-                {
-                    "name": "n_jobs",
-                    "type": "int",
-                    "description": "Number of jobs to run in parallel",
-                    "defaultValue": -1
-                },
-                {
-                    "name": "metric_names",
-                    "type": "List[str]",
-                    "description": "List of metric names to compute",
-                    "defaultValue": [
-                        "firing_rate",
-                        "isi_violation",
-                        "rp_violation",
-                        "snr",
-                        "presence_ratio",
-                        "amplitude_cutoff",
-                        "amplitude_median"
-                    ]
-                }
-            ],
-            "attributes": []
-        },
-        {
-            "name": "tuning_analysis_000363",
-            "description": "Special analysis for 000363 Dandiset",
-            "label": "tuning_analysis_000363",
-            "image": "magland/dendro-hello-neurosift:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "Output NWB file in .nwb.lindi.tar format"
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "units_path",
-                    "type": "str",
-                    "description": "Path to the units table in the NWB file",
-                    "defaultValue": "/units"
-                },
-                {
-                    "name": "behavior_paths",
-                    "type": "List[str]",
-                    "description": "Paths to the behavior timeseries in the NWB file"
-                },
-                {
-                    "name": "behavior_dimensions",
-                    "type": "List[int]",
-                    "description": "Zero-based dimension indices to use for the behavior signal"
-                },
-                {
-                    "name": "behavior_output_prefixes",
-                    "type": "List[str]",
-                    "description": "Output prefixes for the behavior timeseries in the NWB file"
-                },
-                {
-                    "name": "trials_path",
-                    "type": "str",
-                    "description": "Path to the trials table in the NWB file",
-                    "defaultValue": "/intervals/trials"
-                }
-            ],
-            "attributes": []
-        },
-        {
-            "name": "dandi_upload",
-            "description": "Upload an NWB file to DANDI",
-            "label": "dandi_upload",
-            "image": "magland/dendro-hello-neurosift:0.1.0",
-            "executable": "/app/main.py",
-            "inputs": [
-                {
-                    "name": "input",
-                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "description": "Uploaded NWB file",
-                    "urlDeterminedAtRuntime": true
-                }
-            ],
-            "parameters": [
-                {
-                    "name": "dandiset_id",
-                    "type": "str",
-                    "description": "Dandiset ID"
-                },
-                {
-                    "name": "dandiset_version",
-                    "type": "str",
-                    "description": "Dandiset version"
-                },
-                {
-                    "name": "asset_path",
-                    "type": "str",
-                    "description": "Path to the asset in the dandiset"
-                },
-                {
-                    "name": "staging",
-                    "type": "bool",
-                    "description": "Whether to use the staging server",
-                    "defaultValue": true
-                }
-            ],
-            "attributes": []
+          "name": "input",
+          "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
         }
-    ]
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "Output data in .lindi.tar format"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "units_path",
+          "type": "str",
+          "description": "Path to the units table in the NWB file",
+          "defaultValue": "units"
+        },
+        {
+          "name": "correlogram_window_size_msec",
+          "type": "float",
+          "description": "Correlogram window size in milliseconds",
+          "defaultValue": 100
+        },
+        {
+          "name": "correlogram_bin_size_msec",
+          "type": "float",
+          "description": "Correlogram bin size in milliseconds",
+          "defaultValue": 1
+        }
+      ],
+      "attributes": []
+    },
+    {
+      "name": "ephys_summary_1",
+      "description": "Compute summary information for an electrophysiology dataset",
+      "label": "ephys_summary_1",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
+        {
+          "name": "input",
+          "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "Output data in .lindi.tar format"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "electrical_series_path",
+          "type": "str",
+          "description": "Path to the electrical series object in the NWB file"
+        },
+        {
+          "name": "segment_start_time_sec",
+          "type": "float",
+          "description": "Start time of segment to analyze in seconds"
+        },
+        {
+          "name": "segment_duration_sec",
+          "type": "float",
+          "description": "Duration of segment to analyze in seconds"
+        }
+      ],
+      "attributes": []
+    },
+    {
+      "name": "avi_to_mp4",
+      "description": "Convert an .avi file to an .mp4 file",
+      "label": "avi_to_mp4",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
+        {
+          "name": "input",
+          "description": "Input .avi file"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "Output .mp4 file"
+        },
+        {
+          "name": "info",
+          "description": "Output .json info file"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "duration_sec",
+          "type": "str",
+          "description": "The duration of the output video in seconds",
+          "defaultValue": 10
+        }
+      ],
+      "attributes": []
+    },
+    {
+      "name": "ephys_preprocess",
+      "description": "Run preprocessing on an electrophysiology dataset",
+      "label": "ephys_preprocess",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
+        {
+          "name": "input",
+          "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "Output data in .nwb.lindi.tar format"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "electrical_series_path",
+          "type": "str",
+          "description": "Path to the electrical series object in the NWB file"
+        }
+      ],
+      "attributes": []
+    },
+    {
+      "name": "prepare_ephys_spike_sorting_dataset",
+      "description": "Run preprocessing on an electrophysiology dataset in preparation for spike sorting",
+      "label": "prepare_ephys_spike_sorting_dataset",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
+        {
+          "name": "input",
+          "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "New NWB file in .nwb.lindi.tar format"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "electrical_series_path",
+          "type": "str",
+          "description": "Path to the electrical series object in the NWB file"
+        },
+        {
+          "name": "duration_sec",
+          "type": "float",
+          "description": "Duration of the recording to process, or 0 to process the entire recording"
+        },
+        {
+          "name": "electrode_indices",
+          "type": "List[int]",
+          "description": "List of electrode indices to process"
+        },
+        {
+          "name": "freq_min",
+          "type": "float",
+          "description": "Minimum frequency for bandpass filter"
+        },
+        {
+          "name": "freq_max",
+          "type": "float",
+          "description": "Maximum frequency for bandpass filter"
+        },
+        {
+          "name": "compression_ratio",
+          "type": "float",
+          "description": "Target compression ratio"
+        },
+        {
+          "name": "output_electrical_series_name",
+          "type": "str",
+          "description": "Name of the output electrical series object"
+        }
+      ],
+      "attributes": []
+    },
+    {
+      "name": "mountainsort5",
+      "description": "Run spike sorting using MountainSort5",
+      "label": "mountainsort5",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
+        {
+          "name": "input",
+          "description": "Input NWB file in .nwb.lindi.tar format"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "New NWB file in .nwb.lindi.tar format"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "electrical_series_path",
+          "type": "str",
+          "description": "Path to the electrical series object in the NWB file"
+        },
+        {
+          "name": "output_units_name",
+          "type": "str",
+          "description": "Name of the output units object"
+        },
+        {
+          "name": "detect_threshold",
+          "type": "float",
+          "description": "Threshold for spike detection"
+        },
+        {
+          "name": "channel_radius",
+          "type": "float",
+          "description": "Channel radius for spike detection"
+        }
+      ],
+      "attributes": []
+    },
+    {
+      "name": "spike_sorting_post_processing",
+      "description": "Run post processing on an electrophysiology dataset after spike sorting and add columns to the units table",
+      "label": "spike_sorting_post_processing",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
+        {
+          "name": "input",
+          "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "New NWB file in .nwb.lindi.tar format"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "electrical_series_path",
+          "type": "str",
+          "description": "Path to the electrical series object in the NWB file"
+        },
+        {
+          "name": "units_path",
+          "type": "str",
+          "description": "Path to the units object in the NWB file"
+        },
+        {
+          "name": "n_jobs",
+          "type": "int",
+          "description": "Number of jobs to run in parallel",
+          "defaultValue": -1
+        },
+        {
+          "name": "metric_names",
+          "type": "List[str]",
+          "description": "List of metric names to compute",
+          "defaultValue": [
+            "firing_rate",
+            "isi_violation",
+            "rp_violation",
+            "snr",
+            "presence_ratio",
+            "amplitude_cutoff",
+            "amplitude_median"
+          ]
+        }
+      ],
+      "attributes": []
+    },
+    {
+      "name": "tuning_analysis_000363",
+      "description": "Special analysis for 000363 Dandiset",
+      "label": "tuning_analysis_000363",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
+        {
+          "name": "input",
+          "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "Output NWB file in .nwb.lindi.tar format"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "units_path",
+          "type": "str",
+          "description": "Path to the units table in the NWB file",
+          "defaultValue": "/units"
+        },
+        {
+          "name": "behavior_paths",
+          "type": "List[str]",
+          "description": "Paths to the behavior timeseries in the NWB file"
+        },
+        {
+          "name": "behavior_dimensions",
+          "type": "List[int]",
+          "description": "Zero-based dimension indices to use for the behavior signal"
+        },
+        {
+          "name": "behavior_output_prefixes",
+          "type": "List[str]",
+          "description": "Output prefixes for the behavior timeseries in the NWB file"
+        },
+        {
+          "name": "trials_path",
+          "type": "str",
+          "description": "Path to the trials table in the NWB file",
+          "defaultValue": "/intervals/trials"
+        }
+      ],
+      "attributes": []
+    },
+    {
+      "name": "dandi_upload",
+      "description": "Upload an NWB file to DANDI",
+      "label": "dandi_upload",
+      "image": "magland/dendro-hello-neurosift:0.1.0",
+      "executable": "/app/main.py",
+      "inputs": [
+        {
+          "name": "input",
+          "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "description": "Uploaded NWB file",
+          "urlDeterminedAtRuntime": true
+        }
+      ],
+      "parameters": [
+        {
+          "name": "dandiset_id",
+          "type": "str",
+          "description": "Dandiset ID"
+        },
+        {
+          "name": "dandiset_version",
+          "type": "str",
+          "description": "Dandiset version"
+        },
+        {
+          "name": "asset_path",
+          "type": "str",
+          "description": "Path to the asset in the dandiset"
+        },
+        {
+          "name": "staging",
+          "type": "bool",
+          "description": "Whether to use the staging server",
+          "defaultValue": true
+        }
+      ],
+      "attributes": []
+    }
+  ]
 }

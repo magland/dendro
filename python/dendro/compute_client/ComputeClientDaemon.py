@@ -8,6 +8,7 @@ from pathlib import Path
 from .JobManager import JobManager
 from ..common.api_requests import get_runnable_jobs_for_compute_client
 from .PubsubClient import PubsubClient
+from ._start_job import _start_job
 
 
 class ComputeClientDaemon:
@@ -125,6 +126,18 @@ class ComputeClientDaemon:
             if pubsub_client is not None:
                 # right now there's no way to kill the pubsub client's websocket connection
                 pass
+
+    def run_pending_job(self, job_id: str):
+        runnable_jobs, running_jobs = get_runnable_jobs_for_compute_client(
+            compute_client_id=self._compute_client_id,
+            compute_client_private_key=self._compute_client_private_key,
+            job_id=job_id
+        )
+        if len(runnable_jobs) == 0:
+            raise Exception(f'No runnable job with ID {job_id} that is assignable to this compute client')
+        if len(runnable_jobs) > 1:
+            raise Exception(f'More than one runnable job with ID {job_id} found')
+        _start_job(job=runnable_jobs[0], compute_client_id=self._compute_client_id, daemon_mode=False)
 
     def _handle_jobs(self):
         print('Checking for new jobs')

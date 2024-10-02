@@ -13,7 +13,8 @@ class JobException(Exception):
 
 def _start_job(*,
     job: DendroJob,
-    compute_client_id: str
+    compute_client_id: str,
+    daemon_mode: bool
 ):
     job_id = job.jobId
     job_private_key = job.jobPrivateKey
@@ -67,8 +68,9 @@ def _start_job(*,
         env_vars=env_vars,
         job_dir=job_dir,
         num_cpus=job_required_resources.numCpus,
-        use_gpu=job_required_resources.numGpus > 0
+        use_gpu=job_required_resources.numGpus > 0,
         # don't actually limit the memory, because we don't want the process being harshly terminated - it needs to be able to clean up
+        daemon_mode=daemon_mode
     )
 
 # This was the method used previously when we wanted to capture the output of the process and display it to the console
@@ -98,7 +100,8 @@ def _run_container_job(*,
     env_vars: dict,
     job_dir: str,
     num_cpus: Union[int, None],
-    use_gpu: bool
+    use_gpu: bool,
+    daemon_mode: bool
 ):
     tmpdir = job_dir + '/tmp' # important to provide a /tmp directory for singularity or apptainer so that it doesn't run out of disk space
     os.makedirs(tmpdir, exist_ok=True)
@@ -149,14 +152,22 @@ fi
         print(f'Pulling image {processor_image}')
         subprocess.run(['docker', 'pull', processor_image])
         print(f'Running: {" ".join(cmd2)}')
-        subprocess.Popen(
-            cmd2,
-            cwd=job_dir,
-            start_new_session=True, # This is important so it keeps running even if the compute resource is stopped
-            # Important to set output to devnull so that we don't get a broken pipe error if this parent process is closed
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        if daemon_mode:
+            subprocess.Popen(
+                cmd2,
+                cwd=job_dir,
+                start_new_session=True, # This is important so it keeps running even if the compute resource is stopped
+                # Important to set output to devnull so that we don't get a broken pipe error if this parent process is closed
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        else:
+            subprocess.run(
+                cmd2,
+                cwd=job_dir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
     elif container_method == 'singularity' or container_method == 'apptainer':
         os.makedirs(tmpdir, exist_ok=True)
         os.makedirs(tmpdir + '/working', exist_ok=True)
@@ -196,14 +207,22 @@ fi
         cmd2.extend([f'docker://{processor_image}']) # todo: what if it's not a dockerhub image?
         cmd2.extend(['/bin/bash', '/tmp/run.sh'])
         print(f'Running: {" ".join(cmd2)}')
-        subprocess.Popen(
-            cmd2,
-            cwd=job_dir,
-            start_new_session=True, # This is important so it keeps running even if the compute resource is stopped
-            # Important to set output to devnull so that we don't get a broken pipe error if this parent process is closed
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        if daemon_mode:
+            subprocess.Popen(
+                cmd2,
+                cwd=job_dir,
+                start_new_session=True, # This is important so it keeps running even if the compute resource is stopped
+                # Important to set output to devnull so that we don't get a broken pipe error if this parent process is closed
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        else:
+            subprocess.run(
+                cmd2,
+                cwd=job_dir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
     else:
         raise JobException(f'Unexpected container method: {container_method}')
     # Wait a bit and see if the process has failed right away. This can often happen

@@ -33,7 +33,8 @@ class JobManager:
             from ._start_job import _start_job
             return _start_job(
                 job=job,
-                compute_client_id=self._compute_client_id
+                compute_client_id=self._compute_client_id,
+                daemon_mode=True
             )
         except Exception as e: # pylint: disable=broad-except
             # do a traceback
@@ -54,6 +55,8 @@ class JobManager:
         self._attempted_to_fail_job_ids.add(job_id)
         job_id = job.jobId
         job_private_key = job.jobPrivateKey
+        if job_private_key is None:
+            raise Exception('Unexpected: job_private_key is None')
         print(f'Failing job {job_id}: {error}')
         set_job_status(
             job_id=job_id,

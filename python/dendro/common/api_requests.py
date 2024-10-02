@@ -79,13 +79,16 @@ def set_job_status(
 def get_runnable_jobs_for_compute_client(
     *,
     compute_client_id: str,
-    compute_client_private_key
+    compute_client_private_key: str,
+    job_id: Union[str, None] = None
 ):
     url_path = '/api/getRunnableJobsForComputeClient'
     req = {
         'type': 'getRunnableJobsForComputeClientRequest',
         'computeClientId': compute_client_id
     }
+    if job_id is not None:
+        req['jobId'] = job_id
     headers = {
         'Authorization': f'Bearer {compute_client_private_key}'
     }

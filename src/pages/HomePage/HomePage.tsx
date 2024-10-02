@@ -12,19 +12,19 @@ type Props = {
 const HomePage: FunctionComponent<Props> = () => {
   const { setRoute } = useRoute();
   const { recentServices } = useRecentServices();
-  const a = localStorage.getItem('in-process-of-registering-compute-client')
+  const a = localStorage.getItem("in-process-of-registering-compute-client");
   return (
     <div style={{ padding: 30 }}>
       <h3>Dendro: Dendro Prototype 3</h3>
-      {
-        a && (
-          <Hyperlink onClick={() => {
-            setRoute(JSON.parse(a))
-          }}>
-            CONTINUE REGISTERING COMPUTE CLIENT
-          </Hyperlink>
-        )
-      }
+      {a && (
+        <Hyperlink
+          onClick={() => {
+            setRoute(JSON.parse(a));
+          }}
+        >
+          CONTINUE REGISTERING COMPUTE CLIENT
+        </Hyperlink>
+      )}
       <p>
         <a
           href="https://github.com/magland/dendro"

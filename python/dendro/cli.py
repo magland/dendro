@@ -1,49 +1,63 @@
 from typing import Union
 import socket
 import click
-from .compute_client.register_compute_client import register_compute_client as register_compute_client_function
-from .compute_client.start_compute_client import start_compute_client as start_compute_client_function
+from .compute_client.register_compute_client import (
+    register_compute_client as register_compute_client_function,
+)
+from .compute_client.start_compute_client import (
+    start_compute_client as start_compute_client_function,
+)
+from .compute_client.run_pending_job import run_pending_job as run_pending_job_function
 from .sdk._make_spec_file import make_app_spec_file_function
 
 
 # ------------------------------------------------------------
-# Compute client
+# Run compute client
 # ------------------------------------------------------------
-@click.command(help='Register a compute client in the current directory')
-@click.option('--compute-client-name', default=None, help='Name of the compute client')
-@click.option('--service-name', default=None, help='Name of the service')
+@click.command(help="Register a compute client in the current directory")
+@click.option("--compute-client-name", default=None, help="Name of the compute client")
+@click.option("--service-name", default=None, help="Name of the service")
 def register_compute_client(
-    compute_client_name: Union[str, None],
-    service_name: Union[str, None]
+    compute_client_name: Union[str, None], service_name: Union[str, None]
 ):
     if service_name is None:
-        service_name = input('Enter the name of the dendro service: ')
+        service_name = input("Enter the name of the dendro service: ")
     if compute_client_name is None:
         default_compute_client_name = socket.gethostname()
-        compute_client_name = input(f'Enter a unique name for the compute client [{default_compute_client_name}]: ')
-        if compute_client_name == '':
+        compute_client_name = input(
+            f"Enter a unique name for the compute client [{default_compute_client_name}]: "
+        )
+        if compute_client_name == "":
             compute_client_name = default_compute_client_name
     register_compute_client_function(
-        dir='.',
-        compute_client_name=compute_client_name,
-        service_name=service_name
+        dir=".", compute_client_name=compute_client_name, service_name=service_name
     )
 
-@click.command(help='Start a compute client in the current directory')
-@click.option('--exit-when-idle', is_flag=True, help='Exit when idle')
+
+# ------------------------------------------------------------
+# Start compute client
+# ------------------------------------------------------------
+@click.command(help="Start a compute client in the current directory")
+@click.option("--exit-when-idle", is_flag=True, help="Exit when idle")
 def start_compute_client(exit_when_idle: bool):
-    start_compute_client_function(
-        dir='.',
-        exit_when_idle=exit_when_idle
-    )
+    start_compute_client_function(dir=".", exit_when_idle=exit_when_idle)
 
 
 # ------------------------------------------------------------
-# App cli
+# Run pending job
 # ------------------------------------------------------------
-@click.command(help='Make an app spec file')
-@click.option('--app-dir', default='.', help='Path to the app directory')
-@click.option('--spec-output-file', default=None, help='Output file for the spec')
+@click.command(help="Run a pending job")
+@click.argument("job_id", type=str)
+def run_pending_job(job_id: str):
+    run_pending_job_function(dir=".", job_id=job_id)
+
+
+# ------------------------------------------------------------
+# Make app spec file
+# ------------------------------------------------------------
+@click.command(help="Make an app spec file")
+@click.option("--app-dir", default=".", help="Path to the app directory")
+@click.option("--spec-output-file", default=None, help="Output file for the spec")
 def make_app_spec_file(app_dir: str, spec_output_file: str):
     make_app_spec_file_function(app_dir=app_dir, spec_output_file=spec_output_file)
 
@@ -51,21 +65,32 @@ def make_app_spec_file(app_dir: str, spec_output_file: str):
 # ------------------------------------------------------------
 # Internal job monitoring process
 # ------------------------------------------------------------
-@click.command(help='Internal job monitoring process')
-@click.argument('monitor_type', type=click.Choice(['resource_utilization', 'console_output', 'job_status']))
-@click.option('--parent-pid', required=True, help='Parent PID')
+@click.command(help="Internal job monitoring process")
+@click.argument(
+    "monitor_type",
+    type=click.Choice(["resource_utilization", "console_output", "job_status"]),
+)
+@click.option("--parent-pid", required=True, help="Parent PID")
 def internal_job_monitor(monitor_type: str, parent_pid: str):
-    if monitor_type == 'resource_utilization':
-        from .internal_job_monitoring.resource_utilization_monitor import resource_utilization_monitor
+    if monitor_type == "resource_utilization":
+        from .internal_job_monitoring.resource_utilization_monitor import (
+            resource_utilization_monitor,
+        )
+
         resource_utilization_monitor(parent_pid=parent_pid)
-    elif monitor_type == 'console_output':
-        from .internal_job_monitoring.console_output_monitor import console_output_monitor
+    elif monitor_type == "console_output":
+        from .internal_job_monitoring.console_output_monitor import (
+            console_output_monitor,
+        )
+
         console_output_monitor(parent_pid=parent_pid)
-    elif monitor_type == 'job_status':
+    elif monitor_type == "job_status":
         from .internal_job_monitoring.job_status_monitor import job_status_monitor
+
         job_status_monitor(parent_pid=parent_pid)
     else:
-        raise Exception(f'Unrecognized monitor_type: {monitor_type}')
+        raise Exception(f"Unrecognized monitor_type: {monitor_type}")
+
 
 # ------------------------------------------------------------
 # Main cli
@@ -73,6 +98,7 @@ def internal_job_monitor(monitor_type: str, parent_pid: str):
 @click.group(help="dendro command line interface")
 def main():
     pass
+
 
 main.add_command(register_compute_client)
 main.add_command(start_compute_client)

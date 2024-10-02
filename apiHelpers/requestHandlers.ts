@@ -536,7 +536,10 @@ export const createJobHandler = allowCors(
           { $sort: { timestampCreatedSec: -1 } }, // get the most recent matching job
           { $limit: 1 },
         ];
-        const jobs = await fetchJobs(pipeline, { includePrivateKey: false, includeSecrets: false });
+        const jobs = await fetchJobs(pipeline, {
+          includePrivateKey: false,
+          includeSecrets: false,
+        });
         if (jobs.length > 0) {
           const job = jobs[0];
           if (job.status === "failed" && rr.rerunFailing) {
@@ -606,14 +609,16 @@ export const createJobHandler = allowCors(
         const ofr: DendroJobOutputFileResult = {
           name: oo.name,
           fileBaseName: oo.fileBaseName,
-          url: oo.urlDeterminedAtRuntime ? '' : await createOutputFileUrl({
-            serviceName: rr.serviceName,
-            appName: rr.jobDefinition.appName,
-            processorName: rr.jobDefinition.processorName,
-            jobId,
-            outputName: oo.name,
-            outputFileBaseName: oo.fileBaseName,
-          }),
+          url: oo.urlDeterminedAtRuntime
+            ? ""
+            : await createOutputFileUrl({
+                serviceName: rr.serviceName,
+                appName: rr.jobDefinition.appName,
+                processorName: rr.jobDefinition.processorName,
+                jobId,
+                outputName: oo.name,
+                outputFileBaseName: oo.fileBaseName,
+              }),
           size: null,
         };
         outputFileResults.push(ofr);
@@ -698,7 +703,10 @@ export const findJobByDefinitionHandler = allowCors(
         { $sort: { timestampCreatedSec: -1 } }, // get the most recent matching job
         { $limit: 1 },
       ];
-      const jobs = await fetchJobs(pipeline, { includePrivateKey: false, includeSecrets: false });
+      const jobs = await fetchJobs(pipeline, {
+        includePrivateKey: false,
+        includeSecrets: false,
+      });
       if (jobs.length > 0) {
         const job = jobs[0];
         // double check that the  private key and the secrets are not included
@@ -730,7 +738,10 @@ export const findJobByDefinitionHandler = allowCors(
 
 const checkJobRunnable = async (jobDependencies: string[]) => {
   for (const jobId of jobDependencies) {
-    const job = await fetchJob(jobId, { includePrivateKey: false, includeSecrets: false });
+    const job = await fetchJob(jobId, {
+      includePrivateKey: false,
+      includeSecrets: false,
+    });
     if (!job) {
       return false;
     }
@@ -763,7 +774,10 @@ export const deleteJobsHandler = allowCors(
         return;
       }
       const pipeline = [{ $match: { jobId: { $in: jobIds } } }];
-      const jobs = await fetchJobs(pipeline, { includePrivateKey: false, includeSecrets: false });
+      const jobs = await fetchJobs(pipeline, {
+        includePrivateKey: false,
+        includeSecrets: false,
+      });
       const distinctServiceNames = Array.from(
         new Set(jobs.map((j) => j.serviceName)),
       );
@@ -854,7 +868,10 @@ export const findJobsHandler = allowCors(
       if (rr.limit) {
         pipeline.push({ $limit: limit });
       }
-      const jobs = await fetchJobs(pipeline, { includePrivateKey: false, includeSecrets: false });
+      const jobs = await fetchJobs(pipeline, {
+        includePrivateKey: false,
+        includeSecrets: false,
+      });
       // double check that the  private key and the secrets are not included
       for (const job of jobs) {
         if (job.jobPrivateKey) {
@@ -903,21 +920,34 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
         timestampLastActiveSec: Date.now() / 1000,
       });
 
-      const pipeline2 = [
-        { $match: { status: "running", computeClientId: rr.computeClientId } },
-        { $sort: { timestampCreatedSec: 1 } },
-        // important not to limit here, because we really need to know all the running jobs
-      ];
-      // NOTE: include private keys
-      const runningJobs = await fetchJobs(pipeline2, { includePrivateKey: true, includeSecrets: false });
-      // double check that the private keys are included but not the secrets
-      for (const job of runningJobs) {
-        if (!job.jobPrivateKey) {
-          throw new Error("Unexpected: job private key should not be null (4)");
+      let runningJobs: DendroJob[];
+      if (!rr.jobId) {
+        const pipeline2 = [
+          {
+            $match: { status: "running", computeClientId: rr.computeClientId },
+          },
+          { $sort: { timestampCreatedSec: 1 } },
+          // important not to limit here, because we really need to know all the running jobs
+        ];
+        // NOTE: include private keys
+        runningJobs = await fetchJobs(pipeline2, {
+          includePrivateKey: true,
+          includeSecrets: false,
+        });
+        // double check that the private keys are included but not the secrets
+        for (const job of runningJobs) {
+          if (!job.jobPrivateKey) {
+            throw new Error(
+              "Unexpected: job private key should not be null (4)",
+            );
+          }
+          if (job.secrets) {
+            throw new Error("Unexpected: job secrets should be null (4)");
+          }
         }
-        if (job.secrets) {
-          throw new Error("Unexpected: job secrets should be null (4)");
-        }
+      } else {
+        // if we are providing a jobId, we are not going to return the running jobs
+        runningJobs = [];
       }
 
       // we give priority to the first services in the list
@@ -941,6 +971,9 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
           status: "pending",
           isRunnable: true,
         };
+        if (rr.jobId) {
+          query["jobId"] = rr.jobId;
+        }
         if (computeClient.processJobsForUsers) {
           // only process jobs for particular users
           query["userId"] = { $in: computeClient.processJobsForUsers };
@@ -951,7 +984,10 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
           { $sort: { timestampCreatedSec: 1 } }, // handle earliest jobs first
         ];
         // NOTE: include private keys
-        let runnableJobs = await fetchJobs(pipeline, { includePrivateKey: true, includeSecrets: false });
+        let runnableJobs = await fetchJobs(pipeline, {
+          includePrivateKey: true,
+          includeSecrets: false,
+        });
         // scramble the pending jobs so that we don't always get the same ones
         // and minimize conflicts between compute clients when there are many
         // pending jobs
@@ -964,20 +1000,27 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
             return true;
           }
         });
-        for (const pj of runnableJobs) {
-          if (
-            computeResourceHasEnoughCapacityForJob(computeClient, pj, [
-              ...runningJobs,
-              ...allRunnableReadyJobs,
-            ])
-          ) {
-            allRunnableReadyJobs.push(pj);
+        if (!rr.jobId) {
+          for (const pj of runnableJobs) {
+            if (
+              computeResourceHasEnoughCapacityForJob(computeClient, pj, [
+                ...runningJobs,
+                ...allRunnableReadyJobs,
+              ])
+            ) {
+              allRunnableReadyJobs.push(pj);
+            }
           }
+        } else {
+          // if we are supplying a jobId, we are not going to check whether the compute client has enough capacity
+          allRunnableReadyJobs.push(...runnableJobs);
         }
         // double check that the private keys are included but not the secrets
         for (const job of runnableJobs) {
           if (!job.jobPrivateKey) {
-            throw new Error("Unexpected: job private key should not be null (5)");
+            throw new Error(
+              "Unexpected: job private key should not be null (5)",
+            );
           }
           if (job.secrets) {
             throw new Error("Unexpected: job secrets should be null (5)");
@@ -1057,7 +1100,10 @@ export const getJobHandler = allowCors(
     try {
       // exclude secrets, but include private key if requested
       // however, if requested we do a check below that the compute client is authorized
-      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: rr.includePrivateKey, includeSecrets: false });
+      const job = await fetchOneJobByJobId(rr.jobId, {
+        includePrivateKey: rr.includePrivateKey,
+        includeSecrets: false,
+      });
       if (!job) {
         // job not found
         // important to return undefined rather than returning an error
@@ -1128,7 +1174,10 @@ export const cancelJobHandler = allowCors(
       return;
     }
     try {
-      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: false, includeSecrets: false });
+      const job = await fetchOneJobByJobId(rr.jobId, {
+        includePrivateKey: false,
+        includeSecrets: false,
+      });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -1174,7 +1223,10 @@ export const setJobStatusHandler = allowCors(
         res.status(400).json({ error: "Job private key must be provided" });
         return;
       }
-      const job = await fetchJob(rr.jobId, { includePrivateKey: true, includeSecrets: false });
+      const job = await fetchJob(rr.jobId, {
+        includePrivateKey: true,
+        includeSecrets: false,
+      });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -1293,7 +1345,10 @@ export const setJobStatusHandler = allowCors(
             },
             // do not limit
           ];
-          const jobsThatMayHaveBecomeRunnable = await fetchJobs(pipeline, { includePrivateKey: false, includeSecrets: false });
+          const jobsThatMayHaveBecomeRunnable = await fetchJobs(pipeline, {
+            includePrivateKey: false,
+            includeSecrets: false,
+          });
           for (const j of jobsThatMayHaveBecomeRunnable) {
             const nowRunnable = await checkJobRunnable(j.jobDependencies);
             if (nowRunnable) {
@@ -1352,7 +1407,10 @@ export const getSignedUploadUrlHandler = allowCors(
       return;
     }
     try {
-      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: true, includeSecrets: false });
+      const job = await fetchOneJobByJobId(rr.jobId, {
+        includePrivateKey: true,
+        includeSecrets: false,
+      });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -1485,7 +1543,10 @@ export const finalizeMultipartUploadHandler = allowCors(
       return;
     }
     try {
-      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: true, includeSecrets: false });
+      const job = await fetchOneJobByJobId(rr.jobId, {
+        includePrivateKey: true,
+        includeSecrets: false,
+      });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -1530,7 +1591,10 @@ export const cancelMultipartUploadHandler = allowCors(
       return;
     }
     try {
-      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: true, includeSecrets: false });
+      const job = await fetchOneJobByJobId(rr.jobId, {
+        includePrivateKey: true,
+        includeSecrets: false,
+      });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -1573,7 +1637,10 @@ export const getSignedDownloadUrlHandler = allowCors(
       return;
     }
     try {
-      const job = await fetchOneJobByJobId(rr.jobId, { includePrivateKey: true, includeSecrets: true });
+      const job = await fetchOneJobByJobId(rr.jobId, {
+        includePrivateKey: true,
+        includeSecrets: true,
+      });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -1604,17 +1671,25 @@ export const getSignedDownloadUrlHandler = allowCors(
         }
       }
       if (!found) {
-        res.status(500).json({ error: "Cannot generate signed download URL. No input file with this URL in job." });
+        res
+          .status(500)
+          .json({
+            error:
+              "Cannot generate signed download URL. No input file with this URL in job.",
+          });
       }
       let signedUrl = url;
-      if ((signedUrl.startsWith('https://api.dandiarchive.org/api/') || signedUrl.startsWith('https://api-staging.dandiarchive.org/api/'))) {
-        const s = job.secrets?.find(s => (s.name === 'DANDI_API_KEY'));
+      if (
+        signedUrl.startsWith("https://api.dandiarchive.org/api/") ||
+        signedUrl.startsWith("https://api-staging.dandiarchive.org/api/")
+      ) {
+        const s = job.secrets?.find((s) => s.name === "DANDI_API_KEY");
         const DANDI_API_KEY = s ? s.value : undefined;
         signedUrl = await resolveDandiUrl(url, { dandiApiKey: DANDI_API_KEY });
       }
       const resp: GetSignedDownloadUrlResponse = {
         type: "getSignedDownloadUrlResponse",
-        signedUrl
+        signedUrl,
       };
       res.status(200).json(resp);
     } catch (e) {
@@ -1624,14 +1699,21 @@ export const getSignedDownloadUrlHandler = allowCors(
   },
 );
 
-const resolveDandiUrl = async (url: string, options: { dandiApiKey?: string }) => {
+const resolveDandiUrl = async (
+  url: string,
+  options: { dandiApiKey?: string },
+) => {
   const headers: { [key: string]: string } = {};
   if (options.dandiApiKey) {
-    headers['Authorization'] = `token ${options.dandiApiKey}`;
+    headers["Authorization"] = `token ${options.dandiApiKey}`;
   }
-  const resp = await fetch(url, { method: 'HEAD', headers, redirect: 'follow' });
+  const resp = await fetch(url, {
+    method: "HEAD",
+    headers,
+    redirect: "follow",
+  });
   return resp.url;
-}
+};
 
 // deleteComputeClient handler
 export const deleteComputeClientHandler = allowCors(
@@ -2047,7 +2129,7 @@ export const getPubsubSubscriptionHandler = allowCors(
     }
     try {
       const { computeClientId } = rr;
-      const protocolVersion = rr.protocolVersion || 'old';  // by default use "old" because the old dendro compute clients do not send the protocolVersion
+      const protocolVersion = rr.protocolVersion || "old"; // by default use "old" because the old dendro compute clients do not send the protocolVersion
       if (!computeClientId) {
         res
           .status(400)
@@ -2070,7 +2152,7 @@ export const getPubsubSubscriptionHandler = allowCors(
       await updateComputeClient(computeClientId, {
         timestampLastActiveSec: Date.now() / 1000,
       });
-      if (protocolVersion === 'old') {
+      if (protocolVersion === "old") {
         const VITE_PUBNUB_SUBSCRIBE_KEY = process.env.VITE_PUBNUB_SUBSCRIBE_KEY;
         if (!VITE_PUBNUB_SUBSCRIBE_KEY) {
           res.status(500).json({ error: "VITE_PUBNUB_SUBSCRIBE_KEY not set" });
@@ -2085,8 +2167,7 @@ export const getPubsubSubscriptionHandler = allowCors(
           },
         };
         res.status(200).json(resp);
-      }
-      else if (protocolVersion === '1') {
+      } else if (protocolVersion === "1") {
         const EPHEMERI_PUBSUB_URL = process.env.EPHEMERI_PUBSUB_URL;
         if (!EPHEMERI_PUBSUB_URL) {
           res.status(500).json({ error: "EPHEMERI_PUBSUB_URL not set" });
@@ -2097,18 +2178,20 @@ export const getPubsubSubscriptionHandler = allowCors(
           res.status(500).json({ error: "EPHEMERI_PUBSUB_API_KEY not set" });
           return;
         }
-        const channels = computeClient.serviceNames.map(serviceName => `dendro-service.${serviceName}`);
+        const channels = computeClient.serviceNames.map(
+          (serviceName) => `dendro-service.${serviceName}`,
+        );
         const subscribeTokenObject: SubscribeTokenObject = {
           timestamp: Date.now(),
           channels,
-        }
+        };
         const subscribeToken = JSON.stringify(subscribeTokenObject);
         const ephemeriPubsubSubscribeRequest: SubscribeRequest = {
-          type: 'subscribeRequest',
+          type: "subscribeRequest",
           subscribeToken,
           tokenSignature: computeSha1(subscribeToken + EPHEMERI_PUBSUB_API_KEY),
-          channels
-        }
+          channels,
+        };
         const resp: GetPubsubSubscriptionResponse = {
           type: "getPubsubSubscriptionResponse",
           subscription: {
@@ -2116,12 +2199,11 @@ export const getPubsubSubscriptionHandler = allowCors(
             pubnubChannel: undefined,
             pubnubUser: undefined,
             ephemeriPubsubUrl: EPHEMERI_PUBSUB_URL,
-            ephemeriPubsubSubscribeRequest
-          }
-        }
+            ephemeriPubsubSubscribeRequest,
+          },
+        };
         res.status(200).json(resp);
-      }
-      else {
+      } else {
         res.status(400).json({ error: "Invalid protocolVersion" });
         return;
       }
@@ -2396,7 +2478,10 @@ const deleteServiceApp = async (serviceName: string, appName: string) => {
   await collection.deleteOne({ serviceName, appName });
 };
 
-const fetchJob = async (jobId: string, o: {includeSecrets: boolean, includePrivateKey: boolean}): Promise<DendroJob | null> => {
+const fetchJob = async (
+  jobId: string,
+  o: { includeSecrets: boolean; includePrivateKey: boolean },
+): Promise<DendroJob | null> => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.jobs);
   const job = await collection.findOne({ jobId });
@@ -2416,7 +2501,10 @@ const fetchJob = async (jobId: string, o: {includeSecrets: boolean, includePriva
   return job;
 };
 
-const fetchJobs = async (pipeline: any[] | undefined, o: {includeSecrets: boolean, includePrivateKey: boolean}) => {
+const fetchJobs = async (
+  pipeline: any[] | undefined,
+  o: { includeSecrets: boolean; includePrivateKey: boolean },
+) => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.jobs);
   const jobs = await collection.aggregate(pipeline).toArray();
@@ -2452,7 +2540,10 @@ const fetchDeletedJobs = async (pipeline: any[] | undefined) => {
   return jobs.map((job: any) => job as DendroJob);
 };
 
-const fetchOneJobByJobId = async (jobId: string, o: {includeSecrets: boolean, includePrivateKey: boolean}): Promise<DendroJob | null> => {
+const fetchOneJobByJobId = async (
+  jobId: string,
+  o: { includeSecrets: boolean; includePrivateKey: boolean },
+): Promise<DendroJob | null> => {
   const client = await getMongoClient();
   const collection = client.db(dbName).collection(collectionNames.jobs);
   const job = await collection.findOne({ jobId });
@@ -3019,18 +3110,22 @@ export const computeUserStatsHandler = allowCors(
           jobHours,
         };
       };
-      const consumedJobs = await fetchJobs([
-        { $match: { userId, status: { $in: ["completed", "failed"] } } },
-      ], {includeSecrets: false, includePrivateKey: false});
+      const consumedJobs = await fetchJobs(
+        [{ $match: { userId, status: { $in: ["completed", "failed"] } } }],
+        { includeSecrets: false, includePrivateKey: false },
+      );
       const consumedStats = computeStatsForJobs(consumedJobs);
-      const providedJobs = await fetchJobs([
-        {
-          $match: {
-            computeClientUserId: userId,
-            status: { $in: ["completed", "failed"] },
+      const providedJobs = await fetchJobs(
+        [
+          {
+            $match: {
+              computeClientUserId: userId,
+              status: { $in: ["completed", "failed"] },
+            },
           },
-        },
-      ], {includeSecrets: false, includePrivateKey: false});
+        ],
+        { includeSecrets: false, includePrivateKey: false },
+      );
       const providedStats = computeStatsForJobs(providedJobs);
       const consumedDeletedJobs = await fetchDeletedJobs([
         { $match: { userId, status: { $in: ["completed", "failed"] } } },
@@ -3080,7 +3175,10 @@ export const getDandiApiKeyHandler = allowCors(
       }
       const jobId = rr.jobId;
       const outputName = rr.outputName;
-      const job = await fetchJob(jobId, {includeSecrets: true, includePrivateKey: true});
+      const job = await fetchJob(jobId, {
+        includeSecrets: true,
+        includePrivateKey: true,
+      });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -3089,22 +3187,33 @@ export const getDandiApiKeyHandler = allowCors(
         res.status(403).json({ error: "Unauthorized" });
         return;
       }
-      if (job.status !== 'running') {
+      if (job.status !== "running") {
         res.status(400).json({ error: "Job is not running" });
         return;
       }
-      const oo = job.jobDefinition.outputFiles.find(o => (o.name === outputName));
+      const oo = job.jobDefinition.outputFiles.find(
+        (o) => o.name === outputName,
+      );
       if (!oo) {
-        res.status(400).json({ error: "Output name not found in job definition" });
+        res
+          .status(400)
+          .json({ error: "Output name not found in job definition" });
         return;
       }
       if (!oo.urlDeterminedAtRuntime) {
-        res.status(400).json({ error: "Cannot get DANDI API key because output url is not determined at run time" });
+        res
+          .status(400)
+          .json({
+            error:
+              "Cannot get DANDI API key because output url is not determined at run time",
+          });
         return;
       }
       const computeClientId = job.computeClientId;
       if (!computeClientId) {
-        res.status(400).json({ error: "Job does not have a compute client id" });
+        res
+          .status(400)
+          .json({ error: "Job does not have a compute client id" });
         return;
       }
       const computeClient = await fetchComputeClient(computeClientId);
@@ -3112,17 +3221,24 @@ export const getDandiApiKeyHandler = allowCors(
         res.status(404).json({ error: "Compute client not found" });
         return;
       }
-      if (computeClient.userId !== 'github|magland') {
+      if (computeClient.userId !== "github|magland") {
         // in the future, the dandi api key will stay secret on the server, but
         // for now we restrict to compute clients owned by magland so we don't
         // have a situation of people hacking and stealing the dandi api key
-        res.status(403).json({ error: "For now, only compute clients owned by magland are allowed to get Dandi API keys." });
+        res
+          .status(403)
+          .json({
+            error:
+              "For now, only compute clients owned by magland are allowed to get Dandi API keys.",
+          });
         return;
       }
-      const s = job.secrets?.find(s => (s.name === 'DANDI_API_KEY'));
+      const s = job.secrets?.find((s) => s.name === "DANDI_API_KEY");
       const DANDI_API_KEY = s ? s.value : undefined;
       if (!DANDI_API_KEY) {
-        res.status(404).json({ error: "DANDI_API_KEY not found in job secrets" });
+        res
+          .status(404)
+          .json({ error: "DANDI_API_KEY not found in job secrets" });
         return;
       }
       const resp: GetDandiApiKeyResponse = {
@@ -3134,7 +3250,7 @@ export const getDandiApiKeyHandler = allowCors(
       console.error(e);
       res.status(500).json({ error: e.message });
     }
-  }
+  },
 );
 
 // setOutputFileUrl handler
@@ -3154,7 +3270,10 @@ export const setOutputFileUrlHandler = allowCors(
       const jobId = rr.jobId;
       const outputName = rr.outputName;
       const url = rr.url;
-      const job = await fetchJob(jobId, {includeSecrets: false, includePrivateKey: true});
+      const job = await fetchJob(jobId, {
+        includeSecrets: false,
+        includePrivateKey: true,
+      });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -3163,20 +3282,28 @@ export const setOutputFileUrlHandler = allowCors(
         res.status(403).json({ error: "Unauthorized" });
         return;
       }
-      if (job.status !== 'running') {
+      if (job.status !== "running") {
         res.status(400).json({ error: "Job is not running" });
         return;
       }
-      const oo = job.jobDefinition.outputFiles.find(o => (o.name === outputName));
+      const oo = job.jobDefinition.outputFiles.find(
+        (o) => o.name === outputName,
+      );
       if (!oo) {
-        res.status(400).json({ error: "Output name not found in job definition" });
+        res
+          .status(400)
+          .json({ error: "Output name not found in job definition" });
         return;
       }
       if (!oo.urlDeterminedAtRuntime) {
-        res.status(400).json({ error: "Output url is not determined at run time" });
+        res
+          .status(400)
+          .json({ error: "Output url is not determined at run time" });
         return;
       }
-      const outputFileResultFound = job.outputFileResults.find(o => (o.name === outputName));
+      const outputFileResultFound = job.outputFileResults.find(
+        (o) => o.name === outputName,
+      );
       if (!outputFileResultFound) {
         res.status(400).json({ error: "Output file result not found" });
         return;
@@ -3185,7 +3312,7 @@ export const setOutputFileUrlHandler = allowCors(
         res.status(400).json({ error: "Output file url is already set" });
         return;
       }
-      const newOutputFileResults = job.outputFileResults.map(o => {
+      const newOutputFileResults = job.outputFileResults.map((o) => {
         if (o.name === outputName) {
           return {
             ...o,
@@ -3194,17 +3321,20 @@ export const setOutputFileUrlHandler = allowCors(
         }
         return o;
       });
-      const newOutputFileUrls = newOutputFileResults.map(o => o.url);
-      await updateJob(jobId, { outputFileResults: newOutputFileResults, outputFileUrlList: newOutputFileUrls });
+      const newOutputFileUrls = newOutputFileResults.map((o) => o.url);
+      await updateJob(jobId, {
+        outputFileResults: newOutputFileResults,
+        outputFileUrlList: newOutputFileUrls,
+      });
       const resp: setOutputFileUrlResponse = {
-        type: "setOutputFileUrlResponse"
+        type: "setOutputFileUrlResponse",
       };
       res.status(200).json(resp);
     } catch (e) {
       console.error(e);
       res.status(500).json({ error: e.message });
     }
-  }
+  },
 );
 
 const generateJobId = () => {
