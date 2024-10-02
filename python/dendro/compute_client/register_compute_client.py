@@ -50,7 +50,7 @@ def register_compute_client(*,
     print('')
     print(f'You can configure it here: {config_url}')
     print('')
-    print('Then you can start it by running "dendro start-compute-client" in this directory')
+    print('Then you can start it by running "CONTAINER_METHOD=apptainer dendro start-compute-client" in this directory')
 
 
 def decode_base64(data):

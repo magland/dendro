@@ -4,6 +4,9 @@ from .ComputeClientDaemon import ComputeClientDaemon
 
 
 def start_compute_client(*, dir: str, exit_when_idle: bool):
+    CONTAINER_METHOD = os.environ.get("CONTAINER_METHOD")
+    if not CONTAINER_METHOD:
+        raise Exception("CONTAINER_METHOD environment variable must be set to either docker or apptainer")
     daemon = get_compute_client_daemon(dir=dir, exit_when_idle=exit_when_idle)
     daemon.start()
 

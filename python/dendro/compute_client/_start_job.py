@@ -124,7 +124,9 @@ fi
 '''
     with open(f'{tmpdir}/run.sh', 'w') as f:
         f.write(run_sh)
-    container_method = os.environ.get('CONTAINER_METHOD', 'docker')
+    container_method = os.environ.get('CONTAINER_METHOD')
+    if container_method is None:
+        raise JobException('CONTAINER_METHOD environment variable must be set to either docker or apptainer')
     if container_method == 'docker':
         tmpdir = job_dir + '/tmp'
         os.makedirs(tmpdir, exist_ok=True)
