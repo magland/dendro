@@ -102,5 +102,6 @@ def main():
 
 main.add_command(register_compute_client)
 main.add_command(start_compute_client)
+main.add_command(run_pending_job)
 main.add_command(make_app_spec_file)
 main.add_command(internal_job_monitor)
