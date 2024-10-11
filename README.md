@@ -282,6 +282,10 @@ cd python
 pip install -e .
 ```
 
+### Dendro system architecture
+
+[Dendro system architecture](doc/dendro_system_architecture.md)
+
 ## Important note to self (do not delete)
 
 When using Cloudflare R2 with Range headers and large files, it's important to configure the website to bypass the cache.
