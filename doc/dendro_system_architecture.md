@@ -59,4 +59,4 @@ In the case of embargoed Dandisets, a DANDI API key is required to access the da
 
 ## Location-independent job execution
 
-A nice feature of a Dendro job is that it can be run on any machine that has access to the Dendro web API and the cloud buckets for input/output files. In order for this to work, the Dendro SDK needs to be installed inside the container where the container is being run so that it can communicate with the central Dendro API. For example, [here is the Dockerfile](https://github.com/magland/dendro/blob/main/apps/hello_kilosort4/Dockerfile) for the Kilosort 4 Dendro app. It includes installation of the Dendro SDK.
+A nice feature of a Dendro job is that it can be run on any machine that has access to the Dendro web API and the cloud buckets for input/output files. In order for this to work, the Dendro SDK needs to be installed inside the container where the job is being run so that it can communicate with the central Dendro API. For example, [here is the Dockerfile](https://github.com/magland/dendro/blob/main/apps/hello_kilosort4/Dockerfile) for the Kilosort 4 Dendro app. It includes installation of the Dendro SDK.
