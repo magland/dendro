@@ -9,6 +9,8 @@ Dendro is a data analysis system that aims to provide a user-friendly interface 
 * Integrates with Neurosift and DANDI to provide a seamless user experience.
 * Works with embargoed Dandisets in a secure manner.
 
+![Dendro architecture diagram](https://github.com/user-attachments/assets/3a0f54d9-b7c6-4d0e-a543-80efe67ebd9d)
+
 ## Glossary of terms
 
 * **Dendro processor**: A specific containerized function or script defined within a Dendro app.
