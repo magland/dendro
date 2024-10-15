@@ -9,6 +9,8 @@ Dendro is a data analysis system that aims to provide a user-friendly interface 
 * Integrates with Neurosift and DANDI to provide a seamless user experience.
 * Works with embargoed Dandisets in a secure manner.
 
+![Dendro architecture diagram](https://github.com/user-attachments/assets/3a0f54d9-b7c6-4d0e-a543-80efe67ebd9d)
+
 ## Glossary of terms
 
 * **Dendro processor**: A specific containerized function or script defined within a Dendro app.
@@ -40,21 +42,21 @@ When a job is submitted to a Dendro service, the following steps occur:
 
 * The job record (job definition, service name, required resources, etc.) is inserted into the central Dendro database with status "pending". Note that if memoization is enabled, the job will not be re-inserted if it has already been run.
 * A PubSub message is sent to the Dendro service's PubSub topic. This message just signals that a new job is available.
-* The compute clients receive the signal and query the central Dendro database for new jobs that are eligible to be run, depending on the resources available to the client.
+* The compute clients receive the signal and query the Dendro web API for new jobs that are eligible to be run, depending on the resources available to the client.
 * If a new job is available the compute client receives the job and sets the status to "starting". If more than one compute client tries to pick up the same job, the first one to set the status to "starting" (which is an atomic operation) will be the one to run the job.
 * At this point, the compute client has access to the job ID as well as the job private key. The job private key is used to authenticate the compute client to the Dendro service when the job is run in order to make changes to the job status, console logs, output files, etc.
 * The compute client pulls the Docker image and, when using apptainer, builds the apptainer container.
 * The compute client runs the container with special environment variables JOB_ID and JOB_PRIVATE_KEY.
 * IMPORTANT: Once the container is running, the compute client can forget about it because the running container has everything it needs to receive the job parameters, upload output files, etc. This is important because it allows the containerized job to run anywhere, even on a different machine than the one that started it. If the compute client is killed, the container will continue to run.
-* The containerized job receives the job definition from the central Dendro database, including the input file URLs and parameters.
-* The containerized job runs the processor, including streaming from the input files. Automatically, the job will send updates (status, console, etc) to the central Dendro database.
-* When finished, the containerized job uploads the output files to a cloud bucket by obtaining presigned upload URLs from the central Dendro database (using the job private key for authentication).
-* Finally, the containerized job sends a message to the central Dendro database to set the job status to "completed". Or if there was an error, the job status is set to "failed". The container then exits.
+* The containerized job receives the job definition from the Dendro web API, including the input file URLs and parameters.
+* The containerized job runs the processor, including streaming from the input files. Automatically, the job will send updates (status, console, etc) to the Dendro web API.
+* When finished, the containerized job uploads the output files to a cloud bucket by obtaining presigned upload URLs from the Dendro web API (using the job private key for authentication).
+* Finally, the containerized job sends a message to the Dendro web API to set the job status to "completed". Or if there was an error, the job status is set to "failed". The container then exits.
 
 **Special handling for embargoed Dandisets**
 
-In the case of embargoed Dandisets, a DANDI API key is required to access the data. However, we don't want to expose the API key to the containerized job, which could allow stealing of the API key. Instead, the API key is stored in the central Dendro database. The containerized job can query for the presigned URLs for the input files, and the Dendro service will provide these as appropriate based on the authentication via the job private key.
+In the case of embargoed Dandisets, a DANDI API key is required to access the data. However, we don't want to expose the API key to the containerized job, which could allow stealing of the API key. Instead, the API key is stored secretly in the central Dendro database. The containerized job can query for the presigned URLs for the input files, and the Dendro service will provide these as appropriate based on the authentication via the job private key.
 
 ## Location-independent job execution
 
-A nice feature of a Dendro job is that it can be run on any machine that has access to the central Dendro database and the cloud buckets for input/output files. In order for this to work, the Dendro SDK needs to be installed inside the container where the container is being run so that it can communicate with the central Dendro API. For example, [here is the Dockerfile](https://github.com/magland/dendro/blob/main/apps/hello_kilosort4/Dockerfile) for the Kilosort 4 Dendro app. It includes installation of the Dendro SDK.
+A nice feature of a Dendro job is that it can be run on any machine that has access to the Dendro web API and the cloud buckets for input/output files. In order for this to work, the Dendro SDK needs to be installed inside the container where the job is being run so that it can communicate with the central Dendro API. For example, [here is the Dockerfile](https://github.com/magland/dendro/blob/main/apps/hello_kilosort4/Dockerfile) for the Kilosort 4 Dendro app. It includes installation of the Dendro SDK.
