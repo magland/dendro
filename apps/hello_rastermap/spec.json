@@ -1,0 +1,53 @@
+{
+    "name": "hello_neurosift",
+    "description": "Neurosift processors",
+    "processors": [
+        {
+            "name": "rastermap",
+            "description": "Compute the sorting order of units using Rastermap",
+            "label": "rastermap",
+            "image": "magland/dendro-hello-rastermap:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [
+                {
+                    "name": "input",
+                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": "Output data in .json format"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "units_path",
+                    "type": "str",
+                    "description": "Path to the units table in the NWB file"
+                },
+                {
+                    "name": "n_clusters",
+                    "type": "int",
+                    "description": "Number of clusters to use in Rastermap"
+                },
+                {
+                    "name": "n_PCs",
+                    "type": "int",
+                    "description": "Number of principal components to use in Rastermap"
+                },
+                {
+                    "name": "locality",
+                    "type": "float",
+                    "description": "Locality in sorting to find sequences (this is a value from 0 to 1)"
+                },
+                {
+                    "name": "grid_upsample",
+                    "type": "int",
+                    "description": "10 is good for large recordings"
+                }
+            ],
+            "attributes": []
+        }
+    ]
+}

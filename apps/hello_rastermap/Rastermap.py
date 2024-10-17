@@ -1,34 +1,45 @@
+import json
 import numpy as np
 from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
-class MultiscaleSpikeDensityContext(BaseModel):
+class RastermapContext(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
-    output: OutputFile = Field(description='Output data in .lindi.tar format')
+    output: OutputFile = Field(description='Output data in .json format')
     units_path: str = Field(description='Path to the units table in the NWB file')
-    bin_size_msec: float = Field(description='Bin size in milliseconds', default=20)
+    n_clusters: int = Field(description='Number of clusters to use in Rastermap')
+    n_PCs: int = Field(description='Number of principal components to use in Rastermap')
+    locality: float = Field(description='Locality in sorting to find sequences (this is a value from 0 to 1)')
+    grid_upsample: int = Field(description='10 is good for large recordings')
 
-
-class MultiscaleSpikeDensity(ProcessorBase):
-    name = 'multiscale_spike_density'
-    description = 'Compute a multiscale spike density matrix from spike trains'
-    label = 'multiscale_spike_density'
-    image = 'magland/dendro-hello-neurosift:0.1.0'
+class Rastermap(ProcessorBase):
+    name = 'rastermap'
+    description = 'Compute the sorting order of units using Rastermap'
+    label = 'rastermap'
+    image = 'magland/dendro-hello-rastermap:0.1.0'
     executable = '/app/main.py'
     attributes = {}
 
     @staticmethod
     def run(
-        context: MultiscaleSpikeDensityContext
+        context: RastermapContext
     ):
         import lindi
+        from scipy.stats import zscore
+        from rastermap import Rastermap
 
         units_path = context.units_path
-        bin_size_msec = context.bin_size_msec
-        bin_size_sec = bin_size_msec / 1000
+        n_clusters = context.n_clusters
+        n_PCs = context.n_PCs
+        locality = context.locality
+        grid_upsample = context.grid_upsample
 
         input = context.input
         url = input.get_url()
         assert url
+
+        # should we make this adjustable?
+        bin_size_msec = 100
+        bin_size_sec = bin_size_msec / 1000
 
         if input.file_base_name.endswith('.lindi.json') or input.file_base_name.endswith('.lindi.tar'):
             f = lindi.LindiH5pyFile.from_lindi_file(url)
@@ -68,39 +79,35 @@ class MultiscaleSpikeDensity(ProcessorBase):
         num_bins = int((end_time_sec - start_time_sec) / bin_size_sec)
         print(f'Number of bins: {num_bins}')
 
-        # bin the spikes
+        print('Binning spikes...')
         spike_counts = np.zeros((num_bins, num_units), dtype=np.int32)
         for i in range(num_units):
             spike_counts[:, i], _ = np.histogram(spike_trains[i], bins=num_bins, range=(start_time_sec, end_time_sec))
 
-        output_fname = 'output.lindi.tar'
-        g = lindi.LindiH5pyFile.from_lindi_file(output_fname, mode='w')
+        print('Z-scoring the spike counts...')
+        spks = spike_counts.T
+        spks = zscore(spks, axis=1)
 
-        num_bins_per_chunk = 5_000_000 // num_units
+        print('Running Rastermap...')
+        model = Rastermap(
+            n_clusters=n_clusters,
+            n_PCs=n_PCs,
+            locality=locality,
+            grid_upsample=grid_upsample
+        ).fit(spike_counts)
+        print('Done with Rastermap')
 
-        ds = g.create_dataset(
-            'spike_counts',
-            data=spike_counts,
-            chunks=(np.minimum(num_bins_per_chunk, num_bins), num_units)
-        )
-        ds.attrs['bin_size_sec'] = bin_size_sec
-        ds.attrs['start_time_sec'] = start_time_sec
-        ds_factor = 1
-        while num_bins // ds_factor > 10000:
-            rel_ds_factor = 3
-            num_ds_bins = spike_counts.shape[0] // rel_ds_factor
-            X = spike_counts[:num_ds_bins * rel_ds_factor, :].reshape(num_ds_bins, rel_ds_factor, num_units)
-            spike_counts_ds = np.sum(X, axis=1).reshape(num_ds_bins, num_units)
-            ds_factor = ds_factor * rel_ds_factor
-            ds0 = g.create_dataset(
-                f'spike_counts_ds_{ds_factor}',
-                data=spike_counts_ds.astype(np.int32),
-                chunks=(np.minimum(num_bins_per_chunk, num_ds_bins), num_units)
-            )
-            ds0.attrs['bin_size_sec'] = bin_size_sec * ds_factor
-            ds0.attrs['start_time_sec'] = start_time_sec
-            spike_counts = spike_counts_ds
+        isort = model.isort
+        print('isort:', isort)
 
-        g.close()  # important
+        ret = {
+            'isort': [int(val) for val in isort]
+        }
 
+        output_fname = 'output.json'
+        with open(output_fname, 'w') as f:
+            f.write(json.dumps(ret))
+
+        print('Uploading output...')
         context.output.upload(output_fname)
+        print('Done uploading output')
