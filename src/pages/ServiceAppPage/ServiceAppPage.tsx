@@ -19,7 +19,7 @@ const ServiceAppPage: FunctionComponent<ServiceAppPageProps> = () => {
   }
   const serviceName = route.serviceName;
   const appName = route.appName;
-  const { serviceApp, updateFromSource } = useServiceApp(serviceName, appName);
+  const { serviceApp, updateFromSource, deleteServiceApp } = useServiceApp(serviceName, appName);
   if (!serviceApp) {
     return (
       <div style={{ padding: 20 }}>
@@ -76,6 +76,22 @@ const ServiceAppPage: FunctionComponent<ServiceAppPageProps> = () => {
           </tr>
         </tbody>
       </table>
+      <hr />
+      <p>
+        <button
+          onClick={async () => {
+            const okay = window.confirm(
+              "Are you sure you want to delete this service app?"
+            );
+            if (okay) {
+              await deleteServiceApp();
+              setRoute({ page: "service", serviceName });
+            }
+          }}
+        >
+          Delete this service app
+        </button>
+      </p>
       <hr />
       <h3>Processors</h3>
       {serviceApp.appSpecification.processors.map((processor) => (

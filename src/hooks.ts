@@ -47,6 +47,8 @@ import {
   isSetServiceAppInfoResponse,
   isSetServiceInfoResponse,
   DendroJobStatus,
+  DeleteServiceAppRequest,
+  isDeleteServiceAppResponse,
 } from "./types";
 
 const isLocalHost = window.location.hostname === "localhost";
@@ -561,7 +563,22 @@ export const useServiceApp = (serviceName: string, appName: string) => {
     alert("Updated from source");
   }, [serviceApp, serviceName, appName, githubAccessToken, refreshServiceApp]);
 
-  return { serviceApp, refreshServiceApp, updateFromSource };
+  const deleteServiceApp = useCallback(async () => {
+    if (!githubAccessToken) return;
+    const req: DeleteServiceAppRequest = {
+      type: "deleteServiceAppRequest",
+      serviceName,
+      appName,
+    };
+    const resp = await apiPostRequest("deleteServiceApp", req, githubAccessToken);
+    if (!isDeleteServiceAppResponse(resp)) {
+      console.error("Invalid response", resp);
+      return;
+    }
+    setServiceApp(undefined);
+  }, [serviceName, appName, githubAccessToken]);
+
+  return { serviceApp, refreshServiceApp, updateFromSource, deleteServiceApp };
 };
 
 export const useJob = (jobId: string) => {
