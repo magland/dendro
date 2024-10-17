@@ -47,11 +47,15 @@ class TsDownsampleForVis(ProcessorBase):
 
 def handle_multiscale_downsampling(f, group_path='/'):
     import lindi
+    grp = f[group_path]
+    if 'data' in grp:
+        if 'timestamps' in grp or 'start_time' in grp:
+            print(f'Timeseries {group_path}')
+            handle_multiscale_downsampling_dataset(f, _join(group_path, 'data'))
+            return
     for key in f[group_path].keys():
         path2 = _join(group_path, key)
-        if isinstance(f[path2], lindi.LindiH5pyDataset):
-            handle_multiscale_downsampling_dataset(f, path2)
-        elif isinstance(f[group_path + key], lindi.LindiH5pyGroup):
+        if isinstance(f[group_path + key], lindi.LindiH5pyGroup):
             handle_multiscale_downsampling(f, path2)
 
 def _join(a: str, b: str):
@@ -92,7 +96,7 @@ def handle_multiscale_downsampling_dataset(f, path: str):
     output_ds_factor = 9
     while True:
         ds_num_timepoints = N1 // input_ds_factor
-        if ds_num_timepoints < chunk_num_timepoints * 2:
+        if ds_num_timepoints < chunk_num_timepoints:
             break
         output_path = path + f'_ds_{output_ds_factor}'
         print(f'Creating dataset: {output_path}')
@@ -132,8 +136,8 @@ def handle_multiscale_downsampling_dataset_2d(
 
     output_shape = (num_output_timepoints, num_channels, 2)  # 2 is for the min and max
 
-    chunk = (chunk_num_timepoints, num_channels)
-    output_dataset = f2.create_dataset(output_path, dtype=dtype, shape=output_shape, chunk=chunk)
+    chunk_shape = (chunk_num_timepoints, num_channels)
+    output_dataset = f2.create_dataset(output_path, dtype=dtype, shape=output_shape, chunks=chunk_shape)
 
     # we need to round up for the number of chunks
     num_chunks = (num_output_timepoints + chunk_num_timepoints - 1) // chunk_num_timepoints
@@ -141,6 +145,7 @@ def handle_multiscale_downsampling_dataset_2d(
     input_has_min_max = len(input_dataset.shape) == 3 and input_dataset.shape[2] == 2
 
     for ii in range(num_chunks):
+        print(f'Processing chunk {ii + 1} of {num_chunks}')
         output_start = ii * chunk_num_timepoints
         output_end = min((ii + 1) * chunk_num_timepoints, num_output_timepoints)
         input_start = output_start * relative_ds_factor
@@ -149,11 +154,15 @@ def handle_multiscale_downsampling_dataset_2d(
         if input_has_min_max:
             input_data_min = np.min(input_data[:, :, 0].reshape(output_end - output_start, num_channels), axis=1)
             input_data_max = np.max(input_data[:, :, 1].reshape(output_end - output_start, num_channels), axis=1)
-            output_data = np.concatenate((input_data_min, input_data_max), axis=1)
+            output_data = np.zeros((output_end - output_start, num_channels, 2), dtype=dtype)
+            output_data[:, :, 0] = input_data_min
+            output_data[:, :, 1] = input_data_max
             output_dataset[output_start:output_end] = output_data
         else:
             input_data_reshaped = input_data.reshape(output_start - output_end, relative_ds_factor, num_channels)
             output_data_min = np.min(input_data_reshaped, axis=1).reshape(output_end - output_start, num_channels)
             output_data_max = np.max(input_data_reshaped, axis=1).reshape(output_end - output_start, num_channels)
-            output_data = np.concatenate((output_data_min, output_data_max), axis=2)
+            output_data = np.zeros((output_end - output_start, num_channels, 2), dtype=dtype)
+            output_data[:, :, 0] = output_data_min
+            output_data[:, :, 1] = output_data_max
             output_dataset[output_start:output_end] = output_data

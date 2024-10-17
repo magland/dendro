@@ -402,6 +402,39 @@
             ],
             "parameters": [],
             "attributes": []
+        },
+        {
+            "name": "multiscale_spike_density",
+            "description": "Compute a multiscale spike density matrix from spike trains",
+            "label": "multiscale_spike_density",
+            "image": "magland/dendro-hello-neurosift:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [
+                {
+                    "name": "input",
+                    "description": "Input NWB file in .nwb or .nwb.lindi.tar format"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": "Output data in .lindi.tar format"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "units_path",
+                    "type": "str",
+                    "description": "Path to the units table in the NWB file"
+                },
+                {
+                    "name": "bin_size_msec",
+                    "type": "float",
+                    "description": "Bin size in milliseconds",
+                    "defaultValue": 20
+                }
+            ],
+            "attributes": []
         }
     ]
 }
