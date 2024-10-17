@@ -2,8 +2,8 @@ from dendro.sdk import App
 from Rastermap import Rastermap
 
 app = App(
-    app_name='hello_neurosift',
-    description='Neurosift processors'
+    app_name='hello_rastermap',
+    description='Rastermap'
 )
 
 app.add_processor(Rastermap)

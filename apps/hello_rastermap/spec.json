@@ -1,6 +1,6 @@
 {
-    "name": "hello_neurosift",
-    "description": "Neurosift processors",
+    "name": "hello_rastermap",
+    "description": "Rastermap",
     "processors": [
         {
             "name": "rastermap",
