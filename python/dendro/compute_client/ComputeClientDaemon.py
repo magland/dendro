@@ -6,7 +6,7 @@ import multiprocessing
 import traceback
 from pathlib import Path
 from .JobManager import JobManager
-from ..common.api_requests import get_runnable_jobs_for_compute_client
+from ..common.api_requests import get_pubsub_subscription, get_runnable_jobs_for_compute_client
 from ._start_job import _start_job
 
 
@@ -38,9 +38,17 @@ class ComputeClientDaemon:
 
         timer_handle_jobs = 0
 
-        pubsub_client = PubsubClient(
+        print('Getting pubsub info')
+        pubsub_subscription = get_pubsub_subscription(
             compute_client_id=self._compute_client_id,
             compute_client_private_key=self._compute_client_private_key
+        )
+        pubnub_subscribe_key = pubsub_subscription['pubnubSubscribeKey']
+        pubsub_client = PubsubClient(
+            pubnub_subscribe_key=pubnub_subscribe_key,
+            pubnub_channel=pubsub_subscription['pubnubChannel'],
+            pubnub_user=pubsub_subscription['pubnubUser'],
+            compute_client_id=self._compute_client_id
         )
 
         # # Create file cache directory if needed
