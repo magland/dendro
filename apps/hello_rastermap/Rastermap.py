@@ -6,7 +6,7 @@ class RastermapContext(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
     output: OutputFile = Field(description='Output data in .json format')
     units_path: str = Field(description='Path to the units table in the NWB file')
-    n_clusters: int = Field(description='Number of clusters to use in Rastermap')
+    n_clusters: int = Field(description='Number of clusters to use in Rastermap. 0 means None.')
     n_PCs: int = Field(description='Number of principal components to use in Rastermap')
     locality: float = Field(description='Locality in sorting to find sequences (this is a value from 0 to 1)')
     grid_upsample: int = Field(description='10 is good for large recordings')
@@ -90,11 +90,11 @@ class Rastermap(ProcessorBase):
 
         print('Running Rastermap...')
         model = Rastermap(
-            n_clusters=n_clusters,
+            n_clusters=n_clusters if n_clusters > 0 else None,  # type: ignore
             n_PCs=n_PCs,
             locality=locality,
             grid_upsample=grid_upsample
-        ).fit(spike_counts)
+        ).fit(spks)
         print('Done with Rastermap')
 
         isort = model.isort

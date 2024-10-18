@@ -29,7 +29,7 @@
                 {
                     "name": "n_clusters",
                     "type": "int",
-                    "description": "Number of clusters to use in Rastermap"
+                    "description": "Number of clusters to use in Rastermap. 0 means None."
                 },
                 {
                     "name": "n_PCs",

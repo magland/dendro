@@ -7,7 +7,6 @@ import traceback
 from pathlib import Path
 from .JobManager import JobManager
 from ..common.api_requests import get_runnable_jobs_for_compute_client
-from .PubsubClient import PubsubClient
 from ._start_job import _start_job
 
 
@@ -34,6 +33,9 @@ class ComputeClientDaemon:
         )
 
     def start(self, cleanup_old_jobs=True, timeout: Optional[float] = None):
+        # Don't import PubsubClient at the top level because it could cause problems inside container, e.g. missing websocket import
+        from .PubsubClient import PubsubClient
+
         timer_handle_jobs = 0
 
         pubsub_client = PubsubClient(
