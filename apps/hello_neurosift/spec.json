@@ -435,6 +435,39 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "name": "image_series_to_mp4",
+            "description": "Convert an image series in an NWB file to an .mp4 file",
+            "label": "image_series_to_mp4",
+            "image": "magland/dendro-hello-neurosift:0.1.0",
+            "executable": "/app/main.py",
+            "inputs": [
+                {
+                    "name": "input",
+                    "description": "Input .avi file"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "description": "Output .mp4 file"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "image_series_path",
+                    "type": "str",
+                    "description": "Path to the image series in the NWB file"
+                },
+                {
+                    "name": "duration_sec",
+                    "type": "float",
+                    "description": "The maximum duration of the output video in seconds.",
+                    "defaultValue": 10
+                }
+            ],
+            "attributes": []
         }
     ]
 }
