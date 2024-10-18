@@ -1,4 +1,5 @@
 from typing import List
+import json
 import queue
 from ..common.api_requests import get_pubsub_subscription
 import websocket
@@ -45,7 +46,14 @@ def _open_websocket_connection(*,
     else:
         raise Exception('Unexpected ephemeri_pubsub_url: ' + ephemeri_pubsub_url)
 
-    def on_message(ws, message):
+    def on_message(ws, message_json):
+        try:
+            message = json.loads(message_json)
+        except Exception as e:
+            print('Error parsing message:', e)
+            print('Message:', message_json)
+            return
+
         if 'type' in message:
             if message['type'] == 'pubsubMessage':
                 message_queue.put(message)
@@ -67,13 +75,14 @@ def _open_websocket_connection(*,
             raise Exception('Mismatch in ephemeriPubsubUrl: ' + ephemeri_pubsub_url + ' ' + ephemeri_pubsub_url_new)
         ephemeri_pubsub_subscribe_request = pubsub_subscription['ephemeriPubsubSubscribeRequest']
 
-        ws.send(ephemeri_pubsub_subscribe_request)
+        ws.send(json.dumps(ephemeri_pubsub_subscribe_request))
 
     def run_websocket():
         ws = websocket.WebSocketApp(ephemeri_pubsub_websocket_url,
             on_message=on_message,
             on_error=on_error,
-            on_close=on_close)
+            on_close=on_close
+        )
         ws.on_open = on_open
         ws.run_forever(
             ping_interval=60,

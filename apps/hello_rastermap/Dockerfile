@@ -1,7 +1,7 @@
 FROM python:3.9
 
 # Install dendro
-RUN pip install dendro
+RUN pip install dendro && echo "v1"
 
 # Install lindi
 RUN pip install lindi

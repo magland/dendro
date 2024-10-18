@@ -14,14 +14,8 @@ RUN pip install scipy pynwb numba
 # Install mountainsort5
 RUN pip install mountainsort5==0.5.6
 
-# Install dendro from github
-RUN mkdir -p /src
-WORKDIR /src
-RUN git clone https://github.com/magland/dendro \
-    && cd dendro \
-    && cd python \
-    && pip install -e . \
-    && echo "v41"
+# Install dendro
+RUN pip install dendro
 
 # Install lindi
 RUN pip install lindi

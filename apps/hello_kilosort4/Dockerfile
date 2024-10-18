@@ -5,14 +5,8 @@ RUN pip install spikeinterface==0.100.8
 # don't install all the SI dependencies... instead manually specify the ones we need
 RUN pip install scipy pynwb
 
-# Install dendro from github
-RUN mkdir -p /src
-WORKDIR /src
-RUN git clone https://github.com/magland/dendro \
-    && cd dendro \
-    && cd python \
-    && pip install -e . \
-    && echo "v31"
+# Install dendro
+RUN pip install dendro
 
 # Install lindi from prerelease
 WORKDIR /src
