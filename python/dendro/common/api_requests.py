@@ -141,7 +141,7 @@ def get_pubsub_subscription(*, compute_client_id: str, compute_client_private_ke
     req = {
         'type': 'getPubsubSubscriptionRequest',
         'computeClientId': compute_client_id,
-        'protocolVersion': '1'
+        # 'protocolVersion': '1'  # don't use protocolVersion because ephemeri pubsub is not working!
 
     }
     headers = {
