@@ -1,3 +1,4 @@
+import time
 from typing import Union
 import os
 from .start_compute_client import get_compute_client_daemon
@@ -27,3 +28,7 @@ def run_pending_job(
         _start_job(job=runnable_job, compute_client_id='', detach=detach)
     else:
         raise Exception("Either compute_client_dir or user_api_key must be provided")
+    if detach:
+        print(f"Job {job_id} started")
+        # the following might be needed to let the subprocess to actually start before the parent process exits
+        time.sleep(2)
