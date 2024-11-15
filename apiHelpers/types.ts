@@ -921,6 +921,31 @@ export const isGetRunnableJobsForComputeClientResponse = (
   });
 };
 
+// getRunnableJob
+export type GetRunnableJobRequest = {
+  type: "getRunnableJobRequest";
+  jobId: string;
+};
+
+export const isGetRunnableJobRequest = (x: any): x is GetRunnableJobRequest => {
+  return validateObject(x, {
+    type: isEqualTo("getRunnableJobRequest"),
+    jobId: isString,
+  });
+};
+
+export type GetRunnableJobResponse = {
+  type: "getRunnableJobResponse";
+  job: DendroJob;
+};
+
+export const isGetRunnableJobResponse = (x: any): x is GetRunnableJobResponse => {
+  return validateObject(x, {
+    type: isEqualTo("getRunnableJobResponse"),
+    job: isDendroJob,
+  });
+};
+
 // getJob
 export type GetJobRequest = {
   type: "getJobRequest";

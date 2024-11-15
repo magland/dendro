@@ -34,6 +34,7 @@ import {
   GetDandiApiKeyResponse,
   GetJobResponse,
   GetPubsubSubscriptionResponse,
+  GetRunnableJobResponse,
   GetRunnableJobsForComputeClientResponse,
   GetServiceAppResponse,
   GetServiceAppsResponse,
@@ -74,6 +75,7 @@ import {
   isGetDandiApiKeyRequest,
   isGetJobRequest,
   isGetPubsubSubscriptionRequest,
+  isGetRunnableJobRequest,
   isGetRunnableJobsForComputeClientRequest,
   isGetServiceAppRequest,
   isGetServiceAppsRequest,
@@ -995,9 +997,10 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
         // exclude jobs that are targeting other compute clients
         runnableJobs = runnableJobs.filter((j) => {
           if (j.targetComputeClientIds) {
-            return j.targetComputeClientIds.includes(rr.computeClientId);
-          } else {
-            return true;
+            return j.targetComputeClientIds.includes(rr.computeClientId) || j.targetComputeClientIds.includes("*");
+          }
+          else {
+            return false;
           }
         });
         if (!rr.jobId) {
@@ -1031,6 +1034,68 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
         type: "getRunnableJobsForComputeClientResponse",
         runnableJobs: allRunnableReadyJobs,
         runningJobs,
+      };
+      res.status(200).json(resp);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message });
+    }
+  },
+);
+
+// getRunnableJob handler
+export const getRunnableJobHandler = allowCors(
+  async (req: VercelRequest, res: VercelResponse) => {
+    const rr = req.body;
+    if (!isGetRunnableJobRequest(rr)) {
+      res.status(400).json({ error: "Invalid request" });
+      return;
+    }
+    try {
+      const authorizationToken = req.headers.authorization?.split(" ")[1]; // Extract the token
+      if (!authorizationToken) {
+        res.status(400).json({ error: "User API token must be provided" });
+        return;
+      }
+      const userId = await getUserIdFromApiToken(authorizationToken);
+      if (!userId) {
+        res.status(401).json({ error: "Unauthorized - no user for token" });
+        return;
+      }
+      const job = await fetchJob(rr.jobId, {
+        includePrivateKey: true,
+        includeSecrets: false,
+      });
+      if (!job) {
+        res.status(404).json({ error: "Job not found" });
+        return;
+      }
+      if (job.targetComputeClientIds && job.targetComputeClientIds.length > 0) {
+        res.status(400).json({ error: "Job is targeted for specific compute clients" });
+        return;
+      }
+      if (job.status !== "pending") {
+        res.status(400).json({ error: "Job is not pending" });
+        return;
+      }
+      if (job.isRunnable === false) {
+        res.status(400).json({ error: "Job is not runnable" });
+        return;
+      }
+      const service = await fetchService(job.serviceName);
+      if (!service) {
+        res.status(404).json({ error: `Service not found: ${job.serviceName}` });
+        return;
+      }
+      if (!userIsAllowedToProcessJobsForService(service, userId)) {
+        res.status(401).json({
+          error: `This user is not allowed to process jobs for service ${job.serviceName}`,
+        });
+        return;
+      }
+      const resp: GetRunnableJobResponse = {
+        type: "getRunnableJobResponse",
+        job
       };
       res.status(200).json(resp);
     } catch (e) {

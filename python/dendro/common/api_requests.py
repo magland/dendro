@@ -104,6 +104,27 @@ def get_runnable_jobs_for_compute_client(
     return runnable_jobs, running_jobs
 
 
+def get_runnable_job(*, job_id: str, user_api_key: str):
+    url_path = '/api/getRunnableJob'
+    req = {
+        'type': 'getRunnableJobRequest',
+        'jobId': job_id
+    }
+    if job_id is not None:
+        req['jobId'] = job_id
+    headers = {
+        'Authorization': f'Bearer {user_api_key}'
+    }
+    resp = _post_api_request(
+        url_path=url_path,
+        data=req,
+        headers=headers
+    )
+    runnable_job = resp['runnableJob']
+    runnable_job = DendroJob(**runnable_job)
+    return runnable_job
+
+
 # // getJob
 # export type GetJobRequest = {
 #   type: 'getJobRequest'

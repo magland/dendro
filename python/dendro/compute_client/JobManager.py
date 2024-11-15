@@ -34,7 +34,7 @@ class JobManager:
             return _start_job(
                 job=job,
                 compute_client_id=self._compute_client_id,
-                daemon_mode=True
+                detach=True
             )
         except Exception as e: # pylint: disable=broad-except
             # do a traceback

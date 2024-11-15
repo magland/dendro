@@ -1,4 +1,5 @@
 from typing import Union
+import os
 import socket
 import click
 from .compute_client.register_compute_client import (
@@ -48,8 +49,20 @@ def start_compute_client(exit_when_idle: bool):
 # ------------------------------------------------------------
 @click.command(help="Run a pending job")
 @click.argument("job_id", type=str)
-def run_pending_job(job_id: str):
-    run_pending_job_function(dir=".", job_id=job_id)
+@click.option("--compute-client-dir", default=None, help="Path to the compute client directory (if not specified, the DENDRO_API_KEY environment variable must be set)")
+@click.option("--detach", is_flag=True, help="Detach from the job")
+def run_pending_job(job_id: str, compute_client_dir: Union[str, None], detach: bool):
+    if not compute_client_dir:
+        user_api_key = os.environ.get("DENDRO_API_KEY")
+        if not user_api_key:
+            raise Exception(
+                "Either --compute_client_dir or DENDRO_API_KEY environment variable must be set"
+            )
+        run_pending_job_function(
+            job_id=job_id, compute_client_dir=None, user_api_key=user_api_key, detach=detach
+        )
+    else:
+        run_pending_job_function(compute_client_dir=compute_client_dir, job_id=job_id)
 
 
 # ------------------------------------------------------------

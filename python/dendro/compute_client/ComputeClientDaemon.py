@@ -137,7 +137,7 @@ class ComputeClientDaemon:
                 # right now there's no way to kill the pubsub client's websocket connection
                 pass
 
-    def run_pending_job(self, job_id: str):
+    def run_pending_job(self, job_id: str, *, detach: bool = False):
         runnable_jobs, running_jobs = get_runnable_jobs_for_compute_client(
             compute_client_id=self._compute_client_id,
             compute_client_private_key=self._compute_client_private_key,
@@ -147,7 +147,7 @@ class ComputeClientDaemon:
             raise Exception(f'No runnable job with ID {job_id} that is assignable to this compute client')
         if len(runnable_jobs) > 1:
             raise Exception(f'More than one runnable job with ID {job_id} found')
-        _start_job(job=runnable_jobs[0], compute_client_id=self._compute_client_id, daemon_mode=False)
+        _start_job(job=runnable_jobs[0], compute_client_id=self._compute_client_id, detach=detach)
 
     def _handle_jobs(self):
         print('Checking for new jobs')
