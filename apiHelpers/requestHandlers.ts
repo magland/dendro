@@ -1313,27 +1313,29 @@ export const setJobStatusHandler = allowCors(
         }
         computeClientUserId = computeClient.userId;
       }
-      if (job.computeClientId) {
-        if (job.computeClientId !== computeClientId) {
-          res.status(401).json({
-            error: "Mismatch between computeClientId in request and job",
-          });
-          return;
-        }
-      } else {
-        if (job.status !== "pending") {
-          res.status(400).json({
-            error:
-              "Job is not in pending status and the compute client is not set",
-          });
-          return;
-        }
-        if (rr.status !== "starting") {
-          res.status(400).json({
-            error:
-              "Trying to set job to a status other than starting when compute client is not set",
-          });
-          return;
+      if (computeClientId) {
+        if (job.computeClientId) {
+          if (job.computeClientId !== computeClientId) {
+            res.status(401).json({
+              error: "Mismatch between computeClientId in request and job",
+            });
+            return;
+          }
+        } else {
+          if (job.status !== "pending") {
+            res.status(400).json({
+              error:
+                "Job is not in pending status and the compute client is not set",
+            });
+            return;
+          }
+          if (rr.status !== "starting") {
+            res.status(400).json({
+              error:
+                "Trying to set job to a status other than starting when compute client is not set",
+            });
+            return;
+          }
         }
       }
       if (rr.status === "starting") {
