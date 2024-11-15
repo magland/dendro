@@ -1303,12 +1303,16 @@ export const setJobStatusHandler = allowCors(
         return;
       }
       const computeClientId = rr.computeClientId;
-      const computeClient = await fetchComputeClient(computeClientId);
-      if (!computeClient) {
-        res.status(404).json({ error: "Compute client not found" });
-        return;
+      let computeClientUserId: string | null = null;
+      let computeClient: DendroComputeClient | null = null;
+      if (computeClientId) {
+        computeClient = await fetchComputeClient(computeClientId);
+        if (!computeClient) {
+          res.status(404).json({ error: "Compute client not found" });
+          return;
+        }
+        computeClientUserId = computeClient.userId;
       }
-      const computeClientUserId = computeClient.userId;
       if (job.computeClientId) {
         if (job.computeClientId !== computeClientId) {
           res.status(401).json({
@@ -1345,7 +1349,7 @@ export const setJobStatusHandler = allowCors(
           return;
         }
         if (
-          !userIsAllowedToProcessJobsForService(service, computeClientUserId)
+          computeClientUserId && !userIsAllowedToProcessJobsForService(service, computeClientUserId)
         ) {
           res.status(401).json({
             error:
@@ -1356,7 +1360,7 @@ export const setJobStatusHandler = allowCors(
         await atomicUpdateJob(rr.jobId, "pending", {
           status: "starting",
           computeClientId,
-          computeClientName: computeClient.computeClientName,
+          computeClientName: computeClient ? computeClient.computeClientName : "",
           computeClientUserId,
           timestampStartingSec: Date.now() / 1000,
         });

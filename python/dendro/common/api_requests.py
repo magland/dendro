@@ -120,7 +120,7 @@ def get_runnable_job(*, job_id: str, user_api_key: str):
         data=req,
         headers=headers
     )
-    runnable_job = resp['runnableJob']
+    runnable_job = resp['job']
     runnable_job = DendroJob(**runnable_job)
     return runnable_job
 
