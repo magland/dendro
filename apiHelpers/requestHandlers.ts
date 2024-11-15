@@ -1486,11 +1486,6 @@ export const getSignedUploadUrlHandler = allowCors(
         res.status(404).json({ error: "Job not found" });
         return;
       }
-      const computeClientId = job.computeClientId;
-      if (!computeClientId) {
-        res.status(400).json({ error: "Job does not have a compute client" });
-        return;
-      }
       const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
       if (!jobPrivateKey) {
         res.status(400).json({ error: "Job private key must be provided" });
@@ -1714,11 +1709,6 @@ export const getSignedDownloadUrlHandler = allowCors(
       });
       if (!job) {
         res.status(404).json({ error: "Job not found" });
-        return;
-      }
-      const computeClientId = job.computeClientId;
-      if (!computeClientId) {
-        res.status(400).json({ error: "Job does not have a compute client" });
         return;
       }
       const jobPrivateKey = req.headers.authorization?.split(" ")[1]; // Extract the token
