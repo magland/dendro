@@ -132,7 +132,7 @@ fi
         os.makedirs(tmpdir, exist_ok=True)
         os.makedirs(tmpdir + '/working', exist_ok=True)
         cmd2 = [
-            'docker', 'run', '-it'
+            'docker', 'run'
         ]
         cmd2.extend(['-v', f'{tmpdir}:/tmp'])
         env_vars['DENDRO_JOB_CLEANUP_DIR'] = '/tmp'
