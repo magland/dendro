@@ -1070,8 +1070,8 @@ export const getRunnableJobHandler = allowCors(
         res.status(404).json({ error: "Job not found" });
         return;
       }
-      if (job.targetComputeClientIds && job.targetComputeClientIds.length > 0) {
-        res.status(400).json({ error: "Job is targeted for specific compute clients" });
+      if (job.targetComputeClientIds && !job.targetComputeClientIds.includes('*') && (job.targetComputeClientIds.length > 0)) {
+        res.status(400).json({ error: "Job is targeted to be run by specific compute clients" });
         return;
       }
       if (job.status !== "pending") {
