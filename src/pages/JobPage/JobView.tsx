@@ -154,6 +154,10 @@ export const JobView: FunctionComponent<JobViewProps> = ({
             <td>{(job.targetComputeClientIds || []).join(", ")}</td>
           </tr>
           <tr>
+            <td>Compute client</td>
+            <td>{job.computeClientId ? job.computeClientId : ""}</td>
+          </tr>
+          <tr>
             <td>Job dependencies</td>
             <td>
               {job.jobDependencies.map((jobId) => (

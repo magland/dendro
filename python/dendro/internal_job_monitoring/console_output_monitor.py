@@ -79,6 +79,8 @@ def do_upload(*, console_out_file, job_id, job_private_key):
             other_name=None,
             size=len(text_to_upload)
         )
+        if not isinstance(console_output_upload_url, str):
+            raise Exception(f'Error getting console output upload url (not a string): {console_output_upload_url}')
         r = requests.put(console_output_upload_url, data=text_to_upload, timeout=5)
         if r.status_code != 200:
             raise Exception(f'Error uploading console output: {r.status_code} {r.text}')

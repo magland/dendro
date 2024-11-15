@@ -126,6 +126,8 @@ def do_upload(*, all_lines, job_id, job_private_key):
             output_name=None,
             size=len(text_to_upload)
         )
+        if not isinstance(resource_utilization_log_upload_url, str):
+            raise Exception(f'Error getting console output upload url (not a string): {resource_utilization_log_upload_url}')
         r = requests.put(resource_utilization_log_upload_url, data=text_to_upload, timeout=5)
         if r.status_code != 200:
             raise Exception(f'Error uploading resource utilization log: {r.status_code} {r.text}')

@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
 
@@ -71,8 +72,12 @@ def data_to_mp4(data, output_fname, sample_rate_hz: float, num_frames: int):
     fps = sample_rate_hz
     out = cv2.VideoWriter(output_fname, fourcc, fps, (width, height), isColor=False)
 
+    timer = time.time()
     for i in range(num_frames):
-        print(f'Writing frame {i}/{num_frames}')
+        elapsed = time.time() - timer
+        if elapsed > 10 or i == 0 or i == num_frames - 1:
+            print(f'Writing frame {i + 1}/{num_frames}')
+            timer = time.time()
         X = data[i]
         X = X.astype(np.float32) * 255 / max_val
         X = np.clip(X, 0, 255)
