@@ -170,7 +170,7 @@ export const getServiceHandler = allowCors(
     try {
       const service = await fetchService(rr.serviceName);
       if (!service) {
-        res.status(404).json({ error: "Service not found" });
+        res.status(404).json({ error: `Service not found: ${rr.serviceName}` });
         return;
       }
       const resp: GetServiceResponse = {
@@ -225,7 +225,7 @@ export const deleteServiceHandler = allowCors(
     try {
       const service = await fetchService(rr.serviceName);
       if (!service) {
-        res.status(404).json({ error: "Service not found" });
+        res.status(404).json({ error: `Service not found: ${rr.serviceName}` });
         return;
       }
       const gitHubAccessToken = req.headers.authorization?.split(" ")[1]; // Extract the token
@@ -261,7 +261,7 @@ export const setServiceInfoHandler = allowCors(
     try {
       const service = await fetchService(rr.serviceName);
       if (!service) {
-        res.status(404).json({ error: "Service not found" });
+        res.status(404).json({ error: `Service not found: ${rr.serviceName}` });
         return;
       }
       const gitHubAccessToken = req.headers.authorization?.split(" ")[1]; // Extract the token
@@ -309,7 +309,7 @@ export const addServiceAppHandler = allowCors(
     const serviceName = rr.serviceApp.serviceName;
     const service = await fetchService(serviceName);
     if (!service) {
-      res.status(404).json({ error: "Service not found" });
+      res.status(404).json({ error: `Service not found: ${serviceName}` });
       return;
     }
     const app = rr.serviceApp;
@@ -493,7 +493,7 @@ export const createJobHandler = allowCors(
       }
       const service = await fetchService(rr.serviceName);
       if (!service) {
-        res.status(400).json({ error: "Service not found" });
+        res.status(400).json({ error: `Service not found: ${rr.serviceName}` });
         return;
       }
       if (!userIsAllowedToCreateJobsForService(service, rr.userId)) {
@@ -786,7 +786,7 @@ export const deleteJobsHandler = allowCors(
       for (const serviceName of distinctServiceNames) {
         const service = await fetchService(serviceName);
         if (!service) {
-          res.status(404).json({ error: "Service not found" });
+          res.status(404).json({ error: `Service not found: ${serviceName}` });
           return;
         }
         if (!userIsAllowedToDeleteJobsForService(service, userId)) {
@@ -957,7 +957,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
       for (const serviceName of computeClient.serviceNames) {
         const service = await fetchService(serviceName);
         if (!service) {
-          res.status(404).json({ error: "Service not found" });
+          res.status(404).json({ error: `Service not found: ${serviceName}` });
           return;
         }
         if (
@@ -1347,7 +1347,7 @@ export const setJobStatusHandler = allowCors(
         }
         const service = await fetchService(job.serviceName);
         if (!service) {
-          res.status(404).json({ error: "Service not found" });
+          res.status(404).json({ error: `Service not found: ${job.serviceName}` });
           return;
         }
         if (
@@ -2027,7 +2027,7 @@ export const setServiceAppInfoHandler = allowCors(
     try {
       const service = await fetchService(rr.serviceName);
       if (!service) {
-        res.status(404).json({ error: "Service not found" });
+        res.status(404).json({ error: `Service ${rr.serviceName} not found` });
         return;
       }
       const githubAccessToken = req.headers.authorization?.split(" ")[1]; // Extract the token
@@ -2104,7 +2104,7 @@ export const deleteServiceAppHandler = allowCors(
     try {
       const service = await fetchService(rr.serviceName);
       if (!service) {
-        res.status(404).json({ error: "Service not found" });
+        res.status(404).json({ error: `Service ${rr.serviceName} not found` });
         return;
       }
       const gitHubAuthorizationToken = req.headers.authorization?.split(" ")[1]; // Extract the token
