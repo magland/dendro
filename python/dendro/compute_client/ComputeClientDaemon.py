@@ -170,7 +170,7 @@ class ComputeClientDaemon:
         _start_job(job=runnable_jobs[0], compute_client_id=self._compute_client_id, detach=detach)
 
     def _handle_jobs(self):
-        print('Checking for new jobs')
+        # print('Checking for new jobs')
         runnable_jobs, running_jobs = get_runnable_jobs_for_compute_client(
             compute_client_id=self._compute_client_id,
             compute_client_private_key=self._compute_client_private_key,

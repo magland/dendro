@@ -930,7 +930,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
       if ((!rr.jobId) || rr.singleJob) {
         const pipeline2 = [
           {
-            $match: { status: "running", computeClientId: rr.computeClientId },
+            $match: { status: { $in: ["running", "starting"] }, computeClientId: rr.computeClientId },
           },
           { $sort: { timestampCreatedSec: 1 } },
           // important not to limit here, because we really need to know all the running jobs
