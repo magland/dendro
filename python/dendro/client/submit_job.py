@@ -38,6 +38,9 @@ def submit_job(
             if dependency_job_id not in job_dependencies:
                 job_dependencies.append(dependency_job_id)
 
+    if target_compute_client_ids is None:
+        target_compute_client_ids = ['*']
+
     job = create_job(
         service_name=service_name,
         batch_id='',
