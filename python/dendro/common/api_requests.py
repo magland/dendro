@@ -80,15 +80,18 @@ def get_runnable_jobs_for_compute_client(
     *,
     compute_client_id: str,
     compute_client_private_key: str,
-    job_id: Union[str, None] = None
+    job_id: Union[str, None] = None,
+    single_job: bool = False
 ):
     url_path = '/api/getRunnableJobsForComputeClient'
-    req = {
+    req: dict = {
         'type': 'getRunnableJobsForComputeClientRequest',
         'computeClientId': compute_client_id
     }
     if job_id is not None:
         req['jobId'] = job_id
+    if single_job:
+        req['singleJob'] = True
     headers = {
         'Authorization': f'Bearer {compute_client_private_key}'
     }

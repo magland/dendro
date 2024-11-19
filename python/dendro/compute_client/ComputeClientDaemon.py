@@ -17,13 +17,15 @@ class ComputeClientDaemon:
         compute_client_id: str,
         compute_client_private_key: str,
         compute_client_name: str,
-        exit_when_idle: bool
+        exit_when_idle: bool,
+        single_job: bool
     ) -> None:
         self._dir = dir
         self._compute_client_id = compute_client_id
         self._compute_client_private_key = compute_client_private_key
         self._compute_client_name = compute_client_name
         self._exit_when_idle = exit_when_idle
+        self._single_job = single_job
 
         self._is_idle = False  # this is relevant only if exit_when_idle is True
 
@@ -39,17 +41,20 @@ class ComputeClientDaemon:
         timer_handle_jobs = 0
 
         print('Getting pubsub info')
-        pubsub_subscription = get_pubsub_subscription(
-            compute_client_id=self._compute_client_id,
-            compute_client_private_key=self._compute_client_private_key
-        )
-        pubnub_subscribe_key = pubsub_subscription['pubnubSubscribeKey']
-        pubsub_client = PubsubClient(
-            pubnub_subscribe_key=pubnub_subscribe_key,
-            pubnub_channel=pubsub_subscription['pubnubChannel'],
-            pubnub_user=pubsub_subscription['pubnubUser'],
-            compute_client_id=self._compute_client_id
-        )
+        if not self._single_job:
+            pubsub_subscription = get_pubsub_subscription(
+                compute_client_id=self._compute_client_id,
+                compute_client_private_key=self._compute_client_private_key
+            )
+            pubnub_subscribe_key = pubsub_subscription['pubnubSubscribeKey']
+            pubsub_client = PubsubClient(
+                pubnub_subscribe_key=pubnub_subscribe_key,
+                pubnub_channel=pubsub_subscription['pubnubChannel'],
+                pubnub_user=pubsub_subscription['pubnubUser'],
+                compute_client_id=self._compute_client_id
+            )
+        else:
+            pubsub_client = None
 
         # # Create file cache directory if needed
         # file_cache_dir = os.path.join(os.getcwd(), 'file_cache')
@@ -74,27 +79,36 @@ class ComputeClientDaemon:
             print('Starting compute client')
             last_report_that_compute_client_is_running = 0
             overall_timer = time.time()
+            first_iteration = True
             while True:
                 elapsed_handle_jobs = time.time() - timer_handle_jobs
                 # normally we will get pubsub messages for updates, but if we don't, we should check every so often
                 is_time_to_handle_jobs = elapsed_handle_jobs > time_interval_to_check_for_new_jobs
-                try:
-                    messages = pubsub_client.take_messages() if pubsub_client is not None else []
-                except Exception as e:
-                    traceback.print_exc()
-                    print(f'Error getting pubsub messages: {e}')
-                    messages = []
-                jobs_have_changed = False
-                for msg in messages:
-                    # service_name = msg.get('serviceName', '')
-                    # todo: in future we want to restrict to only messages from the services that this compute client is subscribed to
-                    if msg['type'] == 'newPendingJob':
-                        jobs_have_changed = True
-                    elif msg['type'] == 'jobStatusChanged':
-                        jobs_have_changed = True
-                    elif msg['type'] == 'pingComputeClients':
-                        jobs_have_changed = True
-                        # will trigger a check for new jobs which will update the last active timestamp
+                if pubsub_client is not None:
+                    try:
+                        messages = pubsub_client.take_messages() if pubsub_client is not None else []
+                    except Exception as e:
+                        traceback.print_exc()
+                        print(f'Error getting pubsub messages: {e}')
+                        messages = []
+                    jobs_have_changed = False
+                    for msg in messages:
+                        # service_name = msg.get('serviceName', '')
+                        # todo: in future we want to restrict to only messages from the services that this compute client is subscribed to
+                        if msg['type'] == 'newPendingJob':
+                            jobs_have_changed = True
+                        elif msg['type'] == 'jobStatusChanged':
+                            jobs_have_changed = True
+                        elif msg['type'] == 'pingComputeClients':
+                            jobs_have_changed = True
+                            # will trigger a check for new jobs which will update the last active timestamp
+                else:
+                    jobs_have_changed = False
+
+                if self._single_job and not first_iteration:
+                    # do not handle additional jobs if we are in single job mode
+                    is_time_to_handle_jobs = False
+                    jobs_have_changed = False
 
                 if is_time_to_handle_jobs or jobs_have_changed:
                     timer_handle_jobs = time.time()
@@ -106,6 +120,10 @@ class ComputeClientDaemon:
 
                 if self._exit_when_idle and not self._is_idle:
                     print('No more jobs to run. Exiting because --exit-when-idle is set.')
+                    return
+
+                if self._single_job and self._is_idle:
+                    print('No more jobs to run. Exiting because --single-job is set.')
                     return
 
                 try:
@@ -130,6 +148,8 @@ class ComputeClientDaemon:
                     time.sleep(0.2) # for the first few seconds we can sleep for a short time
                 else:
                     time.sleep(2)
+
+                first_iteration = False
         finally:
             if cleanup_old_jobs_process is not None:
                 cleanup_old_jobs_process.terminate()
@@ -153,12 +173,17 @@ class ComputeClientDaemon:
         print('Checking for new jobs')
         runnable_jobs, running_jobs = get_runnable_jobs_for_compute_client(
             compute_client_id=self._compute_client_id,
-            compute_client_private_key=self._compute_client_private_key
+            compute_client_private_key=self._compute_client_private_key,
+            single_job=self._single_job
         )
         if len(runnable_jobs) > 0:
             self._job_manager.handle_jobs(runnable_jobs)
-        if len(running_jobs) == 0 and len(runnable_jobs) == 0:
-            self._is_idle = True
+        else:
+            if self._single_job:
+                self._is_idle = True
+            else:
+                if len(running_jobs) == 0:
+                    self._is_idle = True
 
 
 def _cleanup_old_job_working_directories(dir: str):

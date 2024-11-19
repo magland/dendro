@@ -847,7 +847,7 @@ export type FindJobsRequest = {
   processorName?: string;
   computeClientId?: string;
   batchId?: string;
-  tags?: any;
+  tags?: string[];
   serviceName?: string;
   appName?: string;
   inputFileUrl?: string;
@@ -864,7 +864,7 @@ export const isFindJobsRequest = (x: any): x is FindJobsRequest => {
     processorName: optional(isString),
     computeClientId: optional(isString),
     batchId: optional(isString),
-    tags: optional(() => true),
+    tags: optional(isArrayOf(isString)),
     serviceName: optional(isString),
     appName: optional(isString),
     inputFileUrl: optional(isString),
@@ -893,6 +893,7 @@ export type GetRunnableJobsForComputeClientRequest = {
   type: "getRunnableJobsForComputeClientRequest";
   computeClientId: string;
   jobId?: string;
+  singleJob?: boolean;
 };
 
 export const isGetRunnableJobsForComputeClientRequest = (
@@ -902,6 +903,7 @@ export const isGetRunnableJobsForComputeClientRequest = (
     type: isEqualTo("getRunnableJobsForComputeClientRequest"),
     computeClientId: isString,
     jobId: optional(isString),
+    singleJob: optional(isBoolean),
   });
 };
 

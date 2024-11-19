@@ -856,7 +856,10 @@ export const findJobsHandler = allowCors(
         query["jobDefinition.processorName"] = rr.processorName;
       if (rr.computeClientId) query["computeClientId"] = rr.computeClientId;
       if (rr.batchId) query["batchId"] = rr.batchId;
-      if (rr.tags) query["tags"] = rr.tags;
+      if (rr.tags) {
+        // tags is a list of strings. We need documents whose tags contain all of these strings.
+        query["tags"] = { $all: rr.tags };
+      }
       if (rr.serviceName) query["serviceName"] = rr.serviceName;
       if (rr.appName) query["jobDefinition.appName"] = rr.appName;
       if (rr.inputFileUrl) query["inputFileUrlList"] = rr.inputFileUrl;
@@ -923,7 +926,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
       });
 
       let runningJobs: DendroJob[];
-      if (!rr.jobId) {
+      if ((!rr.jobId) || rr.singleJob) {
         const pipeline2 = [
           {
             $match: { status: "running", computeClientId: rr.computeClientId },
@@ -948,7 +951,7 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
           }
         }
       } else {
-        // if we are providing a jobId, we are not going to return the running jobs
+        // if we are providing a jobId or we are in singleJob mode, we are not going to return the running jobs
         runningJobs = [];
       }
 
@@ -1005,6 +1008,10 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
         });
         if (!rr.jobId) {
           for (const pj of runnableJobs) {
+            if (rr.singleJob && (allRunnableReadyJobs.length > 0)) {
+              // if we are in singleJob mode, we are only going to return one job
+              break;
+            }
             if (
               computeResourceHasEnoughCapacityForJob(computeClient, pj, [
                 ...runningJobs,

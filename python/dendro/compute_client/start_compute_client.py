@@ -3,15 +3,15 @@ import yaml
 from .ComputeClientDaemon import ComputeClientDaemon
 
 
-def start_compute_client(*, dir: str, exit_when_idle: bool):
+def start_compute_client(*, dir: str, exit_when_idle: bool = False, single_job: bool = False):
     CONTAINER_METHOD = os.environ.get("CONTAINER_METHOD")
     if not CONTAINER_METHOD:
         raise Exception("CONTAINER_METHOD environment variable must be set to either docker or apptainer")
-    daemon = get_compute_client_daemon(dir=dir, exit_when_idle=exit_when_idle)
+    daemon = get_compute_client_daemon(dir=dir, exit_when_idle=exit_when_idle, single_job=single_job)
     daemon.start()
 
 
-def get_compute_client_daemon(*, dir: str, exit_when_idle: bool):
+def get_compute_client_daemon(*, dir: str, exit_when_idle: bool, single_job: bool):
     if os.environ.get("COMPUTE_CLIENT_ID"):
         compute_client_id = os.environ.get("COMPUTE_CLIENT_ID")
         compute_client_private_key = os.environ.get("COMPUTE_CLIENT_PRIVATE_KEY")
@@ -40,5 +40,6 @@ def get_compute_client_daemon(*, dir: str, exit_when_idle: bool):
         compute_client_private_key=compute_client_private_key,
         compute_client_name=compute_client_name,
         exit_when_idle=exit_when_idle,
+        single_job=single_job,
     )
     return daemon

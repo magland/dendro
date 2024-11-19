@@ -40,8 +40,9 @@ def register_compute_client(
 # ------------------------------------------------------------
 @click.command(help="Start a compute client in the current directory")
 @click.option("--exit-when-idle", is_flag=True, help="Exit when idle")
-def start_compute_client(exit_when_idle: bool):
-    start_compute_client_function(dir=".", exit_when_idle=exit_when_idle)
+@click.option("--single-job", is_flag=True, help="Run a single job and exit")
+def start_compute_client(exit_when_idle: bool, single_job: bool):
+    start_compute_client_function(dir=".", exit_when_idle=exit_when_idle, single_job=single_job)
 
 
 # ------------------------------------------------------------
