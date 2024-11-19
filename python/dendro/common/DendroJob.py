@@ -88,6 +88,7 @@ class DendroJob(BaseModel):
     timestampStartingSec: Union[float, None] = None
     timestampStartedSec: Union[float, None] = None
     timestampFinishedSec: Union[float, None] = None
+    timestampUpdatedSec: Union[float, None] = None
     canceled: bool
     status: str
     isRunnable: bool
