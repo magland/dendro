@@ -985,18 +985,21 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
         }
         const pipeline = [
           { $match: query },
-          { $sample: { size: 200 } }, // thinking of the case of many pending jobs, but we don't want to always get the same ones (but there is a potential problem here)
-          { $sort: { timestampCreatedSec: 1 } }, // handle earliest jobs first
+          { $sample: { size: 100 } }, // thinking of the case of many pending jobs, but we don't want to always get the same ones (but there is a potential problem here)
+          { $sort: { timestampCreatedSec: -1 } }, // handle most recent jobs first (is this what we want to do?)
         ];
         // NOTE: include private keys
         let runnableJobs = await fetchJobs(pipeline, {
           includePrivateKey: true,
           includeSecrets: false,
         });
-        // scramble the pending jobs so that we don't always get the same ones
-        // and minimize conflicts between compute clients when there are many
-        // pending jobs
-        runnableJobs = shuffleArray(runnableJobs);
+
+        // Don't shuffle for now
+        // // scramble the pending jobs so that we don't always get the same ones
+        // // and minimize conflicts between compute clients when there are many
+        // // pending jobs
+        // runnableJobs = shuffleArray(runnableJobs);
+
         // exclude jobs that are targeting other compute clients
         runnableJobs = runnableJobs.filter((j) => {
           if (j.targetComputeClientIds) {
@@ -3457,12 +3460,12 @@ export const JSONStringifyDeterministic = (
   return JSON.stringify(obj, allKeys, space);
 };
 
-const shuffleArray = (arr: any[]) => {
-  const randomValues = arr.map(Math.random);
-  const indices = randomValues.map((v, i) => [v, i]);
-  indices.sort((a, b) => a[0] - b[0]);
-  return indices.map((v) => arr[v[1]]);
-};
+// const shuffleArray = (arr: any[]) => {
+//   const randomValues = arr.map(Math.random);
+//   const indices = randomValues.map((v, i) => [v, i]);
+//   indices.sort((a, b) => a[0] - b[0]);
+//   return indices.map((v) => arr[v[1]]);
+// };
 
 const computeSha1 = (s: string) => {
   const hash = crypto.createHash("sha1");
