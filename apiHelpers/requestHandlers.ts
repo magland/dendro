@@ -650,6 +650,7 @@ export const createJobHandler = allowCors(
         timestampStartingSec: null,
         timestampStartedSec: null,
         timestampFinishedSec: null,
+        timestampUpdatedSec: Date.now() / 1000,
         canceled: false,
         status: "pending",
         isRunnable,
@@ -867,7 +868,7 @@ export const findJobsHandler = allowCors(
       if (rr.status) query["status"] = rr.status;
       const pipeline: any[] = [
         { $match: query },
-        { $sort: { timestampCreatedSec: -1 } },
+        { $sort: { timestampUpdatedSec: -1, timestampCreatedSec: -1 } },
       ];
       const limit = rr.limit === undefined ? 1000 : rr.limit;
       if (rr.limit) {
@@ -1375,6 +1376,7 @@ export const setJobStatusHandler = allowCors(
           computeClientName: computeClient ? computeClient.computeClientName : "",
           computeClientUserId,
           timestampStartingSec: Date.now() / 1000,
+          timestampUpdatedSec: Date.now() / 1000,
         });
       } else if (rr.status === "running") {
         if (job.status !== "starting") {
@@ -1384,6 +1386,7 @@ export const setJobStatusHandler = allowCors(
         await atomicUpdateJob(rr.jobId, "starting", {
           status: "running",
           timestampStartedSec: Date.now() / 1000,
+          timestampUpdatedSec: Date.now() / 1000,
         });
       } else if (rr.status === "completed" || rr.status === "failed") {
         if (rr.status === "completed") {
@@ -1413,6 +1416,7 @@ export const setJobStatusHandler = allowCors(
           status: rr.status,
           error: rr.error,
           timestampFinishedSec: Date.now() / 1000,
+          timestampUpdatedSec: Date.now() / 1000,
         });
         if (rr.status === "completed") {
           // maybe some other jobs have become runnable

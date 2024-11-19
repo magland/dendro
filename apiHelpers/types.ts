@@ -338,6 +338,7 @@ export type DendroJob = {
   timestampStartingSec: number | null;
   timestampStartedSec: number | null;
   timestampFinishedSec: number | null;
+  timestampUpdatedSec?: number | null;
   canceled: boolean;
   status: DendroJobStatus;
   isRunnable: boolean;
@@ -372,6 +373,7 @@ export const isDendroJob = (x: any): x is DendroJob => {
     timestampStartingSec: isOneOf([isNumber, isNull]),
     timestampStartedSec: isOneOf([isNumber, isNull]),
     timestampFinishedSec: isOneOf([isNumber, isNull]),
+    timestampUpdatedSec: optional(isOneOf([isNumber, isNull])),
     canceled: isBoolean,
     status: isDendroJobStatus,
     isRunnable: isBoolean,
