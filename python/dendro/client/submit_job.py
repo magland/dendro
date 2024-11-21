@@ -16,6 +16,34 @@ def submit_job(
     rerun_failing: bool = False,
     delete_failing: bool = False
 ):
+    """
+    Submit a job to the Dendro service.
+
+    Parameters
+    ----------
+    service_name : str
+        The name of the service to submit the job to.
+    job_definition : DendroJobDefinition
+        The job definition.
+    required_resources : DendroJobRequiredResources
+        The required resources for the job.
+    target_compute_client_ids : List[str], optional
+        The compute client IDs to target for the job. If None, all compute
+        clients are targeted.
+    tags : List[str], optional
+        The tags to associate with the job.
+    skip_cache : bool, optional
+        Whether to skip the cache for the job. By default, if another job with
+        the same job definition hash exists on this service, then that job will
+        be returned instead of creating a new job. See also rerun_failing and
+        delete_failing.
+    rerun_failing : bool, optional
+        Whether to resubmit jobs that have failed. This only applies when
+        skip_cache is False.
+    delete_failing : bool, optional
+        Whether to delete jobs that have failed when resubmitting. This only
+        applies when skip_cache is False and rerun_failing is True.
+    """
     user_api_key = os.environ.get('DENDRO_API_KEY', None)
     if user_api_key is None:
         raise Exception('DENDRO_API_KEY environment variable must be set')
