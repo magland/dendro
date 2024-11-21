@@ -1,7 +1,7 @@
 {
   "name": "dendro",
   "private": true,
-  "version": "0.6.20-0",
+  "version": "0.6.20-1",
   "type": "module",
   "prettier": {
     "tabWidth": 2,
