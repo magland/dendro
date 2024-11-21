@@ -570,7 +570,11 @@ export const useServiceApp = (serviceName: string, appName: string) => {
       serviceName,
       appName,
     };
-    const resp = await apiPostRequest("deleteServiceApp", req, githubAccessToken);
+    const resp = await apiPostRequest(
+      "deleteServiceApp",
+      req,
+      githubAccessToken,
+    );
     if (!isDeleteServiceAppResponse(resp)) {
       console.error("Invalid response", resp);
       return;

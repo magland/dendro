@@ -19,7 +19,10 @@ const ServiceAppPage: FunctionComponent<ServiceAppPageProps> = () => {
   }
   const serviceName = route.serviceName;
   const appName = route.appName;
-  const { serviceApp, updateFromSource, deleteServiceApp } = useServiceApp(serviceName, appName);
+  const { serviceApp, updateFromSource, deleteServiceApp } = useServiceApp(
+    serviceName,
+    appName,
+  );
   if (!serviceApp) {
     return (
       <div style={{ padding: 20 }}>
@@ -81,7 +84,7 @@ const ServiceAppPage: FunctionComponent<ServiceAppPageProps> = () => {
         <button
           onClick={async () => {
             const okay = window.confirm(
-              "Are you sure you want to delete this service app?"
+              "Are you sure you want to delete this service app?",
             );
             if (okay) {
               await deleteServiceApp();

@@ -43,6 +43,11 @@ def submit_job(
     delete_failing : bool, optional
         Whether to delete jobs that have failed when resubmitting. This only
         applies when skip_cache is False and rerun_failing is True.
+
+    Returns
+    -------
+    DendroJob
+        The job that was submitted, or the existing job if found in the cache.
     """
     user_api_key = os.environ.get('DENDRO_API_KEY', None)
     if user_api_key is None:

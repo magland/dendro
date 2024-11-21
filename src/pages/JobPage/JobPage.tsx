@@ -7,10 +7,11 @@ import useRoute from "../../useRoute";
 import JobView from "./JobView";
 
 type JobPageProps = {
-  // none
+  width: number;
+  height: number;
 };
 
-const JobPage: FunctionComponent<JobPageProps> = () => {
+const JobPage: FunctionComponent<JobPageProps> = ({ width, height }) => {
   const { route, setRoute } = useRoute();
   // const [errorMessage, setErrorMessage] = useState<string | null>(null)
   if (route.page !== "job") {
@@ -38,19 +39,39 @@ const JobPage: FunctionComponent<JobPageProps> = () => {
       </div>
     );
   }
+  const topBarHeight = 50;
   return (
-    <div style={{ padding: 20 }}>
-      <div>
-        <Hyperlink
-          onClick={() => {
-            setRoute({ page: "service", serviceName: job.serviceName });
-          }}
-        >
-          Back to service
-        </Hyperlink>
+    <div style={{ position: "absolute", width, height }}>
+      <div
+        style={{ position: "absolute", top: 0, width, height: topBarHeight }}
+      >
+        <div style={{ padding: 10 }}>
+          <Hyperlink
+            onClick={() => {
+              setRoute({ page: "service", serviceName: job.serviceName });
+            }}
+          >
+            Back to service
+          </Hyperlink>
+          <hr />
+        </div>
       </div>
-      <hr />
-      <JobView job={job} refreshJob={refreshJob} deleteJob={handleDeleteJob} />
+      <div
+        style={{
+          position: "absolute",
+          top: topBarHeight,
+          width,
+          height: height - topBarHeight,
+        }}
+      >
+        <JobView
+          width={width}
+          height={height - topBarHeight}
+          job={job}
+          refreshJob={refreshJob}
+          deleteJob={handleDeleteJob}
+        />
+      </div>
     </div>
   );
 };

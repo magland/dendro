@@ -47,7 +47,7 @@ function MainWindow() {
   } else if (route.page === "service_app") {
     return <ServiceAppPage />;
   } else if (route.page === "job") {
-    return <JobPage />;
+    return <JobPage width={width} height={height} />;
   } else if (route.page === "settings") {
     return <SettingsPage />;
   } else if (route.page === "user") {

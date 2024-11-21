@@ -21,14 +21,52 @@ import { useJobProducingOutput } from "./useJobProducingOutput";
 import useRoute from "../../useRoute";
 import ModalWindow, { useModalWindow } from "@fi-sci/modal-window";
 import JobPythonScriptView from "./JobPythonScriptView";
+import { Splitter } from "@fi-sci/splitter";
 
 type JobViewProps = {
+  width: number;
+  height: number;
   job: DendroJob;
   refreshJob: () => void;
   deleteJob?: () => void;
 };
 
 export const JobView: FunctionComponent<JobViewProps> = ({
+  width,
+  height,
+  job,
+  refreshJob,
+  deleteJob,
+}) => {
+  return (
+    <Splitter
+      width={width}
+      height={height}
+      initialPosition={Math.max(width / 2, width - 600)}
+    >
+      <LeftPanel
+        width={0}
+        height={0}
+        job={job}
+        refreshJob={refreshJob}
+        deleteJob={deleteJob}
+      />
+      <ConsoleOutputView job={job} width={0} height={0} />
+    </Splitter>
+  );
+};
+
+type LeftPanelProps = {
+  width: number;
+  height: number;
+  job: DendroJob;
+  refreshJob: () => void;
+  deleteJob?: () => void;
+};
+
+const LeftPanel: FunctionComponent<LeftPanelProps> = ({
+  width,
+  height,
   job,
   refreshJob,
   deleteJob,
@@ -43,9 +81,8 @@ export const JobView: FunctionComponent<JobViewProps> = ({
     handleOpen: openJobDefinition,
     handleClose: closeJobDefinition,
   } = useModalWindow();
-
   return (
-    <div>
+    <div style={{ position: "absolute", width, height, overflowY: "auto" }}>
       <div>
         <SmallIconButton
           onClick={refreshJob}
@@ -175,8 +212,6 @@ export const JobView: FunctionComponent<JobViewProps> = ({
       <hr />
       <ResourceUtilizationSection job={job} />
       <hr />
-      <ConsoleOutputView job={job} />
-      <hr />
       <ModalWindow visible={pythonVisible} onClose={closePython}>
         <JobPythonScriptView job={job} />
       </ModalWindow>
@@ -202,10 +237,14 @@ const ResourceUtilizationSection: FunctionComponent<
 };
 
 type ConsoleOutputViewProps = {
+  width: number;
+  height: number;
   job: DendroJob;
 };
 
 const ConsoleOutputView: FunctionComponent<ConsoleOutputViewProps> = ({
+  width,
+  height,
   job,
 }) => {
   const { text, refreshText } = useRemoteText(job.consoleOutputUrl);
@@ -214,7 +253,7 @@ const ConsoleOutputView: FunctionComponent<ConsoleOutputViewProps> = ({
     refreshText();
   }, [job, refreshText]);
   return (
-    <div>
+    <div style={{ position: "absolute", width, height, overflowY: "auto" }}>
       <h3>Console output</h3>
       <Hyperlink
         onClick={() => {

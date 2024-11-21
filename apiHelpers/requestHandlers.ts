@@ -927,10 +927,13 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
       });
 
       let runningJobs: DendroJob[];
-      if ((!rr.jobId) || rr.singleJob) {
+      if (!rr.jobId || rr.singleJob) {
         const pipeline2 = [
           {
-            $match: { status: { $in: ["running", "starting"] }, computeClientId: rr.computeClientId },
+            $match: {
+              status: { $in: ["running", "starting"] },
+              computeClientId: rr.computeClientId,
+            },
           },
           { $sort: { timestampCreatedSec: 1 } },
           // important not to limit here, because we really need to know all the running jobs
@@ -1004,15 +1007,17 @@ export const getRunnableJobsForComputeClientHandler = allowCors(
         // exclude jobs that are targeting other compute clients
         runnableJobs = runnableJobs.filter((j) => {
           if (j.targetComputeClientIds) {
-            return j.targetComputeClientIds.includes(rr.computeClientId) || j.targetComputeClientIds.includes("*");
-          }
-          else {
+            return (
+              j.targetComputeClientIds.includes(rr.computeClientId) ||
+              j.targetComputeClientIds.includes("*")
+            );
+          } else {
             return false;
           }
         });
         if (!rr.jobId) {
           for (const pj of runnableJobs) {
-            if (rr.singleJob && (allRunnableReadyJobs.length > 0)) {
+            if (rr.singleJob && allRunnableReadyJobs.length > 0) {
               // if we are in singleJob mode, we are only going to return one job
               break;
             }
@@ -1081,8 +1086,16 @@ export const getRunnableJobHandler = allowCors(
         res.status(404).json({ error: "Job not found" });
         return;
       }
-      if (job.targetComputeClientIds && !job.targetComputeClientIds.includes('*') && (job.targetComputeClientIds.length > 0)) {
-        res.status(400).json({ error: "Job is targeted to be run by specific compute clients" });
+      if (
+        job.targetComputeClientIds &&
+        !job.targetComputeClientIds.includes("*") &&
+        job.targetComputeClientIds.length > 0
+      ) {
+        res
+          .status(400)
+          .json({
+            error: "Job is targeted to be run by specific compute clients",
+          });
         return;
       }
       if (job.status !== "pending") {
@@ -1095,7 +1108,9 @@ export const getRunnableJobHandler = allowCors(
       }
       const service = await fetchService(job.serviceName);
       if (!service) {
-        res.status(404).json({ error: `Service not found: ${job.serviceName}` });
+        res
+          .status(404)
+          .json({ error: `Service not found: ${job.serviceName}` });
         return;
       }
       if (!userIsAllowedToProcessJobsForService(service, userId)) {
@@ -1106,7 +1121,7 @@ export const getRunnableJobHandler = allowCors(
       }
       const resp: GetRunnableJobResponse = {
         type: "getRunnableJobResponse",
-        job
+        job,
       };
       res.status(200).json(resp);
     } catch (e) {
@@ -1358,11 +1373,14 @@ export const setJobStatusHandler = allowCors(
         }
         const service = await fetchService(job.serviceName);
         if (!service) {
-          res.status(404).json({ error: `Service not found: ${job.serviceName}` });
+          res
+            .status(404)
+            .json({ error: `Service not found: ${job.serviceName}` });
           return;
         }
         if (
-          computeClientUserId && !userIsAllowedToProcessJobsForService(service, computeClientUserId)
+          computeClientUserId &&
+          !userIsAllowedToProcessJobsForService(service, computeClientUserId)
         ) {
           res.status(401).json({
             error:
@@ -1373,7 +1391,9 @@ export const setJobStatusHandler = allowCors(
         await atomicUpdateJob(rr.jobId, "pending", {
           status: "starting",
           computeClientId,
-          computeClientName: computeClient ? computeClient.computeClientName : "",
+          computeClientName: computeClient
+            ? computeClient.computeClientName
+            : "",
           computeClientUserId,
           timestampStartingSec: Date.now() / 1000,
           timestampUpdatedSec: Date.now() / 1000,
@@ -1746,12 +1766,10 @@ export const getSignedDownloadUrlHandler = allowCors(
         }
       }
       if (!found) {
-        res
-          .status(500)
-          .json({
-            error:
-              "Cannot generate signed download URL. No input file with this URL in job.",
-          });
+        res.status(500).json({
+          error:
+            "Cannot generate signed download URL. No input file with this URL in job.",
+        });
       }
       let signedUrl = url;
       if (
@@ -3276,12 +3294,10 @@ export const getDandiApiKeyHandler = allowCors(
         return;
       }
       if (!oo.urlDeterminedAtRuntime) {
-        res
-          .status(400)
-          .json({
-            error:
-              "Cannot get DANDI API key because output url is not determined at run time",
-          });
+        res.status(400).json({
+          error:
+            "Cannot get DANDI API key because output url is not determined at run time",
+        });
         return;
       }
       const computeClientId = job.computeClientId;
@@ -3300,12 +3316,10 @@ export const getDandiApiKeyHandler = allowCors(
         // in the future, the dandi api key will stay secret on the server, but
         // for now we restrict to compute clients owned by magland so we don't
         // have a situation of people hacking and stealing the dandi api key
-        res
-          .status(403)
-          .json({
-            error:
-              "For now, only compute clients owned by magland are allowed to get Dandi API keys.",
-          });
+        res.status(403).json({
+          error:
+            "For now, only compute clients owned by magland are allowed to get Dandi API keys.",
+        });
         return;
       }
       const s = job.secrets?.find((s) => s.name === "DANDI_API_KEY");
