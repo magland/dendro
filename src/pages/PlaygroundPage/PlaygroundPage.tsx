@@ -302,6 +302,8 @@ const LeftPanel: FunctionComponent<PlaygroundPageProps> = ({
         <hr />
         {serviceName && appName && processorName && job && (
           <JobView
+            width={width}
+            height={800}
             job={job}
             refreshJob={handleRefreshJob}
             deleteJob={undefined}
