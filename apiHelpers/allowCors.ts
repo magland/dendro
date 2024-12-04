@@ -5,9 +5,11 @@ const allowCors =
   async (req: VercelRequest, res: VercelResponse) => {
     const allowedOrigins = [
       "http://localhost:3000",
+      "https://localhost:5173",
       "http://localhost:4200",
       "https://dendro.vercel.app",
       "https://neurosift.app",
+      "https://figurl.github.io"
     ];
     const origin = req.headers.origin || "";
     if (allowedOrigins.includes(origin)) {
