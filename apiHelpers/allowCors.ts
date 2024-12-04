@@ -5,7 +5,7 @@ const allowCors =
   async (req: VercelRequest, res: VercelResponse) => {
     const allowedOrigins = [
       "http://localhost:3000",
-      "https://localhost:5173",
+      "http://localhost:5173",
       "http://localhost:4200",
       "https://dendro.vercel.app",
       "https://neurosift.app",
