@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dendro"
+dynamic = ["version"]
+description = "Python client for the Dendro compute platform"
+authors = [
+    { name = "Jeremy Magland", email = "jmagland@flatironinstitute.org" },
+    { name = "Luiz Tauffer" },
+    { name = "Alessio Buccino" },
+    { name = "Ben Dichter" },
+]
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "click",
+    "simplejson",
+    "numpy",
+    "PyYAML",
+    "pydantic",
+    "psutil",
+    "requests",
+]
+urls = { Homepage = "https://github.com/magland/dendro" }
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.dynamic]
+version = { attr = "dendro.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["dendro*"]
+where = ["src"]
+
+[tool.setuptools.package-data]
+dendro = ["version.txt"]
+
+[project.scripts]
+dendro = "dendro.cli:main"
+
+[project.optional-dependencies]
+compute-client = ["pubnub", "boto3"]
