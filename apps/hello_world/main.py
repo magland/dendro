@@ -1,5 +1,8 @@
 import json
-from dendro.sdk import App, ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from pydantic import BaseModel, Field
+
+from dendro.sdk import App, ProcessorBase, InputFile, OutputFile
+
 
 app = App(
     app_name='hello_world',

@@ -1,6 +1,6 @@
 from typing import List
-from ..common.DendroJob import DendroJob
-from ..common.api_requests import set_job_status
+from dendro.common.DendroJob import DendroJob
+from dendro.common.api_requests import set_job_status
 
 
 class JobManager:

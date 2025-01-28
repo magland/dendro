@@ -2,8 +2,9 @@ import os
 import uuid
 import numpy as np
 from typing import List
+from pydantic import BaseModel, Field
 
-from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, InputFile, OutputFile
 
 
 class SpikeSortingPostProcessingContext(BaseModel):

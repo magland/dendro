@@ -1,6 +1,6 @@
 from typing import Union, List
 import time
-from .. import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ComputeClientComputeSlot(BaseModel):

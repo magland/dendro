@@ -1,9 +1,9 @@
 from typing import Any, List, Union, Dict, Type
 from dataclasses import dataclass
 import inspect
-
 from pydantic_core import PydanticUndefined
-from .. import BaseModel
+from pydantic import BaseModel, Field
+
 from .ProcessorBase import ProcessorBase
 from .InputFile import InputFile
 from .OutputFile import OutputFile

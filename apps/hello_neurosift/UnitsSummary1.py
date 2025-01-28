@@ -1,5 +1,7 @@
 import time
-from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from pydantic import BaseModel, Field
+from dendro.sdk import ProcessorBase, InputFile, OutputFile
+
 
 class UnitsSummary1Context(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')

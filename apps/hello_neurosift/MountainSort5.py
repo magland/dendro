@@ -1,6 +1,8 @@
 import os
 import numpy as np
-from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, InputFile, OutputFile
+from pydantic import BaseModel, Field
+
 
 class MountainSort5Context(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb.lindi.tar format')

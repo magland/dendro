@@ -1,7 +1,8 @@
 from typing import List, Union, Any
+from pydantic import BaseModel, Field
 
 from .DendroJob import SpecialJobOutput
-from .. import BaseModel
+
 
 class DendroAppProcessorParameter(BaseModel):
     name: str

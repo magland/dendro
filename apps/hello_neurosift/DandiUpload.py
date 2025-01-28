@@ -1,6 +1,8 @@
 import os
 from datetime import datetime
-from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, InputFile, OutputFile
+from pydantic import BaseModel, Field
+
 
 class DandiUploadContext(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')
