@@ -1,5 +1,7 @@
 import os
-from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, InputFile, OutputFile
+from pydantic import BaseModel, Field
+
 
 class AviToMp4Context(BaseModel):
     input: InputFile = Field(description='Input .avi file')

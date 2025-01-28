@@ -1,7 +1,7 @@
 from typing import Union
 import requests
 import tempfile
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 # from .resolve_dandi_url import resolve_dandi_url
 
 

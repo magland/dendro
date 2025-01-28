@@ -2,7 +2,8 @@ from typing import Union
 import os
 import math
 import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
 from ..common.api_requests import get_upload_url, finalize_multipart_upload, cancel_multipart_upload, set_output_url, api_get_dandi_api_key
 
 

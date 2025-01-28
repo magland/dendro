@@ -1,6 +1,8 @@
 import time
 import numpy as np
-from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from dendro.sdk import ProcessorBase, InputFile, OutputFile
+from pydantic import BaseModel, Field
+
 
 class ImageSeriesToMp4Context(BaseModel):
     input: InputFile = Field(description='Input .avi file')

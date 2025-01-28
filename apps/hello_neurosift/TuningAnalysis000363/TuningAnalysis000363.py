@@ -1,6 +1,7 @@
 from typing import List
 import uuid
-from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from pydantic import BaseModel, Field
+from dendro.sdk import ProcessorBase, InputFile, OutputFile
 
 
 class TuningAnalysis000363Context(BaseModel):

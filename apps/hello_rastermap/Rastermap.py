@@ -1,6 +1,8 @@
 import json
 import numpy as np
-from dendro.sdk import ProcessorBase, BaseModel, Field, InputFile, OutputFile
+from pydantic import BaseModel, Field
+from dendro.sdk import ProcessorBase, InputFile, OutputFile
+
 
 class RastermapContext(BaseModel):
     input: InputFile = Field(description='Input NWB file in .nwb or .nwb.lindi.tar format')

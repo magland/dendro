@@ -8,4 +8,3 @@ from .ProcessorBase import ProcessorBase
 
 from .upload_additional_job_output import upload_additional_job_output
 
-from .. import BaseModel, Field

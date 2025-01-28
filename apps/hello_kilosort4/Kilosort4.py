@@ -1,11 +1,10 @@
 import os
 from dendro.sdk import (
     ProcessorBase,
-    BaseModel,
-    Field,
     InputFile,
-    OutputFile
+    OutputFile,
 )
+from pydantic import BaseModel, Field
 
 
 class Kilosort4Context(BaseModel):
