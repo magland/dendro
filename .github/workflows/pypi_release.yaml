@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      # only run on changes to python/dendro/version.txt
+      # only run on changes to python/src/dendro/version.txt
       - python/src/dendro/version.txt
   # manual trigger
   workflow_dispatch:
@@ -54,7 +54,7 @@ jobs:
         run: |
           git config --global user.email "jmagland@flatironinstitute.org"
           git config --global user.name "Jeremy Magland"
-          git tag -a v$(cat python/dendro/version.txt | tr -d '[:space:]') -m "v$(cat python/src/dendro/version.txt | tr -d '[:space:]')"
+          git tag -a v$(cat python/src/dendro/version.txt | tr -d '[:space:]') -m "v$(cat python/src/dendro/version.txt | tr -d '[:space:]')"
           git push origin --tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
